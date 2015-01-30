@@ -96,7 +96,7 @@ Queue* blocked_resource_q[NUM_PRIORITIES];
 
 void printInt (char c, int i) {
 	#ifdef DEBUG_0
-						printf("%c printInt: %d!\n", c, i);
+						printf("%c printInt: %d!\n\r", c, i);
 	#endif /* DEBUG_0 */
 }
 
@@ -137,10 +137,7 @@ void memory_init(void)
 	MSP->pid = NULL;
 	MSP->next = NULL;
 	
-	printInt('1',(int)(gp_stack - NUM_TEST_PROCS * USR_SZ_STACK));
-	
-	/* allocate memory for heap, not implemented yet here to initialize our memory linked list?*/
-	
+	/* allocate memory for heap, not implemented yet here to initialize our memory linked list?*/	
 	
 	for ( i =(int)( p_end + 4 + BLOCK_SIZE); i < (int)(gp_stack - NUM_TEST_PROCS * USR_SZ_STACK); i+= BLOCK_SIZE ) {
 		Block* current = (Block*)i;
@@ -150,7 +147,7 @@ void memory_init(void)
 	}
 	
 	#ifdef DEBUG_0  
-		printf("NEW RUN \n\n\n\n\n\n\n\n\n", gp_pcbs[0]);
+		printf("\n\n\n\n\n\n\n\n\n\rNEW RUN\n\r");
 	#endif
 
 }
@@ -176,7 +173,6 @@ U32 *alloc_stack(U32 size_b)
 	if ((U32)gp_stack & 0x04) {
 		--gp_stack; 
 	}
-	printInt('a', (int)(gp_stack));
 	return sp;
 }
 
@@ -219,7 +215,7 @@ int k_release_memory_block(void *p_mem_blk) {
 
 	if (released == NULL) {
 		#ifdef DEBUG_0 
-			printf("HEREWREWHLUIRGAEWRGAE");
+			printf("HEREWREWHLUIRGAEWRGAE\n\r");
 		#endif /* ! DEBUG_0 */
 	}
 	//atomic(on);
@@ -231,7 +227,7 @@ int k_release_memory_block(void *p_mem_blk) {
 	MSP = released;
 	
 	#ifdef DEBUG_0 
-		printf("k_release_memory_block: releasing block @ 0x%x\n", p_mem_blk);
+		printf("k_release_memory_block: releasing block @ 0x%x\n\r", p_mem_blk);
 	#endif /* ! DEBUG_0 */
 	
 	/* if (blocked_resource_q.size() > 0) {

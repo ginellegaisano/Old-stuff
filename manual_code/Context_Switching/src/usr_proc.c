@@ -34,7 +34,7 @@ void set_test_procs() {
 void null_process(void) {
 	while (1) {
 		#	ifdef DEBUG_0
-						printf("null!!");			
+						printf("null!!\n\r");			
 			#endif 
 		k_release_processor();
 	}
@@ -48,10 +48,10 @@ void proc1(void)
 {
 	int i = 0;
 	int ret_val = 10;
-	void * meow = k_request_memory_block();
 				#ifdef DEBUG_0
-						printf("proc1!!");			
+						printf("proc1!!\n\r");			
 			#endif 
+	//void * meow = k_request_memory_block();
 	/*void * woof = k_request_memory_block();
 	void * chirp = k_request_memory_block();*/
 
@@ -65,7 +65,7 @@ void proc1(void)
 			ret_val = release_processor();
 			
 			#ifdef DEBUG_0
-						printf("proc1: ret_val=%d\n", ret_val);
+						printf("proc1: ret_val=%d\n\r", ret_val);
 			#endif /* DEBUG_0 */
 		}
 		uart0_put_char('A' + i%26);
@@ -81,13 +81,12 @@ void proc2(void)
 {
 	int i = 0;
 	int ret_val = 20;
-	uart0_put_char('0' + i%10);
 	#ifdef DEBUG_0
-				printf("proc2 1: ret_val=%d\n", ret_val);
+				printf("proc2 1: ret_val=%d\n\r", ret_val);
 			#endif /* DEBUG_0 */
-	//ret_val = k_release_processor();
+	ret_val = k_release_processor();
 	#ifdef DEBUG_0
-				printf("proc2 2: ret_val=%d\n", ret_val);
+				printf("proc2 2: ret_val=%d\n\r", ret_val);
 			#endif /* DEBUG_0 */
 	while (0) {
 		if ( i != 0 && i%5 == 0 ) {
@@ -97,7 +96,6 @@ void proc2(void)
 				printf("proc2: ret_val=%d\n", ret_val);
 			#endif /* DEBUG_0 */
 		}
-		uart0_put_char('0' + i%10);
 		i++;
 	}
 }

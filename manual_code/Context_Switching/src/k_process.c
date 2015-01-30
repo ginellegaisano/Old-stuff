@@ -35,7 +35,7 @@ extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
  */
 void blah () {
 	#ifdef DEBUG_0
-						printf("Blah: \n gp_current_process state= %d!\n", gp_current_process->m_state);
+						printf("Blah: \n\r gp_current_process state= %d!\n\r", gp_current_process->m_state);
 	
 	#endif /* DEBUG_0 */
 }
@@ -43,7 +43,7 @@ void blah () {
 void blah1 (char i) {
 	#ifdef DEBUG_0
 							printf("%c\n\r", i);			
-						printf("Blah123: \n gp_current_process state= %d!\n", gp_current_process->m_state);
+						printf("Blah123: \n\r gp_current_process state= %d!\n\r", gp_current_process->m_state);
 	
 	#endif /* DEBUG_0 */
 }
@@ -114,8 +114,16 @@ int process_switch(PCB *p_pcb_old)
 {
 	PROC_STATE_E state;
 	state = gp_current_process->m_state;
+	printInt('s', gp_current_process->m_state);
+	printInt('t', p_pcb_old->m_state);
+	#	ifdef DEBUG_0
+					printf("wtf?\n\r");
+		#endif
 
 	if (state == NEW) {
+		#	ifdef DEBUG_0
+					printf("NEW?\n\r");
+		#endif
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
 			p_pcb_old->m_state = RDY;
 			p_pcb_old->mp_sp = (U32 *) __get_MSP();
@@ -123,11 +131,13 @@ int process_switch(PCB *p_pcb_old)
 		gp_current_process->m_state = RUN;
 		__set_MSP((U32) gp_current_process->mp_sp);
 		__rte();  // pop exception stack frame from the stack for a new processes
-
-	} 
+	}
 
 	/* The following will only execute if the if block above is FALSE */
 	if (gp_current_process != p_pcb_old) {
+		#	ifdef DEBUG_0
+					printf("gp_current_process != p_pcb_old?\n\r");
+		#endif
 		if (state == RDY){
 			p_pcb_old->m_state = RDY; 
 			p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
@@ -136,7 +146,7 @@ int process_switch(PCB *p_pcb_old)
 		} else {
 			gp_current_process = p_pcb_old; // revert back to the old proc on error
 			return RTX_ERR;
-		} 
+		}
 	}
 	return RTX_OK;
 }
@@ -151,6 +161,8 @@ int k_release_processor(void)
 	int re;
 	p_pcb_old = gp_current_process;
 	gp_current_process = scheduler();
+	printInt('1', gp_current_process);
+	printInt('o', p_pcb_old);
 	
 	if ( gp_current_process == NULL  ) {
 		gp_current_process = p_pcb_old; // revert back to the old process
