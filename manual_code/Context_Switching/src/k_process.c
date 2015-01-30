@@ -17,12 +17,9 @@
 #include <system_LPC17xx.h>
 #include "uart_polling.h"
 #include "k_process.h"
-//REESY SO POPs OH MAYGAWD
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* DEBUG_0 */
-
-//RTX_ERR and RTX_OK are both defined in rtx.h (remember that, okay?) u fukkers
 
 /* ----- Global Variables ----- */
 PCB **gp_pcbs;                  /* array of pcbs */
@@ -45,7 +42,7 @@ void blah () {
 
 void blah1 (char i) {
 	#ifdef DEBUG_0
-							printf("%c\n", i);			
+							printf("%c\n\r", i);			
 						printf("Blah123: \n gp_current_process state= %d!\n", gp_current_process->m_state);
 	
 	#endif /* DEBUG_0 */
@@ -92,16 +89,13 @@ void process_init()
 PCB *scheduler(void)
 {
 	if (gp_current_process == NULL) {
-				blah1('x');
 		gp_current_process = gp_pcbs[0]; 
 		return gp_pcbs[0];
 	}
 
 	if ( gp_current_process == gp_pcbs[0] ) {
-		blah1('y');
 		return gp_pcbs[1];
 	} else if ( gp_current_process == gp_pcbs[1] ) {
-		blah1('z');
 		return gp_pcbs[0];
 	} else {
 		return NULL;
@@ -119,41 +113,31 @@ PCB *scheduler(void)
 int process_switch(PCB *p_pcb_old) 
 {
 	PROC_STATE_E state;
-	blah1('0');
-
 	state = gp_current_process->m_state;
 
 	if (state == NEW) {
-			blah1('1');
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
 			p_pcb_old->m_state = RDY;
 			p_pcb_old->mp_sp = (U32 *) __get_MSP();
 		}
 		gp_current_process->m_state = RUN;
-		blah1('2');
 		__set_MSP((U32) gp_current_process->mp_sp);
-		blah1('7');
 		__rte();  // pop exception stack frame from the stack for a new processes
-		blah1('8');
 
 	} 
 
 	/* The following will only execute if the if block above is FALSE */
 	if (gp_current_process != p_pcb_old) {
-		blah1('3');
 		if (state == RDY){
-			blah1('4');			
 			p_pcb_old->m_state = RDY; 
 			p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 			gp_current_process->m_state = RUN;
 			__set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack    
 		} else {
-			blah1('5');
 			gp_current_process = p_pcb_old; // revert back to the old proc on error
 			return RTX_ERR;
 		} 
 	}
-	blah1('9');
 	return RTX_OK;
 }
 /**
@@ -165,25 +149,17 @@ int k_release_processor(void)
 {
 	PCB *p_pcb_old = NULL;
 	int re;
-	blah1('v');
 	p_pcb_old = gp_current_process;
 	gp_current_process = scheduler();
-	blah1('a');
 	
 	if ( gp_current_process == NULL  ) {
-		blah1('b');
 		gp_current_process = p_pcb_old; // revert back to the old process
 		return RTX_ERR;
 	}
   if ( p_pcb_old == NULL ) {
-		blah1('c');
 		p_pcb_old = gp_current_process;
 	}
 	re = process_switch(p_pcb_old);
-			blah1('d');
-
-			blah1((char)re);
-
 	return RTX_OK;
 }
 

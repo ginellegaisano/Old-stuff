@@ -12,9 +12,11 @@
 #endif /* ! DEBUG_0 */
 
 /* ----- Global Variables ----- */
-U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
-               /* The first stack starts at the RAM high address */
-	       /* stack grows down. Fully decremental stack */
+U32 *gp_stack; 
+/* The last allocated stack low address. 8 bytes aligned */
+/* The first stack starts at the RAM high address */
+/* stack grows down. Fully decremental stack */
+
 typedef struct Block Block;
 struct Block { //fixed size, defined above
 	Block* next;
@@ -66,12 +68,6 @@ Block* MSP;
 Queue* blocked_resource_q[NUM_PRIORITIES];
 /**
  * @brief: Initialize RAM as follows:
-
-
-how many procedures do we have?
-max.
-
-is it num_test_procs?
 
 0x10008000+---------------------------+ High Address
           |    Proc 1 STACK           |
@@ -167,9 +163,7 @@ void memory_init(void)
  * @return: The top of the stack (i.e. high address)
  * POST:  gp_stack is updated.
  */
-//I want to ask if it's going to be variable stack size? process\
-// let's i was going to say email but sure
-	//NOT REALLY
+
 U32 *alloc_stack(U32 size_b) 
 {
 	U32 *sp;

@@ -16,7 +16,6 @@ void k_rtx_init(void)
         uart0_init();   
         memory_init();
         process_init();
-				blah();
         //__enable_irq();
 	
 	/* start the first process */
