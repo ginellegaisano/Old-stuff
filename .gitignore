@@ -1,0 +1,9 @@
+*.axf
+*.htm
+*.map
+*.plg
+*.tra
+*.dep
+*.crf
+*.o
+*.__i
