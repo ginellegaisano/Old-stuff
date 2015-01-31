@@ -244,6 +244,7 @@ void *k_request_memory_block(void) {
 	MSP = MSP->next;
 	//assign process 1 mem block (need to make process table and memory table to assign shit too
 	a->next = NULL;
+	a->pid = gp_current_process->m_pid;
 	
 	//atomic(off);
 	 __enable_irq();
@@ -273,6 +274,7 @@ int k_release_memory_block(void *p_mem_blk) {
 		return RTX_ERR;
 	} else if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
 		#ifdef DEBUG_0 
+			printf("%d == %d\n\r", released->pid, gp_current_process->m_pid);
 			printf("Current process does not own resource.\n\r");
 		#endif /* ! DEBUG_0 */
 			return RTX_ERR;
