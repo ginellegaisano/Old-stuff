@@ -25,6 +25,10 @@ int k_release_process(void);           /* kernel release_process function */
 extern U32 *alloc_stack(U32 size_b);   /* allocate stack for a process */
 extern void __rte(void);               /* pop exception stack frame */
 extern void set_test_procs(void);      /* test process initial set up */
+extern Queue **ready_qs;
+extern void printInt (char c, int i);
+extern void pushToReadyQ (int priority, PCB* p_pcb_old);
+extern void popFromReadyQ (int priority);
 int get_process_priority(int process_id);
 int set_process_priority(int process_id, int priority); 
 

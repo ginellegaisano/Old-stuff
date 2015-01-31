@@ -22,50 +22,66 @@ struct Block { //fixed size, defined above
 	Block* next;
 	int pid;
 } ;
-typedef struct BlockedElement BlockedElement;
 
-struct BlockedElement {
-	PCB* process;
-	BlockedElement* next;
-};
-typedef struct Queue Queue;
-
-struct Queue {
-		BlockedElement* first;
-		BlockedElement* last;
-};
-		
 BlockedElement* pop(Queue* self) {
-	BlockedElement* element = self->first;
-	
-	if (self->first == NULL) {
+
+	BlockedElement* element;
+	#ifdef DEBUG_0
+			printf("pop self: %d!\n\r",self == NULL);
+	#endif /* DEBUG_0 */
+	if (self == NULL || self->first == NULL) {
 		return NULL;
 	}
 	else if (self->first->next == NULL) { //queue only has 1 element
 		self->last = NULL;
 	}
+	element = self->first;
 	self->first = self->first->next;
+		#ifdef DEBUG_0
+			printf("Exiting pop = %d!\n\r");
+	#endif /* DEBUG_0 */
 	return element;
 };
 
 int push(Queue* self,PCB* pcb) {
 	BlockedElement* element;
-	element->process = pcb;
-	element->next = NULL;
-	
+	#ifdef DEBUG_0
+		printf("\t\tpushing things!\n\r");
+		printf("\t\telement: %d\n\r", element != NULL);
+		printf("\t\tself: %d\n\r", self != NULL);
+			printf("\t\tself->first: %d\n\r", self->first != NULL);
+
+	#endif /* DEBUG_0 */
+#ifdef DEBUG_0
+			printf("\t\tchecking state of self now\n\r");
+	#endif /* DEBUG_0 */
 	if (self->first == NULL) { //queue was formerly empty
+		#ifdef DEBUG_0
+			printf("\t\tqueue was formerly empty\n\r");
+	#endif /* DEBUG_0 */
 			self->first = element;
-			self->first->next = NULL;
 	}
 	else {
+		#ifdef DEBUG_0
+			printf("\t\tqueue HAD ELEMENTS\n\r");
+	#endif /* DEBUG_0 */
 		self->last->next = element;
 	}
+
+	element->process = pcb;
+	element->next = NULL;
 	self->last = element;
+	#ifdef DEBUG_0
+			printf("\tEND?\n\r");
+	#endif /* DEBUG_0 */
 	return RTX_OK;
 };
 
 Block* MSP;
-Queue* blocked_resource_q[NUM_PRIORITIES];
+//array of queues, organized by priority
+Queue* blocked_resource_qs[NUM_PRIORITIES]; 
+Queue* ready_qs[NUM_PRIORITIES];
+
 /**
  * @brief: Initialize RAM as follows:
 
@@ -100,6 +116,21 @@ void printInt (char c, int i) {
 	#endif /* DEBUG_0 */
 }
 
+void pushToReadyQ (int priority, PCB* p_pcb_old) {
+	#ifdef DEBUG_0
+			printf("\tpushToReadyQ: %d!\n\r", priority);
+	#endif /* DEBUG_0 */
+	push(ready_qs[priority], p_pcb_old);
+}
+
+void popFromReadyQ (int priority) {
+	#ifdef DEBUG_0
+			printf("\tpopFromReadyQ: %d!\n\r", priority);
+	#endif /* DEBUG_0 */
+	pop(ready_qs[priority]);
+
+}
+
 void memory_init(void)
 {
 	//need to set gp stack at some point 
@@ -108,6 +139,10 @@ void memory_init(void)
 
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	int i;
+	
+	#ifdef DEBUG_0  
+		printf("\n\n\n\n\n\n\n\n\n\rNEW RUN\n\r");
+	#endif
 	/* 4 bytes padding */
 	p_end += 4;
 
@@ -119,16 +154,25 @@ void memory_init(void)
 		p_end += sizeof(PCB); 
 	}
 	
-	/* initializing blocked queue (array of queues, organized by PRIORITY) Currently 1D, will need to eventually be 2D when we have multiple events */
+	/* initializing blocked and ready queues (array of queues, organized by PRIORITY) 
+	Currently 1D for blocked, will need to eventually be 2D when we have multiple events */
 	for ( i = 0; i < NUM_PRIORITIES; i++) {
 		Queue* q = (Queue *)p_end;
-		p_end += sizeof(q);
+		p_end += sizeof(Queue);
 		q->first =NULL;
 		q->last = NULL;
-		blocked_resource_q[i] = q;
+		blocked_resource_qs[i] = q;
 	}
-	/* prepare for alloc_stack() to allocate memory for stacks */
 	
+	for ( i = 0; i < NUM_PRIORITIES; i++) {
+		Queue* q = (Queue *)p_end;
+		p_end += sizeof(Queue);
+		q->first = NULL;
+		q->last = NULL;
+		ready_qs[i] = q;
+	}
+
+	/* prepare for alloc_stack() to allocate memory for stacks */
 	gp_stack = (U32 *)RAM_END_ADDR;
 	if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
 		--gp_stack; 
@@ -145,14 +189,7 @@ void memory_init(void)
 		current->next = MSP;
 		MSP = current;
 	}
-	
-	#ifdef DEBUG_0  
-		printf("\n\n\n\n\n\n\n\n\n\rNEW RUN\n\r");
-	#endif
-
 }
-
-
 
 /**
  * @brief: allocate stack for a process, align to 8 bytes boundary
@@ -177,18 +214,22 @@ U32 *alloc_stack(U32 size_b)
 }
 
 void *k_request_memory_block(void) {
-//	atomic(on);
-
+//	atomic(on); does this mean...disable irq?
 	Block * a = (Block *)MSP;
+	int priority;
+	 __disable_irq();
 
 	while (MSP == NULL) {
-		//get the priority of the current process by looking up pid in process table
-		int priority = g_proc_table[gp_current_process->m_pid-1].m_priority;
-		//push PCB of current process on blocked_resource_q;
-		push(blocked_resource_q[priority], gp_current_process);
+			//get the priority of the current process by looking up pid in process table
+		priority = g_proc_table[gp_current_process->m_pid-1].m_priority;
+		#ifdef DEBUG_0 
+			printf("Request memory: MSP is null.\n\r");
+		#endif /* ! DEBUG_0 */
+		//push PCB of current process on blocked_resource_qs;
+		push(blocked_resource_qs[priority], gp_current_process);
 		//update PCB of current process' state
 		gp_current_process->m_state = BLOCKED_ON_RESOURCE;
-		//release_processor(); //but we don't have access to this function here...
+		//k_release_processor(); //but we don't have access to this function here...
 	}
 	// increment MSP
 	MSP = MSP->next;
@@ -196,6 +237,7 @@ void *k_request_memory_block(void) {
 	a->next = NULL;
 	
 	//atomic(off);
+	 __enable_irq();
 	return (void *) a;
 }
 
@@ -213,15 +255,24 @@ int k_release_memory_block(void *p_mem_blk) {
 	*/
 	Block* released = (Block*)p_mem_blk;
 
+	//atomic(on);
+	
+	#ifdef DEBUG_0 
+			printf("%d == %d?\n\r",released->pid, gp_current_process->m_pid );
+	#endif /* ! DEBUG_0 */
 	if (released == NULL) {
 		#ifdef DEBUG_0 
-			printf("HEREWREWHLUIRGAEWRGAE\n\r");
+			printf("Memory block does not exist.\n\r");
 		#endif /* ! DEBUG_0 */
-	}
-	//atomic(on);
-	if (released == NULL) {
 		return RTX_ERR;
+	} else if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
+		#ifdef DEBUG_0 
+			printf("Current process does not own resource.\n\r");
+		#endif /* ! DEBUG_0 */
+			return RTX_ERR;
 	}
+		__disable_irq();
+
 	released -> next = MSP -> next;
 	released -> pid = NULL;
 	MSP = released;
@@ -235,5 +286,6 @@ int k_release_memory_block(void *p_mem_blk) {
 	}*/
 	
 	//atomic(off);
+	 __enable_irq();
 	return RTX_OK;
 }

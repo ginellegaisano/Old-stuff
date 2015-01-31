@@ -27,5 +27,7 @@ void memory_init(void);
 U32 *alloc_stack(U32 size_b);
 void *k_request_memory_block(void);
 int k_release_memory_block(void *);
-
+void printInt (char c, int i);
+void pushToReadyQ (int priority, PCB* p_pcb_old);
+void popFromReadyQ (int priority);
 #endif /* ! K_MEM_H_ */

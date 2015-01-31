@@ -16,6 +16,7 @@
 
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
+void * testMem;
 
 void set_test_procs() {
 	int i;
@@ -26,9 +27,9 @@ void set_test_procs() {
 		g_test_procs[i].m_is_i=false;
 	}
   
-	g_test_procs[2].mpf_start_pc = &null_process;
+	g_test_procs[0].mpf_start_pc = &null_process;
 	g_test_procs[1].mpf_start_pc = &proc1;
-	g_test_procs[0].mpf_start_pc = &proc2;
+	g_test_procs[2].mpf_start_pc = &proc2;
 }
 
 void null_process(void) {
@@ -36,7 +37,8 @@ void null_process(void) {
 		#	ifdef DEBUG_0
 						printf("null!!\n\r");			
 			#endif 
-		k_release_processor();
+		testMem = request_memory_block();
+		release_processor();
 	}
 }
 
@@ -51,11 +53,12 @@ void proc1(void)
 				#ifdef DEBUG_0
 						printf("proc1!!\n\r");			
 			#endif 
+	release_memory_block(testMem);
 	//void * meow = k_request_memory_block();
 	/*void * woof = k_request_memory_block();
 	void * chirp = k_request_memory_block();*/
 
-	while ( 1) {
+	while (1) {
 		if ( i != 0 && i%5 == 0 ) {
 			uart0_put_string("\n\r");
 		/*k_release_memory_block(meow);
@@ -84,14 +87,14 @@ void proc2(void)
 	#ifdef DEBUG_0
 				printf("proc2 1: ret_val=%d\n\r", ret_val);
 			#endif /* DEBUG_0 */
-	ret_val = k_release_processor();
+	ret_val = release_processor();
 	#ifdef DEBUG_0
 				printf("proc2 2: ret_val=%d\n\r", ret_val);
 			#endif /* DEBUG_0 */
 	while (0) {
 		if ( i != 0 && i%5 == 0 ) {
 			uart0_put_string("!\n\r");
-			//ret_val = release_processor();
+			ret_val = release_processor();
 			#ifdef DEBUG_0
 				printf("proc2: ret_val=%d\n", ret_val);
 			#endif /* DEBUG_0 */

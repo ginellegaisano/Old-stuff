@@ -44,7 +44,8 @@ typedef struct pcb
 	//struct pcb *mp_next;  /* next pcb, not used in this example */  
 	U32 *mp_sp;		/* stack pointer of the process */
 	U32 m_pid;		/* process id */
-	PROC_STATE_E m_state;   /* state of the process */      
+	PROC_STATE_E m_state;   /* state of the process */
+	int m_priority;	
 } PCB;
 
 /* initialization table item */
@@ -56,5 +57,20 @@ typedef struct proc_init
 	void (*mpf_start_pc) ();/* entry point of the process */    
 	bool m_is_i;				/* is process i-process? */
 } PROC_INIT;
+
+typedef struct BlockedElement BlockedElement;
+
+struct BlockedElement {
+	PCB* process;
+	BlockedElement* next;
+};
+
+
+typedef struct Queue Queue;
+
+struct Queue {
+		BlockedElement* first;
+		BlockedElement* last;
+};
 
 #endif // ! K_RTX_H_

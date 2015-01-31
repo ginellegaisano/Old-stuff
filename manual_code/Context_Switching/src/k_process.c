@@ -68,6 +68,7 @@ void process_init()
 		int j;
 		(gp_pcbs[i])->m_pid = (g_proc_table[i]).m_pid;
 		(gp_pcbs[i])->m_state = NEW;
+		(gp_pcbs[i])->m_priority = (g_proc_table[i]).m_priority;
 		
 		sp = alloc_stack((g_proc_table[i]).m_stack_size);
 		*(--sp)  = INITIAL_xPSR;      // user process initial xPSR  
@@ -114,22 +115,26 @@ int process_switch(PCB *p_pcb_old)
 {
 	PROC_STATE_E state;
 	state = gp_current_process->m_state;
-	printInt('s', gp_current_process->m_state);
-	printInt('t', p_pcb_old->m_state);
-	#	ifdef DEBUG_0
-					printf("wtf?\n\r");
-		#endif
-
 	if (state == NEW) {
-		#	ifdef DEBUG_0
-					printf("NEW?\n\r");
-		#endif
+		printInt('q',  p_pcb_old->m_state);
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
+			#	ifdef DEBUG_0
+					printf("\tgp_current_process != p_pcb_old?\n\r");
+		#endif
+			printInt('q',  p_pcb_old->m_pid);
 			p_pcb_old->m_state = RDY;
 			p_pcb_old->mp_sp = (U32 *) __get_MSP();
+			//need to push to respective priority ready queue
+			//need to go to the gp_proc_table to get priority
+			pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
+			printInt('q',  p_pcb_old->m_pid);
 		}
 		gp_current_process->m_state = RUN;
 		__set_MSP((U32) gp_current_process->mp_sp);
+		#	ifdef DEBUG_0
+					printf("rte__!\n\r");
+		#endif
+
 		__rte();  // pop exception stack frame from the stack for a new processes
 	}
 
@@ -142,6 +147,7 @@ int process_switch(PCB *p_pcb_old)
 			p_pcb_old->m_state = RDY; 
 			p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 			gp_current_process->m_state = RUN;
+			pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
 			__set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack    
 		} else {
 			gp_current_process = p_pcb_old; // revert back to the old proc on error
@@ -158,11 +164,8 @@ int process_switch(PCB *p_pcb_old)
 int k_release_processor(void)
 {
 	PCB *p_pcb_old = NULL;
-	int re;
 	p_pcb_old = gp_current_process;
 	gp_current_process = scheduler();
-	printInt('1', gp_current_process);
-	printInt('o', p_pcb_old);
 	
 	if ( gp_current_process == NULL  ) {
 		gp_current_process = p_pcb_old; // revert back to the old process
@@ -171,7 +174,7 @@ int k_release_processor(void)
   if ( p_pcb_old == NULL ) {
 		p_pcb_old = gp_current_process;
 	}
-	re = process_switch(p_pcb_old);
+	process_switch(p_pcb_old);
 	return RTX_OK;
 }
 
