@@ -14,7 +14,7 @@
 #define RTX_OK  0
 
 #define NULL 0
-#define NUM_TEST_PROCS 3
+#define NUM_TEST_PROCS 4
 #define NUM_PRIORITIES 4
 
 #ifdef DEBUG_0

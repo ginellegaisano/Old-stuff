@@ -16,7 +16,7 @@
 
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
-void * testMem;
+int FAILED = 0;
 
 void set_test_procs() {
 	int i;
@@ -26,10 +26,16 @@ void set_test_procs() {
 		g_test_procs[i].m_stack_size=USR_SZ_STACK;
 		g_test_procs[i].m_is_i=false;
 	}
-  
+	
 	g_test_procs[0].mpf_start_pc = &null_process;
-	g_test_procs[1].mpf_start_pc = &proc1;
-	g_test_procs[2].mpf_start_pc = &proc2;
+	g_test_procs[1].mpf_start_pc = &test1;
+	g_test_procs[2].mpf_start_pc = &test2;
+	g_test_procs[3].mpf_start_pc = &test3;
+	g_test_procs[4].mpf_start_pc = &test4;
+	g_test_procs[5].mpf_start_pc = &test5;
+	g_test_procs[6].mpf_start_pc = &test6;
+	g_test_procs[7].mpf_start_pc = &proc1;
+	g_test_procs[8].mpf_start_pc = &proc2;
 }
 
 void null_process(void) {
@@ -37,7 +43,6 @@ void null_process(void) {
 		#	ifdef DEBUG_0
 						printf("null!!\n\r");			
 			#endif 
-		testMem = request_memory_block();
 		release_processor();
 	}
 }
@@ -53,17 +58,10 @@ void proc1(void)
 				#ifdef DEBUG_0
 						printf("proc1!!\n\r");			
 			#endif 
-	release_memory_block(testMem);
-	//void * meow = k_request_memory_block();
-	/*void * woof = k_request_memory_block();
-	void * chirp = k_request_memory_block();*/
 
 	while (1) {
 		if ( i != 0 && i%5 == 0 ) {
 			uart0_put_string("\n\r");
-		/*k_release_memory_block(meow);
-			k_release_memory_block(woof);
-			k_release_memory_block(chirp);*/
 
 			ret_val = release_processor();
 			
@@ -101,4 +99,106 @@ void proc2(void)
 		}
 		i++;
 	}
+}
+
+/**
+ * @brief: a process that tests the allocation and deallocation of a memory block
+ */
+void test1(void){
+	
+	int failed = 0;
+	int initial;
+	int final;
+	void * requested;
+	
+	initial = getMSP();
+
+	requested = request_memory_block();
+	
+	final = getMSP();
+	
+	if(initial - final != 128) {
+		failed = failed + 1;
+	}
+	release_memory_block(requested);
+	if(initial != getMSP()) {
+		failed = failed + 1;
+	}
+	
+	if(failed == 0){
+		printf("G099_test: test 1 OK\n\r");
+	} else {
+		printf("G099_test: test 1 FAIL\n\r");
+		FAILED ++;
+	}
+	
+	while(1) {
+		release_processor();
+	}
+}
+
+void test2(void){
+	int failed = 0;
+	int initial = 0;
+	int final = 0; 
+	
+	initial = (int)get_process_priority(1);
+	set_process_priority(1,2);
+	final = get_process_priority (1);
+	
+	printf("initial = %d\n\r", initial);
+	printf("final = %d\n\r", final);
+	
+	if(initial == final || final != 2) {
+		failed = failed + 1;
+	}
+	
+	if(failed == 0){
+		printf("G099_test: test 2 OK\n\r");
+	} else {
+		printf("G099_test: test 2 FAIL\n\r");
+		FAILED ++;
+	}
+	
+	while(1) {
+		release_processor();
+	}
+	
+}
+
+/**
+ * @brief: a process that tests 
+ */
+void test3(void){
+		while(1) {
+		release_processor();
+	}
+	
+}
+/**
+ * @brief: a process that tests 
+ */
+void test4(void){
+		while(1) {
+		release_processor();
+	}
+	
+}
+/**
+ * @brief: a process that tests 
+ */
+void test5(void){
+		while(1) {
+		release_processor();
+	}
+	
+}
+/**
+ * @brief: a process that tests 
+ */
+void test6(void){
+		while(1) {
+		release_processor();
+	}
+	
 }

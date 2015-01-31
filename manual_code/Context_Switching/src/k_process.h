@@ -11,6 +11,7 @@
 #define K_PROCESS_H_
 
 #include "k_rtx.h"
+#include "k_memory.h"
 
 /* ----- Definitions ----- */
 
@@ -29,7 +30,8 @@ extern Queue **ready_qs;
 extern void printInt (char c, int i);
 extern void pushToReadyQ (int priority, PCB* p_pcb_old);
 extern void popFromReadyQ (int priority);
-int get_process_priority(int process_id);
-int set_process_priority(int process_id, int priority); 
+
+int k_get_process_priority(int process_id);
+int k_set_process_priority(int process_id, int priority); 
 
 #endif /* ! K_PROCESS_H_ */

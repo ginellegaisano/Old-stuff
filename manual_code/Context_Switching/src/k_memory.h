@@ -30,4 +30,7 @@ int k_release_memory_block(void *);
 void printInt (char c, int i);
 void pushToReadyQ (int priority, PCB* p_pcb_old);
 void popFromReadyQ (int priority);
+void k_printMSP (void);
+int getMSP (void);
+
 #endif /* ! K_MEM_H_ */

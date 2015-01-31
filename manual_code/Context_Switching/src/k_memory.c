@@ -112,7 +112,7 @@ Queue* ready_qs[NUM_PRIORITIES];
 
 void printInt (char c, int i) {
 	#ifdef DEBUG_0
-						printf("%c printInt: %d!\n\r", c, i);
+						printf("%c printInt: %d\n\r", c, i);
 	#endif /* DEBUG_0 */
 }
 
@@ -128,7 +128,16 @@ void popFromReadyQ (int priority) {
 			printf("\tpopFromReadyQ: %d!\n\r", priority);
 	#endif /* DEBUG_0 */
 	pop(ready_qs[priority]);
+}
+	
+void k_printMSP (void) {
+	#ifdef DEBUG_0
+						printf("MSP: 0x%x\n\r", MSP);
+	#endif /* DEBUG_0 */
+}
 
+int getMSP (void) {
+	return (int)MSP;
 }
 
 void memory_init(void)
@@ -256,10 +265,7 @@ int k_release_memory_block(void *p_mem_blk) {
 	Block* released = (Block*)p_mem_blk;
 
 	//atomic(on);
-	
-	#ifdef DEBUG_0 
-			printf("%d == %d?\n\r",released->pid, gp_current_process->m_pid );
-	#endif /* ! DEBUG_0 */
+
 	if (released == NULL) {
 		#ifdef DEBUG_0 
 			printf("Memory block does not exist.\n\r");

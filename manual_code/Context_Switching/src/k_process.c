@@ -89,18 +89,12 @@ void process_init()
 
 PCB *scheduler(void)
 {
-	if (gp_current_process == NULL) {
-		gp_current_process = gp_pcbs[0]; 
-		return gp_pcbs[0];
-	}
-
-	if ( gp_current_process == gp_pcbs[0] ) {
+	if (gp_current_process == NULL || gp_current_process == gp_pcbs[0] || gp_current_process == gp_pcbs[8]) {
+		gp_current_process = gp_pcbs[1]; 
 		return gp_pcbs[1];
-	} else if ( gp_current_process == gp_pcbs[1] ) {
-		return gp_pcbs[0];
-	} else {
-		return NULL;
 	}
+	
+	return gp_pcbs[(int)gp_current_process->m_pid];
 }
 
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
@@ -115,8 +109,8 @@ int process_switch(PCB *p_pcb_old)
 {
 	PROC_STATE_E state;
 	state = gp_current_process->m_state;
+
 	if (state == NEW) {
-		printInt('q',  p_pcb_old->m_state);
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
 			#	ifdef DEBUG_0
 					printf("\tgp_current_process != p_pcb_old?\n\r");
@@ -140,9 +134,6 @@ int process_switch(PCB *p_pcb_old)
 
 	/* The following will only execute if the if block above is FALSE */
 	if (gp_current_process != p_pcb_old) {
-		#	ifdef DEBUG_0
-					printf("gp_current_process != p_pcb_old?\n\r");
-		#endif
 		if (state == RDY){
 			p_pcb_old->m_state = RDY; 
 			p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
@@ -183,12 +174,14 @@ int k_release_processor(void)
  * @param process_id the pid of the requested process
  * @return priority value of process
  */
-int get_process_priority(int process_id) {
-	if (process_id < 0 || process_id > NUM_TEST_PROCS)
+int k_get_process_priority(int process_id) {
+	if (process_id < 0 || process_id > NUM_TEST_PROCS){
 		return -1;
-	return g_proc_table[process_id].m_priority;
+	}
+	return (int)g_proc_table[process_id].m_priority;
 }
-int set_process_priority(int process_id, int priority){
+
+int k_set_process_priority(int process_id, int priority){
 	if (process_id < 0 || process_id > NUM_TEST_PROCS)
 		return RTX_ERR;
 	g_proc_table[process_id].m_priority = priority;

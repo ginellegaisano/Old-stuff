@@ -221,6 +221,7 @@ void init_printf(void* putp,void (*putf) (void*,char))
 void tfp_printf(char *fmt, ...)
 	{
 	va_list va;
+
 	va_start(va,fmt);
 	tfp_format(stdout_putp,stdout_putf,fmt,va);
 	va_end(va);
