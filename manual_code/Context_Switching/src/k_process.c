@@ -104,10 +104,11 @@ int process_switch(PCB *p_pcb_old)
 {
 	PROC_STATE_E state;
 	state = gp_current_process->m_state;
-				printf("test %d \n\r",gp_current_process->m_state);
-				printf("current PID: %d\n\r" ,gp_current_process->m_pid);
-				printf("old PID: %d\n\r" ,p_pcb_old->m_pid);	
-	if (state == NEW) {printf("OY I DIED HERE!"};
+				//printf("test %d \n\r",gp_current_process->m_state);
+				//printf("current PID: %d\n\r" ,gp_current_process->m_pid);
+				//printf("old PID: %d\n\r" ,p_pcb_old->m_pid);	
+	//if (state == BLOCKED_ON_RESOURCE) {printf("OY I DIED HERE!");}
+
 	if (state == NEW) {
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
 
