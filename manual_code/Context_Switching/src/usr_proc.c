@@ -28,8 +28,20 @@ struct LinkedElement {
 		void* next;
 };
 
-void set_test_procs() {
+void printTest() {
+	#ifdef DEBUG_0
+						printf("G026_test: ");
+	#endif /* DEBUG_0 */
+}
+
+void set_test_procs() {\
 	int i;
+	
+	printTest();
+	printf("START\n\r");
+	printTest();
+	printf("total %d tests\n\r", NUM_TEST_PROCS - 3);
+	
 	for( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		g_test_procs[i].m_pid=(U32)(i+1);
 		g_test_procs[i].m_priority=LOWEST;
@@ -52,9 +64,6 @@ void set_test_procs() {
 
 void null_process(void) {
 	while (1) {
-		#	ifdef DEBUG_0
-						printf("null!!\n\r");			
-			#endif 
 		release_processor();
 	}
 }
@@ -65,8 +74,7 @@ void null_process(void) {
  */
 void proc1(void)
 {
-	release_memory_block(test5_mem);
-	set_process_priority(7, LOWEST);
+
 	while (1) {
 			release_processor();
 	}
@@ -78,13 +86,7 @@ void proc1(void)
  */
 void proc2(void)
 {
-	void * requested;
-	//set priority 0
-	set_process_priority(8,MEDIUM);
-	//call for memory -> will be blocked
-	requested = request_memory_block();
-	//release memory
-	release_memory_block(requested);
+	
 	//release process
 	while(1) {
 		release_processor();
@@ -136,16 +138,16 @@ void test1(void){
 	}
 	
 	iterator = getReadyQ(3)->first;
-	printf("\n\rfirst1->m_pid: %d\n\r", iterator->m_pid);
 	while(iterator->next != NULL) {
 		iterator = iterator->next;
-		printf("iterator->m_pid: %d\n\r", iterator->m_pid);
 	}
 	
 	if(failed == 0){
-		printf("G026_test: test 1 OK\n\r");
+		printTest();
+		printf("test 1 OK\n\r");
 	} else {
-		printf("G026_test: test 1 FAIL\n\r");
+		printTest();
+		printf("test 1 FAIL\n\r");
 		FAILED ++;
 	}
 	
@@ -180,7 +182,6 @@ void test2(void){
 		iterator = iterator->next;
 	}
 	if (iterator != NULL) {
-		printf("found in ready_qs[%d]\n\r", initial);
 		failed = failed + 1;
 	}
 	iterator = getReadyQ(final)->first;
@@ -188,12 +189,10 @@ void test2(void){
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
-		printf("not found in ready_qs[%d]\n\r", final);
 		failed = failed + 1;
 	}
 	
 	if(initial == final || final != 2) {
-		printf("priorities are fucked\n\r", initial);
 		failed = failed + 1;
 	}
 	initial = set_process_priority(1,10);
@@ -204,16 +203,16 @@ void test2(void){
 	set_process_priority(1,LOWEST);
 	
 	iterator = getReadyQ(3)->first;
-	printf("\n\rfirst2->m_pid: %d\n\r", iterator->m_pid);
 	while(iterator->next != NULL) {
 		iterator = iterator->next;
-		printf("iterator->m_pid: %d\n\r", iterator->m_pid);
 	}
 	
 	if(failed == 0){
-		printf("G026_test: test 2 OK\n\r");
+		printTest();
+		printf("test 2 OK\n\r");
 	} else {
-		printf("G026_test: test 2 FAIL\n\r");
+		printTest();
+		printf("test 2 FAIL\n\r");
 		FAILED ++;
 	}
 	set_process_priority(1,LOWEST);
@@ -244,18 +243,23 @@ void test3(void){
 	}
 	
 	iterator = getReadyQ(3)->first;
-	printf("first3->m_pid: %d\n\r", iterator->m_pid);
 	while(iterator->next != NULL) {
 		iterator = iterator->next;
-		printf("iterator->m_pid: %d\n\r", iterator->m_pid);
 	}
 	
 	if(failed == 0){
-		printf("G026_test: test 3 OK\n\r");
+		printTest();
+		printf("test 3 OK\n\r");
 	} else {
-		printf("G026_test: test 3 FAIL\n\r");
+		printTest();
+		printf("test 3 FAIL\n\r");
 		FAILED ++;
 	}
+	
+	release_processor();
+	
+	release_memory_block(test5_mem);
+	set_process_priority(3, LOWEST);
 	
 	while(1) {
 		release_processor();
@@ -272,7 +276,7 @@ void test4(void){
 	test5_mem = requested;
 
 	//shove back on to ready queue
-	set_process_priority(7,HIGH);
+	set_process_priority(3,HIGH);
 	set_process_priority(4,HIGH);
 
 	release_processor();
@@ -283,11 +287,21 @@ void test4(void){
 	release_memory_block(requested);
 
 	if(failed == 0){
-		printf("G026_test: test 4 OK\n\r");
+		printTest();
+		printf("test 4 OK\n\r");
 	} else {
-		printf("G026_test: test 4 FAIL\n\r");
+		printTest();
+		printf("test 4 FAIL\n\r");
 		FAILED ++;
 	}
+	release_processor();
+	//set priority 0
+	set_process_priority(4,MEDIUM);
+	//call for memory -> will be blocked
+	requested = request_memory_block();
+	//release memory
+	release_memory_block(requested);
+	
 		while(1) {
 		release_processor();
 	}
@@ -305,7 +319,7 @@ void test5(void){
 	int failed = 0;
 	//set priority 0
 	set_process_priority(5,MEDIUM);
-	set_process_priority(8,MEDIUM);
+	set_process_priority(4,MEDIUM);
 	//release_processor();
 	//fills up the memory block array. Also requests ALL memory.
 	for (i = 0; i < number_mem_blocks - 2; i ++){
@@ -318,8 +332,6 @@ void test5(void){
 	//fail if blocked q is empty
 	if(getBlockedResourceQ(MEDIUM) == NULL &&
 		getBlockedResourceQ(MEDIUM)->first == NULL ){
-			printf("\t\t\t\t\t\tgetBlockedResourceQ(MEDIUM) == NULL: %d\n\r", getBlockedResourceQ(MEDIUM) == NULL);
-			printf("\t\t\t\t\t\tgetBlockedResourceQ(MEDIUM)->first == NULL: %d\n\r", getBlockedResourceQ(MEDIUM)->first == NULL);
 		failed ++;
 	}
 	
@@ -333,19 +345,19 @@ void test5(void){
 	//back from 2, check blocked q
 	//fail if blocked q IS NOT empty and not mot moved to the ready queue
 	if(getBlockedResourceQ(MEDIUM) != NULL && getBlockedResourceQ(MEDIUM)->first != NULL ){	
-printf("getBlockedResourceQ(MEDIUM) != NULL: %d\n\r", getBlockedResourceQ(MEDIUM) != NULL);
-			printf("getBlockedResourceQ(MEDIUM)->first != NULL: %d\n\r", getBlockedResourceQ(MEDIUM)->first != NULL);
 		failed ++;
 	}
 	
 	if(failed == 0){
-		printf("G026_test: test 5 OK\n\r");
+		printTest();
+		printf("test 5 OK\n\r");
 	} else {
-		printf("G026_test: test 5 FAIL\n\r");
+		printTest();
+		printf("test 5 FAIL\n\r");
 		FAILED ++;
 	}
 		set_process_priority(5,LOWEST);
-	set_process_priority(8,LOWEST);
+	set_process_priority(4,LOWEST);
 
 	while(1) {
 		release_processor();
