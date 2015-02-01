@@ -33,21 +33,6 @@ extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
  * @biref: initialize all processes in the system
  * NOTE: We assume there are only two user processes in the system in this example.
  */
-void blah () {
-	#ifdef DEBUG_0
-						printf("Blah: \n\r gp_current_process state= %d!\n\r", gp_current_process->m_state);
-	
-	#endif /* DEBUG_0 */
-}
-
-void blah1 (char i) {
-	#ifdef DEBUG_0
-							printf("%c\n\r", i);			
-						printf("Blah123: \n\r gp_current_process state= %d!\n\r", gp_current_process->m_state);
-	
-	#endif /* DEBUG_0 */
-}
-
 void process_init() 
 {
 	int i;
@@ -62,11 +47,14 @@ void process_init()
 		g_proc_table[i].mpf_start_pc = g_test_procs[i].mpf_start_pc;
 		g_proc_table[i].m_is_i = g_test_procs[i].m_is_i;
 	}
-  
+  #ifdef DEBUG_0
+						printf("finished setting the proc table\n\r");
+	#endif /* DEBUG_0 */
 	/* initilize exception stack frame (i.e. initial context) for each process */
 	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		int j;
-		(gp_pcbs[i])->m_pid = (g_proc_table[i]).m_pid;
+		(gp_pcbs[i])->m_pid = (int)(g_proc_table[i]).m_pid;
+		printInt('a', (gp_pcbs[i])->m_pid);
 		(gp_pcbs[i])->m_state = NEW;
 		(gp_pcbs[i])->m_priority = (g_proc_table[i]).m_priority;
 		
@@ -77,7 +65,19 @@ void process_init()
 			*(--sp) = 0x0;
 		}
 		(gp_pcbs[i])->mp_sp = sp;
+		printInt('b', (gp_pcbs[i])->m_pid);
+		pushToReadyQ((g_proc_table[i]).m_priority, gp_pcbs[i]);
+		printInt('c', (gp_pcbs[i])->m_pid);
+				#ifdef DEBUG_0
+						printf("PUSH\n\r");
+	#endif /* DEBUG_0 */
+
 	}
+	printInt('1', (gp_pcbs[1])->m_pid);
+
+	#ifdef DEBUG_0
+						printf("woot done process init\n\r");
+	#endif /* DEBUG_0 */
 }
 
 /*@brief: scheduler, pick the pid of the next to run process
@@ -89,12 +89,28 @@ void process_init()
 
 PCB *scheduler(void)
 {
-	if (gp_current_process == NULL || gp_current_process == gp_pcbs[0] || gp_current_process == gp_pcbs[8]) {
-		gp_current_process = gp_pcbs[1]; 
-		return gp_pcbs[1];
+	PCB* element;
+	int i;
+	#ifdef DEBUG_0
+						printf("scheduler\n\r");
+	#endif /* DEBUG_0 */
+	for (i = 0; i < NUM_PRIORITIES; i++) {
+		element = popFromReadyQ(i);
+		if (element != NULL) {
+			if (gp_current_process == NULL) {
+				printInt('j', element->m_pid);
+				gp_current_process = element;
+			}
+			#ifdef DEBUG_0
+						printf("returning element->process\n\r");
+	#endif /* DEBUG_0 */
+			return element;
+		}
 	}
-	
-	return gp_pcbs[(int)gp_current_process->m_pid];
+	#ifdef DEBUG_0
+						printf("returning null\n\r");
+	#endif /* DEBUG_0 */
+	return NULL;
 }
 
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
@@ -109,32 +125,35 @@ int process_switch(PCB *p_pcb_old)
 {
 	PROC_STATE_E state;
 	state = gp_current_process->m_state;
+	#ifdef DEBUG_0
+						printf("process_switch!!!\n\r");
+	#endif /* DEBUG_0 */
 
 	if (state == NEW) {
+		
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
-			#	ifdef DEBUG_0
-					printf("\tgp_current_process != p_pcb_old?\n\r");
-		#endif
-			printInt('q',  p_pcb_old->m_pid);
 			p_pcb_old->m_state = RDY;
 			p_pcb_old->mp_sp = (U32 *) __get_MSP();
 			//need to push to respective priority ready queue
 			//need to go to the gp_proc_table to get priority
 			pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
-			printInt('q',  p_pcb_old->m_pid);
 		}
 		gp_current_process->m_state = RUN;
+		printInt('i', gp_current_process->m_pid);
 		__set_MSP((U32) gp_current_process->mp_sp);
-		#	ifdef DEBUG_0
-					printf("rte__!\n\r");
-		#endif
 
 		__rte();  // pop exception stack frame from the stack for a new processes
 	}
 
 	/* The following will only execute if the if block above is FALSE */
 	if (gp_current_process != p_pcb_old) {
+		#ifdef DEBUG_0
+						printf("process_switch\n\r");
+	#endif /* DEBUG_0 */
 		if (state == RDY){
+			#ifdef DEBUG_0
+						printf("ready?\n\r");
+	#endif /* DEBUG_0 */
 			p_pcb_old->m_state = RDY; 
 			p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 			gp_current_process->m_state = RUN;
@@ -155,15 +174,30 @@ int process_switch(PCB *p_pcb_old)
 int k_release_processor(void)
 {
 	PCB *p_pcb_old = NULL;
+	#ifdef DEBUG_0
+						printf("release the process!\n\r");
+	#endif /* DEBUG_0 */
 	p_pcb_old = gp_current_process;
-	gp_current_process = scheduler();
 	
+	gp_current_process = scheduler();
+	#ifdef DEBUG_0
+						printf("release the process!\n\r");
+	#endif /* DEBUG_0 */
 	if ( gp_current_process == NULL  ) {
+		#ifdef DEBUG_0
+						printf("gp_current_process is null!\n\r");
+	#endif /* DEBUG_0 */
 		gp_current_process = p_pcb_old; // revert back to the old process
 		return RTX_ERR;
 	}
   if ( p_pcb_old == NULL ) {
+		#ifdef DEBUG_0
+						printf("p_pcb_old is null!\n\r");
+	#endif /* DEBUG_0 */
 		p_pcb_old = gp_current_process;
+		gp_current_process->m_state = RUN;
+		__set_MSP((U32) gp_current_process->mp_sp);
+		__rte();
 	}
 	process_switch(p_pcb_old);
 	return RTX_OK;
@@ -182,7 +216,7 @@ int k_get_process_priority(int process_id) {
 }
 
 int k_set_process_priority(int process_id, int priority){
-	if (process_id < 0 || process_id > NUM_TEST_PROCS)
+	if (process_id < 0 || process_id > NUM_TEST_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
 	g_proc_table[process_id].m_priority = priority;
 	return RTX_OK;

@@ -29,7 +29,7 @@ extern void set_test_procs(void);      /* test process initial set up */
 extern Queue **ready_qs;
 extern void printInt (char c, int i);
 extern void pushToReadyQ (int priority, PCB* p_pcb_old);
-extern void popFromReadyQ (int priority);
+extern PCB* popFromReadyQ (int priority);
 
 int k_get_process_priority(int process_id);
 int k_set_process_priority(int process_id, int priority); 

@@ -19,6 +19,5 @@ void k_rtx_init(void)
         __enable_irq();
 	
 	/* start the first process */
-	
         k_release_processor();
 }

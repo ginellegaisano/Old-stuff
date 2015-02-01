@@ -28,6 +28,7 @@ void set_test_procs() {
 	}
 	
 	g_test_procs[0].mpf_start_pc = &null_process;
+	g_test_procs[0].m_priority = 4;
 	g_test_procs[1].mpf_start_pc = &test1;
 	g_test_procs[2].mpf_start_pc = &test2;
 	g_test_procs[3].mpf_start_pc = &test3;
@@ -146,9 +147,6 @@ void test2(void){
 	set_process_priority(1,2);
 	final = get_process_priority (1);
 	
-	printf("initial = %d\n\r", initial);
-	printf("final = %d\n\r", final);
-	
 	if(initial == final || final != 2) {
 		failed = failed + 1;
 	}
@@ -176,10 +174,12 @@ void test3(void){
 	
 }
 /**
- * @brief: a process that tests 
+ * @brief: a process that tests the out of memory exception
  */
 void test4(void){
-		while(1) {
+	
+	
+	while(1) {
 		release_processor();
 	}
 	

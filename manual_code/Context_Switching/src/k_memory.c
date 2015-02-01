@@ -23,57 +23,24 @@ struct Block { //fixed size, defined above
 	int pid;
 } ;
 
-BlockedElement* pop(Queue* self) {
+PCB* pop(Queue* self) {
 
-	BlockedElement* element;
-	#ifdef DEBUG_0
-			printf("pop self: %d!\n\r",self == NULL);
-	#endif /* DEBUG_0 */
-	if (self == NULL || self->first == NULL) {
-		return NULL;
+	BlockedElement* element = self->first;
+	PCB *process = element->process;
+  if (self->first != self->last) {
+		self->first = self->first->next;
+		element->next = self->last->next;
+		self->last->next = element;
+		element->process = NULL;
 	}
-	else if (self->first->next == NULL) { //queue only has 1 element
-		self->last = NULL;
-	}
-	element = self->first;
-	self->first = self->first->next;
-		#ifdef DEBUG_0
-			printf("Exiting pop = %d!\n\r");
-	#endif /* DEBUG_0 */
-	return element;
+
+	return process;
 };
 
-int push(Queue* self,PCB* pcb) {
-	BlockedElement* element;
-	#ifdef DEBUG_0
-		printf("\t\tpushing things!\n\r");
-		printf("\t\telement: %d\n\r", element != NULL);
-		printf("\t\tself: %d\n\r", self != NULL);
-			printf("\t\tself->first: %d\n\r", self->first != NULL);
-
-	#endif /* DEBUG_0 */
-#ifdef DEBUG_0
-			printf("\t\tchecking state of self now\n\r");
-	#endif /* DEBUG_0 */
-	if (self->first == NULL) { //queue was formerly empty
-		#ifdef DEBUG_0
-			printf("\t\tqueue was formerly empty\n\r");
-	#endif /* DEBUG_0 */
-			self->first = element;
-	}
-	else {
-		#ifdef DEBUG_0
-			printf("\t\tqueue HAD ELEMENTS\n\r");
-	#endif /* DEBUG_0 */
-		self->last->next = element;
-	}
-
-	element->process = pcb;
-	element->next = NULL;
-	self->last = element;
-	#ifdef DEBUG_0
-			printf("\tEND?\n\r");
-	#endif /* DEBUG_0 */
+int push(Queue* self, PCB* pcb) {
+	//element = {pcb, NULL};
+	self->last->process = pcb;
+	self->last = self->last->next;
 	return RTX_OK;
 };
 
@@ -117,17 +84,11 @@ void printInt (char c, int i) {
 }
 
 void pushToReadyQ (int priority, PCB* p_pcb_old) {
-	#ifdef DEBUG_0
-			printf("\tpushToReadyQ: %d!\n\r", priority);
-	#endif /* DEBUG_0 */
 	push(ready_qs[priority], p_pcb_old);
 }
 
-void popFromReadyQ (int priority) {
-	#ifdef DEBUG_0
-			printf("\tpopFromReadyQ: %d!\n\r", priority);
-	#endif /* DEBUG_0 */
-	pop(ready_qs[priority]);
+PCB* popFromReadyQ (int priority) {
+	return pop(ready_qs[priority]);
 }
 	
 void k_printMSP (void) {
@@ -148,6 +109,7 @@ void memory_init(void)
 
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	int i;
+	int q;
 	
 	#ifdef DEBUG_0  
 		printf("\n\n\n\n\n\n\n\n\n\rNEW RUN\n\r");
@@ -163,23 +125,58 @@ void memory_init(void)
 		p_end += sizeof(PCB); 
 	}
 	
+	#ifdef DEBUG_0
+			printf("p_end: 0x%x\n\r", p_end);
+	#endif /* DEBUG_0 */
+	
 	/* initializing blocked and ready queues (array of queues, organized by PRIORITY) 
 	Currently 1D for blocked, will need to eventually be 2D when we have multiple events */
-	for ( i = 0; i < NUM_PRIORITIES; i++) {
-		Queue* q = (Queue *)p_end;
+	for (i = 0; i < NUM_PRIORITIES; i++) {
+		Queue* q1 = (Queue *)p_end;
 		p_end += sizeof(Queue);
-		q->first =NULL;
-		q->last = NULL;
-		blocked_resource_qs[i] = q;
+		q1->first = NULL;
+		q1->last = NULL;
+		for (q = 0; q < NUM_TEST_PROCS; q++) {
+			
+			BlockedElement *element = (BlockedElement *)p_end;
+			p_end += sizeof(BlockedElement);
+			if (q1->first == NULL) {
+				q1->first = element;
+			}
+			element->process = NULL;
+			element->next = q1->last;
+			q1->last = element;
+		}
+
+		q1->last = q1->first;
+		blocked_resource_qs[i] = q1;
 	}
 	
 	for ( i = 0; i < NUM_PRIORITIES; i++) {
-		Queue* q = (Queue *)p_end;
+		Queue* q2 = (Queue *)p_end;
 		p_end += sizeof(Queue);
-		q->first = NULL;
-		q->last = NULL;
-		ready_qs[i] = q;
+		q2->first = NULL;
+		q2->last = NULL;
+		
+		for (q = 0; q < NUM_TEST_PROCS; q++) {
+			BlockedElement *element = (BlockedElement *)p_end;
+			p_end += sizeof(BlockedElement);
+			if (q2->first == NULL) {
+				q2->first = element;
+			}
+			element->process = NULL;
+			element->next = q2->last;
+			q2->last = element;
+		}
+		
+		q2->last = q2->first;
+		
+		ready_qs[i] = q2;
 	}
+	#ifdef DEBUG_0
+			printf("p_end: 0x%x\n\r", p_end);
+	#endif /* DEBUG_0 */
+
 
 	/* prepare for alloc_stack() to allocate memory for stacks */
 	gp_stack = (U32 *)RAM_END_ADDR;
@@ -226,7 +223,6 @@ void *k_request_memory_block(void) {
 //	atomic(on); does this mean...disable irq?
 	Block * a = (Block *)MSP;
 	int priority;
-	 __disable_irq();
 
 	while (MSP == NULL) {
 			//get the priority of the current process by looking up pid in process table
@@ -238,8 +234,10 @@ void *k_request_memory_block(void) {
 		push(blocked_resource_qs[priority], gp_current_process);
 		//update PCB of current process' state
 		gp_current_process->m_state = BLOCKED_ON_RESOURCE;
-		//k_release_processor(); //but we don't have access to this function here...
+		//release_processor(); //but we don't have access to this function here...
 	}
+
+	__disable_irq();
 	// increment MSP
 	MSP = MSP->next;
 	//assign process 1 mem block (need to make process table and memory table to assign shit too
