@@ -62,8 +62,7 @@ void null_process(void) {
 }
 
 /**
- * @brief: a process that prints five uppercase letters
- *         and then yields the cpu.
+ * @brief: Empty Procedure
  */
 void proc1(void)
 {
@@ -74,8 +73,7 @@ void proc1(void)
 }
 
 /**
- * @brief: a process that prints five numbers
- *         and then yields the cpu.
+ * @brief: Empty Procedure
  */
 void proc2(void)
 {
@@ -84,25 +82,6 @@ void proc2(void)
 	while(1) {
 		release_processor();
 	}
-	/*int i = 0;
-	int ret_val = 20;
-	#ifdef DEBUG_0
-				printf("proc2 1: ret_val=%d\n\r", ret_val);
-			#endif /
-	ret_val = release_processor();
-	#ifdef DEBUG_0
-				printf("proc2 2: ret_val=%d\n\r", ret_val);
-			#endif 
-	while (0) {
-		if ( i != 0 && i%5 == 0 ) {
-			uart0_put_string("!\n\r");
-			ret_val = release_processor();
-			#ifdef DEBUG_0
-				printf("proc2: ret_val=%d\n", ret_val);
-			#endif 
-		}
-		i++;
-	}*/
 }
 
 /**

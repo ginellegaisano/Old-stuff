@@ -8,6 +8,7 @@
 #ifndef USR_PROC_H_
 #define USR_PROC_H
 
+/* ----- Extern ----- */
 extern int getMSP (void);
 extern Queue **ready_qs;
 extern PCB **gp_pcbs;
@@ -16,6 +17,7 @@ extern void pushToReadyQ (int priority, PCB* p_pcb_old);
 extern Queue* getBlockedResourceQ(int priority);
 extern PCB *scheduler(void);
 
+/* ----- Functions ----- */
 void set_test_procs(void);
 void null_process(void);
 void proc1(void);

@@ -20,13 +20,13 @@
 void process_init(void);               	/* initialize all procs in the system */
 PCB *scheduler(void);                  	/* pick the pid of the next to run process */
 int k_release_process(void);           	/* kernel release_process function */
+extern Queue **ready_qs;								/* ready queue*/
+extern Queue **blocked_resource_qs;			/* blocked resources queue*/
 
 extern U32 *alloc_stack(U32 size_b);  	/* allocate stack for a process */
 extern void __rte(void);             	  /* pop exception stack frame */
 extern void set_test_procs(void);     	/* test process initial set up */
-extern PCB* pop(Queue* self);
-extern Queue **ready_qs;								/* ready queue*/
-extern Queue **blocked_resource_qs;			/* blocked resources queue*/
+extern PCB* pop(Queue* self);						/* pop from anu queue structure*/
 extern void pushToReadyQ (int priority, PCB* p_pcb_old);
 extern void push (Queue* queue, PCB* p_pcb_old);
 extern PCB* popFromReadyQ (int priority);
