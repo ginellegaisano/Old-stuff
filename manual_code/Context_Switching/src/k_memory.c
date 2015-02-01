@@ -39,13 +39,10 @@ PCB* pop(Queue* self) {
 
 int push(Queue* self, PCB* pcb) {
 	PCB* element = pcb;
-	printInt('8', ((PCB *)pcb)->m_pid);
 
 	element = (PCB *) pcb;
-	printInt('7', ((PCB *)pcb)->m_pid);
 	element->next = NULL;
 
-	printInt('9', ((PCB *)pcb)->m_pid);
 	if (self->first == NULL) { //queue was formerly empty
 			self->first = element;
 	}
