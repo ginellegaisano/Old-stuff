@@ -108,7 +108,9 @@ int process_switch(PCB *p_pcb_old)
 	if (state == NEW) {
 		
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
-			p_pcb_old->m_state = RDY;
+			if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE) {
+				p_pcb_old->m_state = RDY;
+			}
 			p_pcb_old->mp_sp = (U32 *) __get_MSP();
 			//need to push to respective priority ready queue
 			//need to go to the gp_proc_table to get priority
@@ -123,7 +125,9 @@ int process_switch(PCB *p_pcb_old)
 	/* The following will only execute if the if block above is FALSE */
 	if (gp_current_process != p_pcb_old) {
 		if (state == RDY){
-			p_pcb_old->m_state = RDY; 
+			if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE) {
+				p_pcb_old->m_state = RDY;
+			}
 			p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 			gp_current_process->m_state = RUN;
 			pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
@@ -173,27 +177,26 @@ int k_get_process_priority(int process_id) {
 }
 
 int k_set_process_priority(int process_id, int priority){
-	Queue* q = NULL;
-	Queue* newq = NULL;
 	PCB* iterator = NULL;
 	
 	if (process_id < 0 || process_id > NUM_TEST_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
-	if (gp_pcbs[process_id]->m_state == NEW) {
-		q = ready_qs[g_proc_table[process_id].m_priority];
-		newq = ready_qs[priority];
-	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
-		q = blocked_resource_qs[g_proc_table[process_id].m_priority];
-		newq = blocked_resource_qs[priority];
-	}
 	
-	if (q != NULL) {
-		iterator = q->first;
-		while (iterator->next != NULL && iterator->next->m_pid != process_id) {
+	if (gp_pcbs[process_id]->m_state == RDY) {
+		iterator = ready_qs[gp_pcbs[process_id]->m_priority]->first;
+		while (iterator->next != NULL && iterator->next->m_pid != (process_id+1)) {
 			iterator = iterator->next;
 		}
 		iterator->next = iterator->next->next;
-		push(newq, gp_pcbs[process_id]);
+		pushToReadyQ(priority, gp_pcbs[process_id]);
+	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
+		
+		iterator = blocked_resource_qs[gp_pcbs[process_id]->m_priority]->first;
+		while (iterator->next != NULL && iterator->next->m_pid != (process_id+1)) {
+			iterator = iterator->next;
+		}
+		iterator->next = iterator->next->next;
+		push(blocked_resource_qs[priority], gp_pcbs[process_id]);
 	}
 	
 	g_proc_table[process_id].m_priority = priority;

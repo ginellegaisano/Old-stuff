@@ -32,6 +32,8 @@ extern void printInt (char c, int i);
 extern void pushToReadyQ (int priority, PCB* p_pcb_old);
 extern void push (Queue* queue, PCB* p_pcb_old);
 extern PCB* popFromReadyQ (int priority);
+extern Queue* getReadyQ(int priority);
+extern Queue* getBlockedResourceQ(int priority);
 
 int k_get_process_priority(int process_id);
 int k_set_process_priority(int process_id, int priority); 

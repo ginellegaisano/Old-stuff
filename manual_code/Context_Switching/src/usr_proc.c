@@ -6,6 +6,7 @@
  * NOTE: Each process is in an infinite loop. Processes never terminate.
  */
 
+#include "k_rtx.h"
 #include "rtx.h"
 #include "uart_polling.h"
 #include "usr_proc.h"
@@ -127,9 +128,9 @@ void test1(void){
 	}
 	
 	if(failed == 0){
-		printf("G099_test: test 1 OK\n\r");
+		printf("G026_test: test 1 OK\n\r");
 	} else {
-		printf("G099_test: test 1 FAIL\n\r");
+		printf("G026_test: test 1 FAIL\n\r");
 		FAILED ++;
 	}
 	
@@ -142,19 +143,44 @@ void test2(void){
 	int failed = 0;
 	int initial = 0;
 	int final = 0; 
+	PCB* iterator;
 	
 	initial = (int)get_process_priority(1);
+	iterator = getReadyQ(initial)->first;
+	while (iterator != NULL && iterator->m_pid != 2) {
+		iterator = iterator->next;
+	}
+	if (iterator == NULL) {
+		printf("not found in ready_qs[%d]\n\r", initial);
+		failed = failed + 1;
+	}
+	
 	set_process_priority(1,2);
 	final = get_process_priority (1);
+	
+	iterator = getReadyQ(initial)->first;
+	while (iterator != NULL && iterator->m_pid != 2) {
+		iterator = iterator->next;
+	}
+	if (iterator != NULL) {
+		failed = failed + 1;
+	}
+	iterator = getReadyQ(final)->first;
+	while (iterator != NULL && iterator->m_pid != 2) {
+		iterator = iterator->next;
+	}
+	if (iterator == NULL) {
+		failed = failed + 1;
+	}
 	
 	if(initial == final || final != 2) {
 		failed = failed + 1;
 	}
 	
 	if(failed == 0){
-		printf("G099_test: test 2 OK\n\r");
+		printf("G026_test: test 2 OK\n\r");
 	} else {
-		printf("G099_test: test 2 FAIL\n\r");
+		printf("G026_test: test 2 FAIL\n\r");
 		FAILED ++;
 	}
 	
@@ -185,9 +211,9 @@ void test3(void){
 
 	release_memory_block(requested);
 	if(failed == 0){
-		printf("G099_test: test 3 OK\n\r");
+		printf("G026_test: test 3 OK\n\r");
 	} else {
-		printf("G099_test: test 3 FAIL\n\r");
+		printf("G026_test: test 3 FAIL\n\r");
 		FAILED ++;
 	}
 		while(1) {

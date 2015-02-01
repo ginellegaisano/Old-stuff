@@ -8,8 +8,11 @@
 #ifndef USR_PROC_H_
 #define USR_PROC_H
 
-
 extern int getMSP (void);
+extern Queue **ready_qs;
+extern PCB **gp_pcbs;
+extern Queue* getReadyQ(int priority);
+extern Queue* getBlockedResourceQ(int priority);
 
 void set_test_procs(void);
 void null_process(void);

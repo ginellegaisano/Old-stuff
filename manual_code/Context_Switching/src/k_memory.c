@@ -94,11 +94,20 @@ void printInt (char c, int i) {
 }
 
 void pushToReadyQ (int priority, PCB* p_pcb_old) {
+	//p_pcb_old->m_state = RDY;
 	push(ready_qs[priority], p_pcb_old);
 }
 
 PCB* popFromReadyQ (int priority) {
 	return pop(ready_qs[priority]);
+}
+
+Queue* getReadyQ(int priority) {
+	return ready_qs[priority];
+}
+
+Queue* getBlockedResourceQ(int priority) {
+	return blocked_resource_qs[priority];
 }
 	
 void k_printMSP (void) {
@@ -226,7 +235,7 @@ void *k_request_memory_block(void) {
 
 	while (MSP == NULL) {
 			//get the priority of the current process by looking up pid in process table
-		priority = g_proc_table[gp_current_process->m_pid-1].m_priority;
+		priority = g_proc_table[gp_current_process->m_pid].m_priority;
 		#ifdef DEBUG_0 
 			printf("Request memory: MSP is null.\n\r");
 		#endif /* ! DEBUG_0 */
@@ -272,7 +281,6 @@ int k_release_memory_block(void *p_mem_blk) {
 		return RTX_ERR;
 	} else if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
 		#ifdef DEBUG_0 
-			printf("%d == %d\n\r", released->pid, gp_current_process->m_pid);
 			printf("Current process does not own resource.\n\r");
 		#endif /* ! DEBUG_0 */
 			return RTX_ERR;
