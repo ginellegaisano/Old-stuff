@@ -25,37 +25,35 @@ struct Block { //fixed size, defined above
 } ;
 
 PCB* pop(Queue* self) {
-
 	PCB* element;
+	
 	if (self == NULL || self->first == NULL) {
 		return NULL;
-	}
-	else if (self->first->next == NULL) { //queue only has 1 element
+	} else if (self->first->next == NULL) { //queue only has 1 element
+		element = self->first;
+		element->next = NULL;
+		self->first = NULL;
 		self->last = NULL;
+		return element;
 	}
 	element = self->first;
 	self->first = self->first->next;
+	element->next = NULL;
 	return element;
 };
 
 int push(Queue* self, PCB* pcb) {
-	PCB* element = pcb;
-
-	element = (PCB *) pcb;
-	element->next = NULL;
-
+	pcb->next = NULL;
+	
 	if (self->first == NULL) { //queue was formerly empty
-			self->first = element;
+			self->first = pcb;
+			self->last = pcb;
+	} else {
+		self->last->next = pcb;
+		self->last = pcb;
 	}
-	else {
-		self->last->next = element;
-	}
-	
-	
-	element->next = NULL;
-	self->last = element;
-	
 	self->last->next = NULL;
+	
 	return RTX_OK;
 };
 

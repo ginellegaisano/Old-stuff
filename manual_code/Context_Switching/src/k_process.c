@@ -126,21 +126,18 @@ int process_switch(PCB *p_pcb_old)
 	}
 
 	/* The following will only execute if the if block above is FALSE */
-		if (state == RDY){
-			if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE) {
-						
-				p_pcb_old->m_state = RDY;
-			}
-			p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
-			gp_current_process->m_state = RUN;
-			pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
-			__set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack  
-			
-		} else {
-			gp_current_process = p_pcb_old; // revert back to the old proc on error
-			return RTX_ERR;
+	if (state == RDY){
+		if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE) {
+			p_pcb_old->m_state = RDY;
 		}
-	
+		p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
+		gp_current_process->m_state = RUN;
+		pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
+		__set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack    
+	} else {
+		gp_current_process = p_pcb_old; // revert back to the old proc on error
+		return RTX_ERR;
+	}
 	return RTX_OK;
 }
 /**
@@ -164,7 +161,7 @@ int k_release_processor(void)
 		__set_MSP((U32) gp_current_process->mp_sp);
 		__rte();
 	}
-
+	
 	process_switch(p_pcb_old);
 	return RTX_OK;
 }
@@ -186,24 +183,39 @@ int k_set_process_priority(int process_id, int priority){
 	
 	if (process_id < 0 || process_id > NUM_TEST_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
-	if (gp_pcbs[process_id]->m_state == RDY || gp_pcbs[process_id]->m_state == NEW) {
-		iterator = ready_qs[gp_pcbs[process_id]->m_priority]->first;
+
+	if (gp_pcbs[process_id]->m_state == RDY || gp_pcbs[process_id]->m_state == NEW) {		
+		iterator = getReadyQ(gp_pcbs[process_id]->m_priority)->first;
 		while (iterator->next != NULL && iterator->next->m_pid != (process_id+1)) {
 			iterator = iterator->next;
 		}
-		iterator->next = iterator->next->next;
+		if (iterator == getReadyQ(gp_pcbs[process_id]->m_priority)->first) {
+			popFromReadyQ(gp_pcbs[process_id]->m_priority);
+		} else {
+			if (iterator->next == getReadyQ(gp_pcbs[process_id]->m_priority)->last) {
+				getReadyQ(gp_pcbs[process_id]->m_priority)->last = iterator;
+			}
+			iterator->next = iterator->next->next;
+		}
 		pushToReadyQ(priority, gp_pcbs[process_id]);
 	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
-		iterator = blocked_resource_qs[gp_pcbs[process_id]->m_priority]->first;
+		iterator = getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->first;
 		while (iterator->next != NULL && iterator->next->m_pid != (process_id+1)) {
 			iterator = iterator->next;
 		}
-		iterator->next = iterator->next->next;
-		push(blocked_resource_qs[priority], gp_pcbs[process_id]);
+		if (iterator == getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->first) {
+			pop(getBlockedResourceQ(gp_pcbs[process_id]->m_priority));
+		} else {
+			if (iterator->next == getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->last) {
+				getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->last = iterator;
+			}
+			iterator->next = iterator->next->next;
+		}
+		push(getBlockedResourceQ(priority), gp_pcbs[process_id]);
 	}
 	g_proc_table[process_id].m_priority = priority;
 	gp_pcbs[process_id]->m_priority = priority;
-
+	
 	return RTX_OK;
 }
 

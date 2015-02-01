@@ -119,6 +119,7 @@ void test1(void){
 	int initial;
 	int final;
 	void * requested;
+	PCB* iterator;
 	
 	initial = getMSP();
 
@@ -132,6 +133,13 @@ void test1(void){
 	release_memory_block(requested);
 	if(initial != getMSP()) {
 		failed = failed + 1;
+	}
+	
+	iterator = getReadyQ(3)->first;
+	printf("\n\rfirst1->m_pid: %d\n\r", iterator->m_pid);
+	while(iterator->next != NULL) {
+		iterator = iterator->next;
+		printf("iterator->m_pid: %d\n\r", iterator->m_pid);
 	}
 	
 	if(failed == 0){
@@ -165,14 +173,14 @@ void test2(void){
 	}
 	
 	set_process_priority(1,LOW);
-
-	final = get_process_priority (1);
+	final = get_process_priority(1);
 	
 	iterator = getReadyQ(initial)->first;
 	while (iterator != NULL && iterator->m_pid != 2) {
 		iterator = iterator->next;
 	}
 	if (iterator != NULL) {
+		printf("found in ready_qs[%d]\n\r", initial);
 		failed = failed + 1;
 	}
 	iterator = getReadyQ(final)->first;
@@ -180,15 +188,26 @@ void test2(void){
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
+		printf("not found in ready_qs[%d]\n\r", final);
 		failed = failed + 1;
 	}
 	
 	if(initial == final || final != 2) {
+		printf("priorities are fucked\n\r", initial);
 		failed = failed + 1;
 	}
 	initial = set_process_priority(1,10);
 	if (initial == RTX_OK) {
 		failed = failed + 1;
+	}
+	
+	set_process_priority(1,LOWEST);
+	
+	iterator = getReadyQ(3)->first;
+	printf("\n\rfirst2->m_pid: %d\n\r", iterator->m_pid);
+	while(iterator->next != NULL) {
+		iterator = iterator->next;
+		printf("iterator->m_pid: %d\n\r", iterator->m_pid);
 	}
 	
 	if(failed == 0){
@@ -211,6 +230,7 @@ void test3(void){
 	int failed = 0;
 	int ret_code;
 	void * requested;
+	PCB* iterator;
 
 	requested = request_memory_block();
 	ret_code = release_memory_block(requested);
@@ -222,14 +242,22 @@ void test3(void){
 	if (ret_code != RTX_ERR) {
 		failed++;
 	}
-
+	
+	iterator = getReadyQ(3)->first;
+	printf("first3->m_pid: %d\n\r", iterator->m_pid);
+	while(iterator->next != NULL) {
+		iterator = iterator->next;
+		printf("iterator->m_pid: %d\n\r", iterator->m_pid);
+	}
+	
 	if(failed == 0){
 		printf("G026_test: test 3 OK\n\r");
 	} else {
 		printf("G026_test: test 3 FAIL\n\r");
 		FAILED ++;
 	}
-		while(1) {
+	
+	while(1) {
 		release_processor();
 	}
 	
@@ -325,10 +353,57 @@ printf("getBlockedResourceQ(MEDIUM) != NULL: %d\n\r", getBlockedResourceQ(MEDIUM
 	
 }
 /**
- * @brief: a process that tests  
+ * @brief: a process that tests preemption
  */
 void test6(void){
-		while(1) {
+	PCB* next;
+	int failed = 0;
+	//PCB* top;
+	//PCB* bottom;
+	PCB* iterator;
+	
+	set_process_priority(1,MEDIUM);
+	set_process_priority(2,HIGH);
+	
+	next = scheduler();
+	
+	if (next->m_pid != 3) {
+		failed = failed + 1;
+	}
+	
+	/*top = getReadyQ(LOWEST)->first;
+	bottom = getReadyQ(LOWEST)->last;
+	getReadyQ(LOWEST)->first = NULL;
+	getReadyQ(LOWEST)->last = NULL;
+	
+	next = scheduler();
+	
+	if (next->m_pid != 1) {
+		failed = failed + 1;
+	}
+	
+	getReadyQ(LOWEST)->first = top;
+	getReadyQ(LOWEST)->last = bottom;*/
+	
+	set_process_priority(1,LOWEST);
+	set_process_priority(2,LOWEST);
+	
+	if(failed == 0){
+		printf("G026_test: test 6 OK\n\r");
+	} else {
+		printf("G026_test: test 6 FAIL\n\r");
+		FAILED ++;
+	}
+	
+		
+	iterator = getReadyQ(3)->first;
+	printf("first6->m_pid: %d\n\r", iterator->m_pid);
+	while(iterator->next != NULL) {
+		iterator = iterator->next;
+		printf("iterator->m_pid: %d\n\r", iterator->m_pid);
+	}
+	
+	while(1) {
 		release_processor();
 	}
 	

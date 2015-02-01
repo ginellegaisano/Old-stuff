@@ -13,6 +13,7 @@ extern Queue **ready_qs;
 extern PCB **gp_pcbs;
 extern Queue* getReadyQ(int priority);
 extern Queue* getBlockedResourceQ(int priority);
+extern PCB *scheduler(void);
 
 void set_test_procs(void);
 void null_process(void);
