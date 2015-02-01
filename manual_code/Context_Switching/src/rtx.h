@@ -43,6 +43,10 @@ extern int __SVC_0 _release_processor(U32 p_func);
 extern void *k_request_memory_block(void);
 #define request_memory_block() _request_memory_block((U32)k_request_memory_block)
 extern void *_request_memory_block(U32 p_func) __SVC_0;
+
+extern int k_get_total_num_blocks(void);
+#define get_total_num_blocks(void) _get_total_num_blocks((U32)k_get_total_num_blocks)
+extern int _get_total_num_blocks(U32 p_func) __SVC_0;
 /* __SVC_0 can also be put at the end of the function declaration */
 
 extern int k_release_memory_block(void *);

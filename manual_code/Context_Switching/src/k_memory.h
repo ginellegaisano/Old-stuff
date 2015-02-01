@@ -18,6 +18,7 @@
 /* ----- Variables ----- */
 /* This symbol is defined in the scatter file (see RVCT Linker User Guide) */  
 extern unsigned int Image$$RW_IRAM1$$ZI$$Limit; 
+
 extern PCB **gp_pcbs;
 extern PCB *gp_current_process;
 extern PROC_INIT g_proc_table[NUM_TEST_PROCS];
@@ -34,5 +35,6 @@ Queue* getReadyQ(int priority);
 Queue* getBlockedResourceQ(int priority);
 void k_printMSP (void);
 int getMSP (void);
+int k_get_total_num_blocks(void);
 
 #endif /* ! K_MEM_H_ */

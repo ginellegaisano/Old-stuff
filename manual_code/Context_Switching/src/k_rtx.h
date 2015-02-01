@@ -60,7 +60,7 @@ typedef struct proc_init
 	bool m_is_i;				/* is process i-process? */
 } PROC_INIT;
 
-typedef struct BlockedElement BlockedElement;
+//typedef struct BlockedElement BlockedElement;
 
 
 

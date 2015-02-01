@@ -104,10 +104,13 @@ int process_switch(PCB *p_pcb_old)
 {
 	PROC_STATE_E state;
 	state = gp_current_process->m_state;
-
+				printf("test %d \n\r",gp_current_process->m_state);
+				printf("current PID: %d\n\r" ,gp_current_process->m_pid);
+				printf("old PID: %d\n\r" ,p_pcb_old->m_pid);	
+	if (state == NEW) {printf("OY I DIED HERE!"};
 	if (state == NEW) {
-		
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
+
 			if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE) {
 				p_pcb_old->m_state = RDY;
 			}
@@ -116,27 +119,27 @@ int process_switch(PCB *p_pcb_old)
 			//need to go to the gp_proc_table to get priority
 			pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
 		}
-		gp_current_process->m_state = RUN;
+			gp_current_process->m_state = RUN;
 		__set_MSP((U32) gp_current_process->mp_sp);
-
 		__rte();  // pop exception stack frame from the stack for a new processes
 	}
 
 	/* The following will only execute if the if block above is FALSE */
-	if (gp_current_process != p_pcb_old) {
 		if (state == RDY){
 			if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE) {
+						
 				p_pcb_old->m_state = RDY;
 			}
 			p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 			gp_current_process->m_state = RUN;
 			pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
-			__set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack    
+			__set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack  
+			
 		} else {
 			gp_current_process = p_pcb_old; // revert back to the old proc on error
 			return RTX_ERR;
 		}
-	}
+	
 	return RTX_OK;
 }
 /**
@@ -160,6 +163,7 @@ int k_release_processor(void)
 		__set_MSP((U32) gp_current_process->mp_sp);
 		__rte();
 	}
+
 	process_switch(p_pcb_old);
 	return RTX_OK;
 }
@@ -181,8 +185,7 @@ int k_set_process_priority(int process_id, int priority){
 	
 	if (process_id < 0 || process_id > NUM_TEST_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
-	
-	if (gp_pcbs[process_id]->m_state == RDY) {
+	if (gp_pcbs[process_id]->m_state == RDY || gp_pcbs[process_id]->m_state == NEW) {
 		iterator = ready_qs[gp_pcbs[process_id]->m_priority]->first;
 		while (iterator->next != NULL && iterator->next->m_pid != (process_id+1)) {
 			iterator = iterator->next;
@@ -190,7 +193,6 @@ int k_set_process_priority(int process_id, int priority){
 		iterator->next = iterator->next->next;
 		pushToReadyQ(priority, gp_pcbs[process_id]);
 	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
-		
 		iterator = blocked_resource_qs[gp_pcbs[process_id]->m_priority]->first;
 		while (iterator->next != NULL && iterator->next->m_pid != (process_id+1)) {
 			iterator = iterator->next;
@@ -198,8 +200,9 @@ int k_set_process_priority(int process_id, int priority){
 		iterator->next = iterator->next->next;
 		push(blocked_resource_qs[priority], gp_pcbs[process_id]);
 	}
-	
 	g_proc_table[process_id].m_priority = priority;
+	gp_pcbs[process_id]->m_priority = priority;
+
 	return RTX_OK;
 }
 

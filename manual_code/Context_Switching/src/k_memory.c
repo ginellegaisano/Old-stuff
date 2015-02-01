@@ -13,6 +13,7 @@
 
 /* ----- Global Variables ----- */
 U32 *gp_stack; 
+int total_mem_blocks;
 /* The last allocated stack low address. 8 bytes aligned */
 /* The first stack starts at the RAM high address */
 /* stack grows down. Fully decremental stack */
@@ -49,8 +50,12 @@ int push(Queue* self, PCB* pcb) {
 	else {
 		self->last->next = element;
 	}
-
+	
+	
+	element->next = NULL;
 	self->last = element;
+	
+	self->last->next = NULL;
 	return RTX_OK;
 };
 
@@ -94,7 +99,6 @@ void printInt (char c, int i) {
 }
 
 void pushToReadyQ (int priority, PCB* p_pcb_old) {
-	//p_pcb_old->m_state = RDY;
 	push(ready_qs[priority], p_pcb_old);
 }
 
@@ -203,7 +207,11 @@ void memory_init(void)
 		current->pid = NULL;
 		current->next = MSP;
 		MSP = current;
+		total_mem_blocks ++;
 	}
+	#ifdef DEBUG_0 
+		//rintf("Intialization: Number of Memory Blocks: %d \n\r", total_mem_blocks);
+	#endif /* ! DEBUG_0 */
 }
 
 /**
@@ -230,29 +238,26 @@ U32 *alloc_stack(U32 size_b)
 
 void *k_request_memory_block(void) {
 //	atomic(on); does this mean...disable irq?
-	Block * a = (Block *)MSP;
+	Block * a;
 	int priority;
 
 	while (MSP == NULL) {
-			//get the priority of the current process by looking up pid in process table
+		//get the priority of the current process by looking up pid in process table
 		priority = g_proc_table[gp_current_process->m_pid].m_priority;
-		#ifdef DEBUG_0 
-			printf("Request memory: MSP is null.\n\r");
-		#endif /* ! DEBUG_0 */
 		//push PCB of current process on blocked_resource_qs;
 		push(blocked_resource_qs[priority], gp_current_process);
 		//update PCB of current process' state
 		gp_current_process->m_state = BLOCKED_ON_RESOURCE;
-		//release_processor(); //but we don't have access to this function here...
+		k_release_processor(); //but we don't have access to this function here...
 	}
 
 	__disable_irq();
+	a = (Block *)MSP;
 	// increment MSP
 	MSP = MSP->next;
 	//assign process 1 mem block (need to make process table and memory table to assign shit too
 	a->next = NULL;
 	a->pid = gp_current_process->m_pid;
-	
 	//atomic(off);
 	 __enable_irq();
 	return (void *) a;
@@ -271,17 +276,19 @@ int k_release_memory_block(void *p_mem_blk) {
 		*		- Releasing end of memory list (update null pointer)
 	*/
 	Block* released = (Block*)p_mem_blk;
-
+	PCB *element;
+	int i;
 	//atomic(on);
 
 	if (released == NULL) {
 		#ifdef DEBUG_0 
-			printf("Memory block does not exist.\n\r");
+			//printf("Memory block does not exist.\n\r");
 		#endif /* ! DEBUG_0 */
 		return RTX_ERR;
 	} else if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
 		#ifdef DEBUG_0 
-			printf("Current process does not own resource.\n\r");
+			//printf("%d == %d\n\r", released->pid, gp_current_process->m_pid);
+			//printf("Current process does not own resource.\n\r");
 		#endif /* ! DEBUG_0 */
 			return RTX_ERR;
 	}
@@ -292,14 +299,24 @@ int k_release_memory_block(void *p_mem_blk) {
 	MSP = released;
 	
 	#ifdef DEBUG_0 
-		printf("k_release_memory_block: releasing block @ 0x%x\n\r", p_mem_blk);
+		//printf("k_release_memory_block: releasing block @ 0x%x\n\r", p_mem_blk);
 	#endif /* ! DEBUG_0 */
 	
-	/* if (blocked_resource_q.size() > 0) {
-			handle_process_ready(pop(blocked_resource_q));
-	}*/
+	 //unblocking resources
+	for (i = 0; i < NUM_PRIORITIES; i++) {
+		element = pop(blocked_resource_qs[i]);
+		if (element != NULL) {
+			element->m_state = RDY;
+			pushToReadyQ(i,element);
+			break;
+		}
+	}
 	
 	//atomic(off);
 	 __enable_irq();
 	return RTX_OK;
+}
+
+int k_get_total_num_blocks(void){
+	return total_mem_blocks;
 }
