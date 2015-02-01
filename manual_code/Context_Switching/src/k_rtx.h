@@ -1,8 +1,8 @@
 /** 
  * @file:   k_rtx.h
  * @brief:  kernel deinitiation and data structure header file
- * @auther: Yiqing Huang
- * @date:   2014/01/17
+ * @author: GG (yes re), Reesey, RayMak, and LJ
+ * @date:   2015/02/01
  */
  
 #ifndef K_RTX_H_

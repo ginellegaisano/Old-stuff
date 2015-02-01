@@ -1,8 +1,8 @@
 /**
  * @file:   usr_proc.h
  * @brief:  Two user processes header file
- * @author: Yiqing Huang
- * @date:   2014/01/17
+ * @author: GG (yes re), Reesey, RayMak, and LJ
+ * @date:   2015/02/01
  */
  
 #ifndef USR_PROC_H_

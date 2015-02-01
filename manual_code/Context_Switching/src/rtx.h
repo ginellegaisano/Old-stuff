@@ -1,6 +1,6 @@
-/* @brief: rtx.h User API prototype, this is only an example
- * @author: Yiqing Huang
- * @date: 2014/01/17
+/* @brief: rtx.h User API
+ * @author: GG (yes re), Reesey, RayMak, and LJ
+ * @date:   2015/02/01
  */
 #ifndef RTX_H_
 #define RTX_H_

@@ -1,8 +1,8 @@
 /**
  * @file:   k_memory.c
  * @brief:  kernel memory managment routines
- * @author: Yiqing Huang
- * @date:   2014/01/17
+ * @author: GG (yes re), Reesey, RayMak, and LJ
+ * @date:   2015/02/01
  */
 
 #include "k_memory.h"
@@ -18,6 +18,7 @@ int total_mem_blocks;
 /* The first stack starts at the RAM high address */
 /* stack grows down. Fully decremental stack */
 
+/* ----- Type Definitions Variables ----- */
 typedef struct Block Block;
 struct Block { //fixed size, defined above
 	Block* next;
@@ -90,50 +91,67 @@ Queue* ready_qs[NUM_PRIORITIES];
 
 */
 
-void printInt (char c, int i) {
-	#ifdef DEBUG_0
-						printf("%c printInt: %d\n\r", c, i);
-	#endif /* DEBUG_0 */
-}
-
+/**
+ * @brief pushToReadyQ(). 
+ * @param priority of the pcb to push onto the ready Queue
+ * @param pointer to the pcb
+ * 
+ * POST: add pcb to ready queue at index [priority]
+ */
 void pushToReadyQ (int priority, PCB* p_pcb_old) {
 	push(ready_qs[priority], p_pcb_old);
 }
 
+/**
+ * @brief popFromReadyQ(). 
+ * @param priority
+ * @return first pcb at priority
+ *
+ * POST: ready_qs is updated. first pcb of index priority is removed
+ */
 PCB* popFromReadyQ (int priority) {
 	return pop(ready_qs[priority]);
 }
 
+/**
+ * @brief getReadyQ().
+ * @param priority
+ * @return returns *Queue stored in ready_qs at index[priority] 
+ */
 Queue* getReadyQ(int priority) {
 	return ready_qs[priority];
 }
 
+/**
+ * @brief getBlockedResourceQ().
+ * @param priority
+ * @return returns *Queue stored in blocked_resource_qs at index[priority] 
+ */
 Queue* getBlockedResourceQ(int priority) {
 	return blocked_resource_qs[priority];
 }
 	
-void k_printMSP (void) {
-	#ifdef DEBUG_0
-						printf("MSP: 0x%x\n\r", MSP);
-	#endif /* DEBUG_0 */
-}
-
+/**
+ * @brief getMSP()
+ * @return returns address of MSP
+ */
 int getMSP (void) {
 	return (int)MSP;
 }
 
+/**
+ * @brief memory_init()
+ * 
+ *PRE:memory is uninitialized
+ *POST: allocates memory for heap, 
+ *			links memory into blocks of size BLOCK_SIZE
+ *			initializes blocked and ready queues
+ */
 void memory_init(void)
 {
-	//need to set gp stack at some point 
-	//(probably after doing STACK ALLOCATION)
-	//so that process init doesn't mess up all the shit
-
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	int i;
 	
-	#ifdef DEBUG_0  
-		printf("\n\n\n\n\n\n\n\n\n\rNEW RUN\n\r");
-	#endif
 	/* 4 bytes padding */
 	p_end += 4;
 
@@ -173,19 +191,6 @@ void memory_init(void)
 		q2->first = NULL;
 		q2->last = NULL;
 		
-		/*for (q = 0; i < NUM_TEST_PROCS; q++) {
-			BlockedElement *element = (BlockedElement *)p_end;
-			p_end += sizeof(BlockedElement);
-			if (q2->first == NULL) {
-				q2->first = element;
-			}
-			element->process = NULL;
-			element->next = q2->last;
-			q2->last = element;
-		}
-		
-		q2->last = q2->first;*/
-		
 		ready_qs[i] = q2;
 	}
 
@@ -198,7 +203,7 @@ void memory_init(void)
 	MSP->pid = NULL;
 	MSP->next = NULL;
 	
-	/* allocate memory for heap, not implemented yet here to initialize our memory linked list?*/	
+	/* allocate memory for heap*/	
 	
 	for ( i =(int)( p_end + 4 + BLOCK_SIZE); i < (int)(gp_stack - NUM_TEST_PROCS * USR_SZ_STACK); i+= BLOCK_SIZE ) {
 		Block* current = (Block*)i;
@@ -207,9 +212,6 @@ void memory_init(void)
 		MSP = current;
 		total_mem_blocks ++;
 	}
-	#ifdef DEBUG_0 
-		//rintf("Intialization: Number of Memory Blocks: %d \n\r", total_mem_blocks);
-	#endif /* ! DEBUG_0 */
 }
 
 /**
@@ -234,8 +236,14 @@ U32 *alloc_stack(U32 size_b)
 	return sp;
 }
 
+/**
+ * @brief: k_request_memory_block()- 
+ *				 removes memory block from free memory lists. returns pointer to free memory block.
+ * @return: void *, a pointer to the memory block 
+ * POST:  returns pointer to memory block. updates MSP to MSP->next. 
+ */
 void *k_request_memory_block(void) {
-//	atomic(on); does this mean...disable irq?
+//	atomic(on);
 	Block * a;
 	int priority;
 
@@ -246,7 +254,7 @@ void *k_request_memory_block(void) {
 		push(blocked_resource_qs[priority], gp_current_process);
 		//update PCB of current process' state
 		gp_current_process->m_state = BLOCKED_ON_RESOURCE;
-		k_release_processor(); //but we don't have access to this function here...
+		k_release_processor(); 
 	}
 
 	__disable_irq();
@@ -261,33 +269,23 @@ void *k_request_memory_block(void) {
 	return (void *) a;
 }
 
+/**
+ * @brief: k_release_memory_block()- 
+ *				 given a memory block, checks that current process owns the memory block. 
+ *				 if so, adds memory block to the free memory heap. 
+ * @return: RTX_OK upon success
+ *         RTX_ERR upon failure 
+ * POST:  updates free memory heap. updates MSP.
+ */
 int k_release_memory_block(void *p_mem_blk) {
-	/** Shit to do
-		*	Check that release block is valid
-		* Check that the process actually owns that memory
-		* Void all of the memory in that address
-		* Make sure that we do not fubar any linked lists
-		* Update memory table/process table ? 
-		* Edge Cases:
-		*		-Releasing start of memory list (need to upate memoy pointer in PCB)
-		*		-Releasing middle of memory list (no swiss cheese list)
-		*		- Releasing end of memory list (update null pointer)
-	*/
 	Block* released = (Block*)p_mem_blk;
 	PCB *element;
 	int i;
 	//atomic(on);
 
 	if (released == NULL) {
-		#ifdef DEBUG_0 
-			//printf("Memory block does not exist.\n\r");
-		#endif /* ! DEBUG_0 */
 		return RTX_ERR;
 	} else if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
-		#ifdef DEBUG_0 
-			//printf("%d == %d\n\r", released->pid, gp_current_process->m_pid);
-			//printf("Current process does not own resource.\n\r");
-		#endif /* ! DEBUG_0 */
 			return RTX_ERR;
 	}
 		__disable_irq();
@@ -295,10 +293,6 @@ int k_release_memory_block(void *p_mem_blk) {
 	released -> next = MSP -> next;
 	released -> pid = NULL;
 	MSP = released;
-	
-	#ifdef DEBUG_0 
-		//printf("k_release_memory_block: releasing block @ 0x%x\n\r", p_mem_blk);
-	#endif /* ! DEBUG_0 */
 	
 	 //unblocking resources
 	for (i = 0; i < NUM_PRIORITIES; i++) {
@@ -314,7 +308,10 @@ int k_release_memory_block(void *p_mem_blk) {
 	 __enable_irq();
 	return RTX_OK;
 }
-
+/**
+ * @brief: k_get_total_num_blocks()- 
+ * @return: total_mem_blocks, total number of memory blocks
+ */
 int k_get_total_num_blocks(void){
 	return total_mem_blocks;
 }

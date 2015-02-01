@@ -1,8 +1,8 @@
 /**
  * @file:   k_memory.h
  * @brief:  kernel memory managment header file
- * @author: Yiqing Huang
- * @date:   2014/01/17
+ * @author: GG (yes re), Reesey, RayMak, and LJ
+ * @date:   2015/02/01
  */
  
 #ifndef K_MEM_H_
@@ -23,12 +23,13 @@ extern PCB **gp_pcbs;
 extern PCB *gp_current_process;
 extern PROC_INIT g_proc_table[NUM_TEST_PROCS];
 
+
 /* ----- Functions ------ */
+int k_release_processor(void);
 void memory_init(void);
 U32 *alloc_stack(U32 size_b);
 void *k_request_memory_block(void);
 int k_release_memory_block(void *);
-void printInt (char c, int i);
 void pushToReadyQ (int priority, PCB* p_pcb_old);
 PCB* popFromReadyQ (int priority);
 Queue* getReadyQ(int priority);

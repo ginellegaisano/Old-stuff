@@ -1,9 +1,8 @@
 /**
  * @file:   k_process.c  
  * @brief:  process management C file
- * @author: Yiqing Huang
- * @author: Thomas Reidemeister
- * @date:   2014/01/17
+ * @author: GG (yes re), Reesey, RayMak, and LJ
+ * @date:   2015/02/01
  * NOTE: The example code shows one way of implementing context switching.
  *       The code only has minimal sanity check. There is no stack overflow check.
  *       The implementation assumes only two simple user processes and NO HARDWARE INTERRUPTS. 
@@ -30,8 +29,7 @@ PROC_INIT g_proc_table[NUM_TEST_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 /**
- * @biref: initialize all processes in the system
- * NOTE: We assume there are only two user processes in the system in this example.
+ * @brief: initialize all processes in the system
  */
 void process_init() 
 {
@@ -104,10 +102,6 @@ int process_switch(PCB *p_pcb_old)
 {
 	PROC_STATE_E state;
 	state = gp_current_process->m_state;
-				//printf("test %d \n\r",gp_current_process->m_state);
-				//printf("current PID: %d\n\r" ,gp_current_process->m_pid);
-				//printf("old PID: %d\n\r" ,p_pcb_old->m_pid);	
-	//if (state == BLOCKED_ON_RESOURCE) {printf("OY I DIED HERE!");}
 
 	if (state == NEW) {
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
@@ -167,7 +161,7 @@ int k_release_processor(void)
 }
 
 /**
- * @brief get_priority()
+ * @brief get_process_priority()
  * @param process_id the pid of the requested process
  * @return priority value of process
  */
@@ -177,7 +171,12 @@ int k_get_process_priority(int process_id) {
 	}
 	return (int)g_proc_table[process_id].m_priority;
 }
-
+/**
+ * @brief set_process_priority(), sets new priority for the requested process
+ * @param process_id the pid of the requested process, NEW priority of the requested process
+ * @return: RTX_OK upon success
+ *         RTX_ERR upon failure
+ */
 int k_set_process_priority(int process_id, int priority){
 	PCB* iterator = NULL;
 	
