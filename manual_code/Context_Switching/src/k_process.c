@@ -57,6 +57,9 @@ void process_init()
 		printInt('a', (gp_pcbs[i])->m_pid);
 		(gp_pcbs[i])->m_state = NEW;
 		(gp_pcbs[i])->m_priority = (g_proc_table[i]).m_priority;
+		if (i != 0) {
+			gp_pcbs[i-1]->next = gp_pcbs[i];
+		}
 		
 		sp = alloc_stack((g_proc_table[i]).m_stack_size);
 		*(--sp)  = INITIAL_xPSR;      // user process initial xPSR  
@@ -78,6 +81,7 @@ void process_init()
 	#ifdef DEBUG_0
 						printf("woot done process init\n\r");
 	#endif /* DEBUG_0 */
+	gp_pcbs[NUM_TEST_PROCS-1]->next = NULL;
 }
 
 /*@brief: scheduler, pick the pid of the next to run process

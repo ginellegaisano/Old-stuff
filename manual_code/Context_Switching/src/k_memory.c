@@ -25,22 +25,35 @@ struct Block { //fixed size, defined above
 
 PCB* pop(Queue* self) {
 
-	BlockedElement* element = self->first;
-	PCB *process = element->process;
-  if (self->first != self->last) {
-		self->first = self->first->next;
-		element->next = self->last->next;
-		self->last->next = element;
-		element->process = NULL;
+	PCB* element;
+	if (self == NULL || self->first == NULL) {
+		return NULL;
 	}
-
-	return process;
+	else if (self->first->next == NULL) { //queue only has 1 element
+		self->last = NULL;
+	}
+	element = self->first;
+	self->first = self->first->next;
+	return element;
 };
 
 int push(Queue* self, PCB* pcb) {
-	//element = {pcb, NULL};
-	self->last->process = pcb;
-	self->last = self->last->next;
+	PCB* element = pcb;
+	printInt('8', ((PCB *)pcb)->m_pid);
+
+	element = (PCB *) pcb;
+	printInt('7', ((PCB *)pcb)->m_pid);
+	element->next = NULL;
+
+	printInt('9', ((PCB *)pcb)->m_pid);
+	if (self->first == NULL) { //queue was formerly empty
+			self->first = element;
+	}
+	else {
+		self->last->next = element;
+	}
+
+	self->last = element;
 	return RTX_OK;
 };
 
@@ -109,7 +122,6 @@ void memory_init(void)
 
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	int i;
-	int q;
 	
 	#ifdef DEBUG_0  
 		printf("\n\n\n\n\n\n\n\n\n\rNEW RUN\n\r");
@@ -125,10 +137,6 @@ void memory_init(void)
 		p_end += sizeof(PCB); 
 	}
 	
-	#ifdef DEBUG_0
-			printf("p_end: 0x%x\n\r", p_end);
-	#endif /* DEBUG_0 */
-	
 	/* initializing blocked and ready queues (array of queues, organized by PRIORITY) 
 	Currently 1D for blocked, will need to eventually be 2D when we have multiple events */
 	for (i = 0; i < NUM_PRIORITIES; i++) {
@@ -136,8 +144,7 @@ void memory_init(void)
 		p_end += sizeof(Queue);
 		q1->first = NULL;
 		q1->last = NULL;
-		for (q = 0; q < NUM_TEST_PROCS; q++) {
-			
+		/*for (q = 0; i < NUM_TEST_PROCS; q++) {
 			BlockedElement *element = (BlockedElement *)p_end;
 			p_end += sizeof(BlockedElement);
 			if (q1->first == NULL) {
@@ -147,8 +154,8 @@ void memory_init(void)
 			element->next = q1->last;
 			q1->last = element;
 		}
-
-		q1->last = q1->first;
+		
+		q1->last = q1->first;*/
 		blocked_resource_qs[i] = q1;
 	}
 	
@@ -158,7 +165,7 @@ void memory_init(void)
 		q2->first = NULL;
 		q2->last = NULL;
 		
-		for (q = 0; q < NUM_TEST_PROCS; q++) {
+		/*for (q = 0; i < NUM_TEST_PROCS; q++) {
 			BlockedElement *element = (BlockedElement *)p_end;
 			p_end += sizeof(BlockedElement);
 			if (q2->first == NULL) {
@@ -169,14 +176,10 @@ void memory_init(void)
 			q2->last = element;
 		}
 		
-		q2->last = q2->first;
+		q2->last = q2->first;*/
 		
 		ready_qs[i] = q2;
 	}
-	#ifdef DEBUG_0
-			printf("p_end: 0x%x\n\r", p_end);
-	#endif /* DEBUG_0 */
-
 
 	/* prepare for alloc_stack() to allocate memory for stacks */
 	gp_stack = (U32 *)RAM_END_ADDR;

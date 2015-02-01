@@ -38,7 +38,8 @@ typedef enum {NEW = 0, RDY, RUN, BLOCKED_ON_RESOURCE} PROC_STATE_E;
   You may want to add your own member variables
   in order to finish P1 and the entire project 
 */
-typedef struct pcb 
+typedef struct PCB PCB;
+struct PCB 
 { 
 	
 	//struct pcb *mp_next;  /* next pcb, not used in this example */  
@@ -46,7 +47,8 @@ typedef struct pcb
 	U32 m_pid;		/* process id */
 	PROC_STATE_E m_state;   /* state of the process */
 	int m_priority;	
-} PCB;
+	PCB * next;
+};
 
 /* initialization table item */
 typedef struct proc_init
@@ -60,17 +62,13 @@ typedef struct proc_init
 
 typedef struct BlockedElement BlockedElement;
 
-struct BlockedElement {
-	PCB* process;
-	BlockedElement* next;
-};
 
 
 typedef struct Queue Queue;
 
 struct Queue {
-		BlockedElement* first;
-		BlockedElement* last;
+		PCB* first;
+		PCB* last;
 };
 
 #endif // ! K_RTX_H_
