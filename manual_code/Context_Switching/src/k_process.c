@@ -173,8 +173,29 @@ int k_get_process_priority(int process_id) {
 }
 
 int k_set_process_priority(int process_id, int priority){
+	Queue* q = NULL;
+	Queue* newq = NULL;
+	PCB* iterator = NULL;
+	
 	if (process_id < 0 || process_id > NUM_TEST_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
+	if (gp_pcbs[process_id]->m_state == NEW) {
+		q = ready_qs[g_proc_table[process_id].m_priority];
+		newq = ready_qs[priority];
+	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
+		q = blocked_resource_qs[g_proc_table[process_id].m_priority];
+		newq = blocked_resource_qs[priority];
+	}
+	
+	if (q != NULL) {
+		iterator = q->first;
+		while (iterator->next != NULL && iterator->next->m_pid != process_id) {
+			iterator = iterator->next;
+		}
+		iterator->next = iterator->next->next;
+		push(newq, gp_pcbs[process_id]);
+	}
+	
 	g_proc_table[process_id].m_priority = priority;
 	return RTX_OK;
 }

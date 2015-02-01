@@ -8,6 +8,9 @@
 #ifndef USR_PROC_H_
 #define USR_PROC_H
 
+
+extern int getMSP (void);
+
 void set_test_procs(void);
 void null_process(void);
 void proc1(void);

@@ -27,8 +27,10 @@ extern U32 *alloc_stack(U32 size_b);   /* allocate stack for a process */
 extern void __rte(void);               /* pop exception stack frame */
 extern void set_test_procs(void);      /* test process initial set up */
 extern Queue **ready_qs;
+extern Queue **blocked_resource_qs;
 extern void printInt (char c, int i);
 extern void pushToReadyQ (int priority, PCB* p_pcb_old);
+extern void push (Queue* queue, PCB* p_pcb_old);
 extern PCB* popFromReadyQ (int priority);
 
 int k_get_process_priority(int process_id);
