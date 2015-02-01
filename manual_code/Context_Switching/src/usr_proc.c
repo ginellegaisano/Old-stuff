@@ -34,31 +34,24 @@ void printTest() {
 	#endif /* DEBUG_0 */
 }
 
-void set_test_procs() {\
+void set_test_procs() {
 	int i;
-	
-	printTest();
-	printf("START\n\r");
-	printTest();
-	printf("total %d tests\n\r", NUM_TEST_PROCS - 3);
 	
 	for( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		g_test_procs[i].m_pid=(U32)(i+1);
-		g_test_procs[i].m_priority=LOWEST;
+		g_test_procs[i].m_priority=LOW;
 		g_test_procs[i].m_stack_size=USR_SZ_STACK;
 		g_test_procs[i].m_is_i=false;
 	}
 	
 	g_test_procs[0].mpf_start_pc = &null_process;
 	g_test_procs[0].m_priority = 4;
-	g_test_procs[1].mpf_start_pc = &test1;
-	g_test_procs[2].mpf_start_pc = &test2;
-	g_test_procs[3].mpf_start_pc = &test3;
-	g_test_procs[4].mpf_start_pc = &test4;
-	g_test_procs[5].mpf_start_pc = &test5;
-	g_test_procs[6].mpf_start_pc = &test6;
-	g_test_procs[7].mpf_start_pc = &proc1;
-	g_test_procs[8].mpf_start_pc = &proc2;
+	g_test_procs[1].mpf_start_pc = &testHandler;
+	g_test_procs[2].mpf_start_pc = &test1;
+	g_test_procs[3].mpf_start_pc = &test2;
+	g_test_procs[4].mpf_start_pc = &test3;
+	g_test_procs[5].mpf_start_pc = &test4;
+	g_test_procs[6].mpf_start_pc = &test5;
 
 }
 
@@ -115,51 +108,28 @@ void proc2(void)
 /**
  * @brief: a process that tests the allocation and deallocation of a memory block
  */
-void test1(void){
+void testHandler(void){
+	printTest();
+	printf("START\n\r");
+	printTest();
+	printf("total %d tests\n\r", NUM_TEST_PROCS - 1);
+	set_process_priority(1, LOWEST);
+	release_processor();
 	
-	int failed = 0;
-	int initial;
-	int final;
-	void * requested;
-	PCB* iterator;
-	
-	initial = getMSP();
+	printTest();
+	printf("%d/%d tests OK\n\r", NUM_TESTS - FAILED, NUM_TESTS);
+	printTest();
+	printf("%d/%d tests FAIL\n\r", FAILED, NUM_TESTS);
+	printTest();
+	printf("END\n\r");
 
-	requested = request_memory_block();
-
-	final = getMSP();
 	
-	if(initial - final != 128) {
-		failed = failed + 1;
-	}
-	release_memory_block(requested);
-	if(initial != getMSP()) {
-		failed = failed + 1;
-	}
-	
-	iterator = getReadyQ(3)->first;
-	while(iterator->next != NULL) {
-		iterator = iterator->next;
-	}
-	
-	if(failed == 0){
-		printTest();
-		printf("test 1 OK\n\r");
-	} else {
-		printTest();
-		printf("test 1 FAIL\n\r");
-		FAILED ++;
-	}
-	
-	while(1) {
-		release_processor();
-	}
 }
 
 /**
  * @brief: a process that tests getting and setting priority as well as setting priority to an illegal value.
  */
-void test2(void){
+void test1(void){
 	int failed = 0;
 	int initial = 0;
 	int final = 0; 
@@ -209,10 +179,10 @@ void test2(void){
 	
 	if(failed == 0){
 		printTest();
-		printf("test 2 OK\n\r");
+		printf("test 1 OK\n\r");
 	} else {
 		printTest();
-		printf("test 2 FAIL\n\r");
+		printf("test 1 FAIL\n\r");
 		FAILED ++;
 	}
 	set_process_priority(1,LOWEST);
@@ -223,13 +193,36 @@ void test2(void){
 }
 
 /**
- * @brief: a process that tests when trying to free a memory block twice, returns an error
+ * @brief: a process that tests the allocation and deallocation of a memory block
+	*  			 and when trying to free a memory block twice, returns an error
  */
-void test3(void){
+void test2(void){
 	int failed = 0;
 	int ret_code;
 	void * requested;
 	PCB* iterator;
+	int initial;
+	int final;
+	
+	initial = getMSP();
+
+	requested = request_memory_block();
+
+	final = getMSP();
+	
+	if(initial - final != 128) {
+		failed = failed + 1;
+	}
+	release_memory_block(requested);
+	if(initial != getMSP()) {
+		failed = failed + 1;
+	}
+	
+	iterator = getReadyQ(3)->first;
+	while(iterator->next != NULL) {
+		iterator = iterator->next;
+	}
+	
 
 	requested = request_memory_block();
 	ret_code = release_memory_block(requested);
@@ -249,10 +242,10 @@ void test3(void){
 	
 	if(failed == 0){
 		printTest();
-		printf("test 3 OK\n\r");
+		printf("test 2 OK\n\r");
 	} else {
 		printTest();
-		printf("test 3 FAIL\n\r");
+		printf("test 2 FAIL\n\r");
 		FAILED ++;
 	}
 	
@@ -269,7 +262,7 @@ void test3(void){
 /**
  * @brief: a process that tests memory ownership STILL HAVE TO FINISH THIS
  */
-void test4(void){
+void test3(void){
 	int failed;
 	void * requested;
 	requested = request_memory_block();
@@ -288,10 +281,10 @@ void test4(void){
 
 	if(failed == 0){
 		printTest();
-		printf("test 4 OK\n\r");
+		printf("test 3 OK\n\r");
 	} else {
 		printTest();
-		printf("test 4 FAIL\n\r");
+		printf("test 3 FAIL\n\r");
 		FAILED ++;
 	}
 	release_processor();
@@ -310,7 +303,7 @@ void test4(void){
 /**
  * @brief: a process that tests the out of memory exception + tests the blocked queue size
  */
-void test5(void){
+void test4(void){
 	
 	int number_mem_blocks = get_total_num_blocks(); //101
 	void * mem_blocks[500];
@@ -350,10 +343,10 @@ void test5(void){
 	
 	if(failed == 0){
 		printTest();
-		printf("test 5 OK\n\r");
+		printf("test 4 OK\n\r");
 	} else {
 		printTest();
-		printf("test 5 FAIL\n\r");
+		printf("test 4 FAIL\n\r");
 		FAILED ++;
 	}
 		set_process_priority(5,LOWEST);
@@ -367,7 +360,7 @@ void test5(void){
 /**
  * @brief: a process that tests preemption
  */
-void test6(void){
+void test5(void){
 	PCB* next;
 	int failed = 0;
 	PCB* top;
@@ -400,9 +393,9 @@ void test6(void){
 	getReadyQ(LOWEST)->last = bottom;
 	
 	if(failed == 0){
-		printf("G026_test: test 6 OK\n\r");
+		printf("G026_test: test 5 OK\n\r");
 	} else {
-		printf("G026_test: test 6 FAIL\n\r");
+		printf("G026_test: test 5 FAIL\n\r");
 		FAILED ++;
 	}
 	
