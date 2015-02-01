@@ -370,9 +370,8 @@ void test5(void){
 void test6(void){
 	PCB* next;
 	int failed = 0;
-	//PCB* top;
-	//PCB* bottom;
-	PCB* iterator;
+	PCB* top;
+	PCB* bottom;
 	
 	set_process_priority(1,MEDIUM);
 	set_process_priority(2,HIGH);
@@ -383,7 +382,10 @@ void test6(void){
 		failed = failed + 1;
 	}
 	
-	/*top = getReadyQ(LOWEST)->first;
+	set_process_priority(1,LOWEST);
+	pushToReadyQ(LOWEST, next);
+	
+	top = getReadyQ(LOWEST)->first;
 	bottom = getReadyQ(LOWEST)->last;
 	getReadyQ(LOWEST)->first = NULL;
 	getReadyQ(LOWEST)->last = NULL;
@@ -395,24 +397,13 @@ void test6(void){
 	}
 	
 	getReadyQ(LOWEST)->first = top;
-	getReadyQ(LOWEST)->last = bottom;*/
-	
-	set_process_priority(1,LOWEST);
-	set_process_priority(2,LOWEST);
+	getReadyQ(LOWEST)->last = bottom;
 	
 	if(failed == 0){
 		printf("G026_test: test 6 OK\n\r");
 	} else {
 		printf("G026_test: test 6 FAIL\n\r");
 		FAILED ++;
-	}
-	
-		
-	iterator = getReadyQ(3)->first;
-	printf("first6->m_pid: %d\n\r", iterator->m_pid);
-	while(iterator->next != NULL) {
-		iterator = iterator->next;
-		printf("iterator->m_pid: %d\n\r", iterator->m_pid);
 	}
 	
 	while(1) {
