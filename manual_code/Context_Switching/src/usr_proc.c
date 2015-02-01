@@ -115,7 +115,7 @@ void test1(void){
 	initial = getMSP();
 
 	requested = request_memory_block();
-	
+
 	final = getMSP();
 	
 	if(initial - final != 128) {
@@ -165,9 +165,31 @@ void test2(void){
 }
 
 /**
- * @brief: a process that tests 
+ * @brief: a process that tests when trying to free a memory block twice, returns an error
  */
 void test3(void){
+	int failed = 0;
+	int ret_code;
+	void * requested;
+
+	requested = request_memory_block();
+	ret_code = release_memory_block(requested);
+	if (ret_code != RTX_OK) {
+		failed++;
+	}
+	ret_code = release_memory_block(requested);
+
+	if (ret_code != RTX_ERR) {
+		failed++;
+	}
+
+	release_memory_block(requested);
+	if(failed == 0){
+		printf("G099_test: test 3 OK\n\r");
+	} else {
+		printf("G099_test: test 3 FAIL\n\r");
+		FAILED ++;
+	}
 		while(1) {
 		release_processor();
 	}
