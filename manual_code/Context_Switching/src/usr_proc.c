@@ -112,7 +112,7 @@ void testHandler(void){
 	printTest();
 	printf("START\n\r");
 	printTest();
-	printf("total %d tests\n\r", NUM_TEST_PROCS - 1);
+	printf("total %d tests\n\r", NUM_TESTS );
 	set_process_priority(1, LOWEST);
 	release_processor();
 	
@@ -229,6 +229,7 @@ void test2(void){
 	if (ret_code != RTX_OK) {
 		failed++;
 	}
+
 	ret_code = release_memory_block(requested);
 
 	if (ret_code != RTX_ERR) {
@@ -260,7 +261,7 @@ void test2(void){
 	
 }
 /**
- * @brief: a process that tests memory ownership STILL HAVE TO FINISH THIS
+ * @brief: a process that tests memory ownership 
  */
 void test3(void){
 	int failed;
