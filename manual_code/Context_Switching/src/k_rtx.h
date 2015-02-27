@@ -15,6 +15,7 @@
 
 #define NULL 0
 #define NUM_TEST_PROCS 7
+#define NUM_PROCS 7
 #define NUM_TESTS 5
 #define NUM_PRIORITIES 5
 
@@ -58,7 +59,6 @@ typedef struct proc_init
 	int m_priority;         /* initial priority, not used in this example. */ 
 	int m_stack_size;       /* size of stack in words */
 	void (*mpf_start_pc) ();/* entry point of the process */    
-	bool m_is_i;				/* is process i-process? */
 } PROC_INIT;
 
 //typedef struct BlockedElement BlockedElement;

@@ -16,6 +16,7 @@
 #include <system_LPC17xx.h>
 #include "uart_polling.h"
 #include "k_process.h"
+#include "sys_proc.h"
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* DEBUG_0 */
@@ -25,8 +26,8 @@ PCB **gp_pcbs;                  /* array of pcbs */
 PCB *gp_current_process = NULL; /* always point to the current RUN process */
 
 /* process initialization table */
-PROC_INIT g_proc_table[NUM_TEST_PROCS];
-extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
+PROC_INIT g_proc_table[NUM_PROCS];
+extern PROC_INIT g_test_procs[NUM_PROCS];
 
 /**
  * @brief: initialize all processes in the system
@@ -38,22 +39,25 @@ void process_init()
   
         /* fill out the initialization table */
 	set_test_procs();
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
-		g_proc_table[i].m_pid = g_test_procs[i].m_pid;
-		g_proc_table[i].m_priority = g_test_procs[i].m_priority;
-		g_proc_table[i].m_stack_size = g_test_procs[i].m_stack_size;
-		g_proc_table[i].mpf_start_pc = g_test_procs[i].mpf_start_pc;
-		g_proc_table[i].m_is_i = g_test_procs[i].m_is_i;
+	for ( i = 1; i < NUM_PROCS; i++ ) {
+		g_proc_table[i].m_pid = g_test_procs[i-1].m_pid;
+		g_proc_table[i].m_priority = g_test_procs[i-1].m_priority;
+		g_proc_table[i].m_stack_size = g_test_procs[i-1].m_stack_size;
+		g_proc_table[i].mpf_start_pc = g_test_procs[i-1].mpf_start_pc;
 	}
+	
+		g_proc_table[0].m_pid = 0;
+		g_proc_table[0].m_priority = 4;
+		g_proc_table[0].m_stack_size = USR_SZ_STACK;
+		g_proc_table[0].mpf_start_pc = &null_process;
+	
 	/* initilize exception stack frame (i.e. initial context) for each process */
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
+	for ( i = 0; i < NUM_PROCS; i++ ) {
 		int j;
 		(gp_pcbs[i])->m_pid = (int)(g_proc_table[i]).m_pid;
 		(gp_pcbs[i])->m_state = NEW;
 		(gp_pcbs[i])->m_priority = (g_proc_table[i]).m_priority;
-		if (i != 0) {
-			gp_pcbs[i-1]->next = gp_pcbs[i];
-		}
+		gp_pcbs[i]->next = NULL;
 		
 		sp = alloc_stack((g_proc_table[i]).m_stack_size);
 		*(--sp)  = INITIAL_xPSR;      // user process initial xPSR  
@@ -64,7 +68,6 @@ void process_init()
 		(gp_pcbs[i])->mp_sp = sp;
 		pushToReadyQ((g_proc_table[i]).m_priority, gp_pcbs[i]);
 	}
-	gp_pcbs[NUM_TEST_PROCS-1]->next = NULL;
 }
 
 /*@brief: scheduler, pick the pid of the next to run process

@@ -157,8 +157,8 @@ void memory_init(void)
 
 	/* allocate memory for pcb pointers   */
 	gp_pcbs = (PCB **)p_end;
-	p_end += NUM_TEST_PROCS * sizeof(PCB *);
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
+	p_end += NUM_PROCS * sizeof(PCB *);
+	for ( i = 0; i < NUM_PROCS; i++ ) {
 		gp_pcbs[i] = (PCB *)p_end;
 		p_end += sizeof(PCB); 
 	}
@@ -205,7 +205,7 @@ void memory_init(void)
 	
 	/* allocate memory for heap*/	
 	
-	for ( i =(int)( p_end + 4 + BLOCK_SIZE); i < (int)(gp_stack - NUM_TEST_PROCS * USR_SZ_STACK); i+= BLOCK_SIZE ) {
+	for ( i =(int)( p_end + 4 + BLOCK_SIZE); i < (int)(gp_stack - NUM_PROCS * USR_SZ_STACK); i+= BLOCK_SIZE ) {
 		Block* current = (Block*)i;
 		current->pid = NULL;
 		current->next = MSP;

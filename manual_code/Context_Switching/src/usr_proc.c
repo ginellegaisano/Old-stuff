@@ -17,7 +17,7 @@
 
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
-
+ 
 int FAILED = 0;
 void * test5_mem = NULL;
 
@@ -41,24 +41,15 @@ void set_test_procs() {
 		g_test_procs[i].m_pid=(U32)(i+1);
 		g_test_procs[i].m_priority=LOW;
 		g_test_procs[i].m_stack_size=USR_SZ_STACK;
-		g_test_procs[i].m_is_i=false;
 	}
 	
-	g_test_procs[0].mpf_start_pc = &null_process;
-	g_test_procs[0].m_priority = 4;
-	g_test_procs[1].mpf_start_pc = &testHandler;
-	g_test_procs[2].mpf_start_pc = &test1;
-	g_test_procs[3].mpf_start_pc = &test2;
-	g_test_procs[4].mpf_start_pc = &test3;
-	g_test_procs[5].mpf_start_pc = &test4;
-	g_test_procs[6].mpf_start_pc = &test5;
+	g_test_procs[0].mpf_start_pc = &testHandler;
+	g_test_procs[1].mpf_start_pc = &test1;
+	g_test_procs[2].mpf_start_pc = &test2;
+	g_test_procs[3].mpf_start_pc = &test3;
+	g_test_procs[4].mpf_start_pc = &test4;
+	g_test_procs[5].mpf_start_pc = &test5;
 
-}
-
-void null_process(void) {
-	while (1) {
-		release_processor();
-	}
 }
 
 /**
@@ -113,49 +104,45 @@ void test1(void){
 	int initial = 0;
 	int final = 0; 
 	PCB* iterator;
-	
-	initial = (int)get_process_priority(1);
+
+
+	initial = (int)get_process_priority(0);
 	iterator = getReadyQ(initial)->first;
-	while (iterator != NULL && iterator->m_pid != 2) {
+	while (iterator != NULL && iterator->m_pid != 0) {
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
 		failed = failed + 1;
 	}
 	
-	set_process_priority(1,LOW);
-	final = get_process_priority(1);
+	set_process_priority(0,LOW);
+	final = get_process_priority(0);
 	
 	iterator = getReadyQ(initial)->first;
-	while (iterator != NULL && iterator->m_pid != 2) {
+	while (iterator != NULL && iterator->m_pid != 0) {
 		iterator = iterator->next;
 	}
 	if (iterator != NULL) {
 		failed = failed + 1;
 	}
 	iterator = getReadyQ(final)->first;
-	while (iterator != NULL && iterator->m_pid != 2) {
+	while (iterator != NULL && iterator->m_pid != 0) {
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
 		failed = failed + 1;
 	}
 	
-	if(initial == final || final != 2) {
+	if(initial == final || final != LOW) {
 		failed = failed + 1;
 	}
-	initial = set_process_priority(1,10);
+	initial = set_process_priority(0,10);
 	if (initial == RTX_OK) {
 		failed = failed + 1;
 	}
 	
-	set_process_priority(1,LOWEST);
-	
-	iterator = getReadyQ(3)->first;
-	while(iterator->next != NULL) {
-		iterator = iterator->next;
-	}
-	
+	set_process_priority(0,initial);
+
 	if(failed == 0){
 		printTest();
 		printf("test 1 OK\n\r");
@@ -179,7 +166,6 @@ void test2(void){
 	int failed = 0;
 	int ret_code;
 	void * requested;
-	PCB* iterator;
 	int initial;
 	int final;
 	
@@ -196,12 +182,6 @@ void test2(void){
 	if(initial != getMSP()) {
 		failed = failed + 1;
 	}
-	
-	iterator = getReadyQ(3)->first;
-	while(iterator->next != NULL) {
-		iterator = iterator->next;
-	}
-	
 
 	requested = request_memory_block();
 	ret_code = release_memory_block(requested);
@@ -213,11 +193,6 @@ void test2(void){
 
 	if (ret_code != RTX_ERR) {
 		failed++;
-	}
-	
-	iterator = getReadyQ(3)->first;
-	while(iterator->next != NULL) {
-		iterator = iterator->next;
 	}
 	
 	if(failed == 0){
@@ -232,7 +207,7 @@ void test2(void){
 	release_processor();
 	
 	release_memory_block(test5_mem);
-	set_process_priority(3, LOWEST);
+	set_process_priority(2, LOWEST);
 	
 	while(1) {
 		release_processor();
@@ -270,6 +245,7 @@ void test3(void){
 	release_processor();
 	//set priority 0
 	set_process_priority(4,MEDIUM);
+	release_processor();
 	//call for memory -> will be blocked
 	requested = request_memory_block();
 	//release memory
@@ -346,8 +322,8 @@ void test5(void){
 	PCB* top;
 	PCB* bottom;
 	
-	set_process_priority(1,MEDIUM);
-	set_process_priority(2,HIGH);
+	set_process_priority(2,MEDIUM);
+	set_process_priority(3,HIGH);
 	
 	next = scheduler();
 	
@@ -355,7 +331,7 @@ void test5(void){
 		failed = failed + 1;
 	}
 	
-	set_process_priority(1,LOWEST);
+	set_process_priority(2,LOWEST);
 	pushToReadyQ(LOWEST, next);
 	
 	top = getReadyQ(LOWEST)->first;
@@ -365,7 +341,7 @@ void test5(void){
 	
 	next = scheduler();
 	
-	if (next->m_pid != 1) {
+	if (next->m_pid != 0) {
 		failed = failed + 1;
 	}
 	
