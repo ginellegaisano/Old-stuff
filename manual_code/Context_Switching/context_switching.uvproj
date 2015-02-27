@@ -421,6 +421,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\main_svc.c</FilePath>
             </File>
+            <File>
+              <FileName>uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\uart.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
