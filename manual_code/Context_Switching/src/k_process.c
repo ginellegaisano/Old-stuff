@@ -182,7 +182,7 @@ int k_get_process_priority(int process_id) {
  */
 int k_set_process_priority(int process_id, int priority){
 	PCB* iterator = NULL;
-	
+	bool flag = false;
 	if (process_id < 0 || process_id > NUM_TEST_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
 
@@ -215,8 +215,14 @@ int k_set_process_priority(int process_id, int priority){
 		}
 		push(getBlockedResourceQ(priority), gp_pcbs[process_id]);
 	}
+	
+	if ((gp_current_process->m_pid == process_id && priority > gp_current_process->m_priority) || priority < gp_current_process->m_priority)
+		flag = true;	
 	g_proc_table[process_id].m_priority = priority;
 	gp_pcbs[process_id]->m_priority = priority;
+	
+	if (flag)
+		k_release_processor();
 	
 	return RTX_OK;
 }

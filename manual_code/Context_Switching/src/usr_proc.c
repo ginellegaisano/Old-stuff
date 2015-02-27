@@ -203,11 +203,12 @@ void test2(void){
 		printf("test 2 FAIL\n\r");
 		FAILED ++;
 	}
-	
 	release_processor();
+
 	
+	set_process_priority(4,HIGH);
 	release_memory_block(test5_mem);
-	set_process_priority(2, LOWEST);
+	set_process_priority(3, LOWEST);
 	
 	while(1) {
 		release_processor();
@@ -225,10 +226,8 @@ void test3(void){
 
 	//shove back on to ready queue
 	set_process_priority(3,HIGH);
-	set_process_priority(4,HIGH);
 
-	release_processor();
-	set_process_priority(4,LOWEST);
+	//release_processor();
 	if (test5_mem == NULL) {
 		failed = failed + 1;
 	}
@@ -242,10 +241,11 @@ void test3(void){
 		printf("test 3 FAIL\n\r");
 		FAILED ++;
 	}
-	release_processor();
+	set_process_priority(4,LOWEST);
+	
 	//set priority 0
 	set_process_priority(4,MEDIUM);
-	release_processor();
+	//release_processor();
 	//call for memory -> will be blocked
 	requested = request_memory_block();
 	//release memory
@@ -296,6 +296,7 @@ void test4(void){
 	if(getBlockedResourceQ(MEDIUM) != NULL && getBlockedResourceQ(MEDIUM)->first != NULL ){	
 		failed ++;
 	}
+	set_process_priority(4,LOWEST);
 	
 	if(failed == 0){
 		printTest();
@@ -305,8 +306,9 @@ void test4(void){
 		printf("test 4 FAIL\n\r");
 		FAILED ++;
 	}
-		set_process_priority(5,LOWEST);
-	set_process_priority(4,LOWEST);
+	release_processor();
+
+	set_process_priority(6,HIGH);
 
 	while(1) {
 		release_processor();
@@ -322,16 +324,15 @@ void test5(void){
 	PCB* top;
 	PCB* bottom;
 	
-	set_process_priority(2,MEDIUM);
-	set_process_priority(3,HIGH);
+	set_process_priority(5,MEDIUM);
 	
 	next = scheduler();
 	
-	if (next->m_pid != 3) {
+	if (next->m_pid != 5) {
 		failed = failed + 1;
 	}
 	
-	set_process_priority(2,LOWEST);
+	set_process_priority(5,LOWEST);
 	pushToReadyQ(LOWEST, next);
 	
 	top = getReadyQ(LOWEST)->first;
@@ -354,6 +355,8 @@ void test5(void){
 		printf("G026_test: test 5 FAIL\n\r");
 		FAILED ++;
 	}
+
+	set_process_priority(6,LOWEST);
 	
 	while(1) {
 		release_processor();
