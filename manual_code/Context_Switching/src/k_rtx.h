@@ -63,13 +63,18 @@ typedef struct proc_init
 
 //typedef struct BlockedElement BlockedElement;
 
+typedef struct Element Element;
+struct Element {
+	Element* next; //therefore we can take out PCB -> next. 
+	void* data;
+} ;
 
 
 typedef struct Queue Queue;
 
 struct Queue {
-		PCB* first;
-		PCB* last;
+		Element* first;
+		Element* last;
 };
 
 #endif // ! K_RTX_H_

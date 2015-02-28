@@ -103,12 +103,13 @@ void test1(void){
 	int failed = 0;
 	int initial = 0;
 	int final = 0; 
-	PCB* iterator;
+	Element* iterator;
 
 
 	initial = (int)get_process_priority(6);
 	iterator = getReadyQ(initial)->first;
-	while (iterator != NULL && iterator->m_pid != 6) {
+
+	while (iterator != NULL && ((PCB*)(iterator->data))->m_pid != 6) {
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
@@ -120,14 +121,14 @@ void test1(void){
 	final = get_process_priority(6);
 	
 	iterator = getReadyQ(initial)->first;
-	while (iterator != NULL && iterator->m_pid != 6) {
+	while (iterator != NULL && ((PCB*)(iterator->data))->m_pid != 6) {
 		iterator = iterator->next;
 	}
 	if (iterator != NULL) {
 		failed = failed + 1;
 	}
 	iterator = getReadyQ(final)->first;
-	while (iterator != NULL && iterator->m_pid != 6) {
+	while (iterator != NULL && ((PCB*)(iterator->data))->m_pid != 6) {
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
@@ -289,7 +290,7 @@ void test4(void){
 	}
 	//jump to proc 2;
 	//back from 2, check blocked q
-	//fail if blocked q IS NOT empty and not mot moved to the ready queue
+	//fail if blocked q IS NOT empty and not mot moved to the ready  
 	if(getBlockedResourceQ(MEDIUM) != NULL && getBlockedResourceQ(MEDIUM)->first != NULL ){	
 		failed ++;
 	}
@@ -315,9 +316,9 @@ void test4(void){
  */
 void test5(void){
 	PCB* next;
- 	int failed = 0;
-	PCB* top;
-	PCB* bottom;
+	int failed = 0;
+	Element* top;
+	Element* bottom;
 	
 	release_processor();
 	
@@ -335,6 +336,12 @@ void test5(void){
 	set_process_priority(3,LOWEST);
 	set_process_priority(2,LOWEST);
 	set_process_priority(1,LOWEST);
+
+	/*
+	top = request_element();
+	top->data = next;
+	pushToReadyQ(LOWEST, top);*/
+	
 	top = getReadyQ(LOWEST)->first;
 	bottom = getReadyQ(LOWEST)->last;
 	

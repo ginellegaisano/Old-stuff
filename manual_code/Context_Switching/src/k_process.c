@@ -36,8 +36,9 @@ void process_init()
 {
 	int i;
 	U32 *sp;
+	Element* element;
   
-        /* fill out the initialization table */
+  /* fill out the initialization table */
 	set_test_procs();
 	for ( i = 1; i < NUM_PROCS; i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i-1].m_pid;
@@ -66,7 +67,9 @@ void process_init()
 			*(--sp) = 0x0;
 		}
 		(gp_pcbs[i])->mp_sp = sp;
-		pushToReadyQ((g_proc_table[i]).m_priority, gp_pcbs[i]);
+		element = k_request_element();
+		element->data = gp_pcbs[i];
+		pushToReadyQ((g_proc_table[i]).m_priority, element);
 	}
 }
 
@@ -79,15 +82,18 @@ void process_init()
 
 PCB *scheduler(void)
 {
-	PCB* element;
+	Element* element;
+	PCB* pcb;
 	int i;
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		element = popFromReadyQ(i);
-		if (element != NULL) {
+		pcb = (PCB*) element -> data;
+		element->data = NULL;
+		if (pcb != NULL) {
 			if (gp_current_process == NULL) {
-				gp_current_process = element;
+				gp_current_process = pcb;
 			}
-			return element;
+			return pcb;
 		}
 	}
 	return NULL;
@@ -104,6 +110,7 @@ PCB *scheduler(void)
 int process_switch(PCB *p_pcb_old) 
 {
 	PROC_STATE_E state;
+	Element* element;
 	state = gp_current_process->m_state;
 
 	if (state == NEW) {
@@ -115,7 +122,9 @@ int process_switch(PCB *p_pcb_old)
 			p_pcb_old->mp_sp = (U32 *) __get_MSP();
 			//need to push to respective priority ready queue
 			//need to go to the gp_proc_table to get priority
-			pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
+			element = k_request_element();
+			element->data = p_pcb_old;
+			pushToReadyQ(p_pcb_old->m_priority, element);
 		}
 			gp_current_process->m_state = RUN;
 		__set_MSP((U32) gp_current_process->mp_sp);
@@ -129,7 +138,9 @@ int process_switch(PCB *p_pcb_old)
 		}
 		p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 		gp_current_process->m_state = RUN;
-		pushToReadyQ(p_pcb_old->m_priority, p_pcb_old);
+		element = k_request_element();
+		element->data = p_pcb_old;
+		pushToReadyQ(p_pcb_old->m_priority, element);
 		__set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack    
 	} else {
 		gp_current_process = p_pcb_old; // revert back to the old proc on error
@@ -181,39 +192,40 @@ int k_get_process_priority(int process_id) {
  *         RTX_ERR upon failure
  */
 int k_set_process_priority(int process_id, int priority){
-	PCB* iterator = NULL;
+	Element* iterator = NULL;
+	Element* element;
 	bool flag = false;
 	if (process_id < 0 || process_id > NUM_TEST_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
 
 	if (gp_pcbs[process_id]->m_state == RDY || gp_pcbs[process_id]->m_state == NEW) {		
 		iterator = getReadyQ(gp_pcbs[process_id]->m_priority)->first;
-		while (iterator->next != NULL && iterator->next->m_pid != (process_id)) {
+		while (iterator->next != NULL && ((PCB*)(iterator->next->data))->m_pid != (process_id)) {
 			iterator = iterator->next;
 		}
 		if (iterator == getReadyQ(gp_pcbs[process_id]->m_priority)->first) {
-			popFromReadyQ(gp_pcbs[process_id]->m_priority);
+			element = popFromReadyQ(gp_pcbs[process_id]->m_priority);
 		} else {
 			if (iterator->next == getReadyQ(gp_pcbs[process_id]->m_priority)->last) {
 				getReadyQ(gp_pcbs[process_id]->m_priority)->last = iterator;
 			}
 			iterator->next = iterator->next->next;
 		}
-		pushToReadyQ(priority, gp_pcbs[process_id]);
+		pushToReadyQ(priority, element);
 	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
 		iterator = getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->first;
-		while (iterator->next != NULL && iterator->next->m_pid != (process_id)) {
+		while (iterator->next != NULL && ((PCB*)(iterator->next->data))->m_pid != (process_id)) {
 			iterator = iterator->next;
 		}
 		if (iterator == getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->first) {
-			pop(getBlockedResourceQ(gp_pcbs[process_id]->m_priority));
+			element = pop(getBlockedResourceQ(gp_pcbs[process_id]->m_priority));
 		} else {
 			if (iterator->next == getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->last) {
 				getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->last = iterator;
 			}
 			iterator->next = iterator->next->next;
 		}
-		push(getBlockedResourceQ(priority), gp_pcbs[process_id]);
+		push(getBlockedResourceQ(priority), element);
 	}
 	
 	if ((gp_current_process->m_pid == process_id && priority > gp_current_process->m_priority) || (gp_current_process->m_pid != process_id && priority < gp_current_process->m_priority))

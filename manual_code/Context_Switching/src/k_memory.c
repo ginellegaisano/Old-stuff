@@ -25,8 +25,8 @@ struct Block { //fixed size, defined above
 	int pid;
 } ;
 
-PCB* pop(Queue* self) {
-	PCB* element;
+Element* pop(Queue* self) {
+	Element* element;
 	
 	if (self == NULL || self->first == NULL) {
 		return NULL;
@@ -43,15 +43,15 @@ PCB* pop(Queue* self) {
 	return element;
 };
 
-int push(Queue* self, PCB* pcb) {
-	pcb->next = NULL;
+int push(Queue* self, Element* element) {
+	element->next = NULL;
 	
 	if (self->first == NULL) { //queue was formerly empty
-			self->first = pcb;
-			self->last = pcb;
+			self->first = element;
+			self->last = element;
 	} else {
-		self->last->next = pcb;
-		self->last = pcb;
+		self->last->next = element;
+		self->last = element;
 	}
 	self->last->next = NULL;
 	
@@ -59,6 +59,7 @@ int push(Queue* self, PCB* pcb) {
 };
 
 Block* MSP;
+Block* ElementBlock;
 //array of queues, organized by priority
 Queue* blocked_resource_qs[NUM_PRIORITIES]; 
 Queue* ready_qs[NUM_PRIORITIES];
@@ -96,9 +97,9 @@ Queue* ready_qs[NUM_PRIORITIES];
  * @param priority of the pcb to push onto the ready Queue
  * @param pointer to the pcb
  * 
- * POST: add pcb to ready queue at index [priority]
+ * POST: add Element pcb to ready queue at index [priority]
  */
-void pushToReadyQ (int priority, PCB* p_pcb_old) {
+void pushToReadyQ (int priority, Element* p_pcb_old) {
 	push(ready_qs[priority], p_pcb_old);
 }
 
@@ -109,7 +110,7 @@ void pushToReadyQ (int priority, PCB* p_pcb_old) {
  *
  * POST: ready_qs is updated. first pcb of index priority is removed
  */
-PCB* popFromReadyQ (int priority) {
+Element* popFromReadyQ (int priority) {
 	return pop(ready_qs[priority]);
 }
 
@@ -162,6 +163,8 @@ void memory_init(void)
 		gp_pcbs[i] = (PCB *)p_end;
 		p_end += sizeof(PCB); 
 	}
+	
+	ElementBlock = k_request_memory_block();
 	
 	/* initializing blocked and ready queues (array of queues, organized by PRIORITY) 
 	Currently 1D for blocked, will need to eventually be 2D when we have multiple events */
@@ -237,6 +240,33 @@ U32 *alloc_stack(U32 size_b)
 }
 
 /**
+ * @brief:
+ * @return: 
+ * POST:  
+ */
+void *k_request_element(void) {
+		Block* currBlock;
+		Element* currElement;
+		
+		currBlock = ElementBlock;
+		currElement = (Element*)(int) currBlock;
+		
+		while (currElement->data != NULL) {
+			if ((int)currElement + sizeof(Element*) > (int)currBlock + sizeof(Block*)) {
+				if (currBlock->next == NULL) {
+					currBlock->next = k_request_memory_block();
+				}
+				currBlock = currBlock->next;
+				currElement = (Element*)(int) currBlock;
+			} else {
+				currElement += sizeof(Element*);
+			}
+		}
+		
+		return currElement;
+}
+
+/**
  * @brief: k_request_memory_block()- 
  *				 removes memory block from free memory lists. returns pointer to free memory block.
  * @return: void *, a pointer to the memory block 
@@ -246,12 +276,15 @@ void *k_request_memory_block(void) {
 //	atomic(on);
 	Block * a;
 	int priority;
+	Element* element;
 
 	while (MSP == NULL) {
 		//get the priority of the current process by looking up pid in process table
 		priority = g_proc_table[gp_current_process->m_pid].m_priority;
-		//push PCB of current process on blocked_resource_qs;
-		push(blocked_resource_qs[priority], gp_current_process);
+		//push PCB of current process on blocked_resource_qs; << here we are pushing a PCB. <<
+		element = k_request_element();
+		element->data = gp_current_process;
+		push(blocked_resource_qs[priority], element);
 		//update PCB of current process' state
 		gp_current_process->m_state = BLOCKED_ON_RESOURCE;
 		k_release_processor(); 
@@ -279,7 +312,7 @@ void *k_request_memory_block(void) {
  */
 int k_release_memory_block(void *p_mem_blk) {
 	Block* released = (Block*)p_mem_blk;
-	PCB *element;
+	Element *element;
 	int i;
 	//atomic(on);
 
@@ -298,7 +331,7 @@ int k_release_memory_block(void *p_mem_blk) {
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		element = pop(blocked_resource_qs[i]);
 		if (element != NULL) {
-			element->m_state = RDY;
+			((PCB*)(element->data))->m_state = RDY;
 			pushToReadyQ(i,element);
 			break;
 		}

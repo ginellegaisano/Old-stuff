@@ -13,7 +13,7 @@ extern int getMSP (void);
 extern Queue **ready_qs;
 extern PCB **gp_pcbs;
 extern Queue* getReadyQ(int priority);
-extern void pushToReadyQ (int priority, PCB* p_pcb_old);
+extern void pushToReadyQ (int priority, Element* p_pcb_old);
 extern Queue* getBlockedResourceQ(int priority);
 extern PCB *scheduler(void);
 
