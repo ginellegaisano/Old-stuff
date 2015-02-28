@@ -6,8 +6,13 @@
 *.dep
 *.crf
 *.o
+*.d
+*.lnp
+*.lst
+*.sct
 *.__i
 *.bak
+*.uvopt
 *.cmschnei
 *.lajaneck
 *.ggaisano
