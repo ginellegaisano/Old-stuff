@@ -17,7 +17,6 @@ int total_mem_blocks;
 /* The last allocated stack low address. 8 bytes aligned */
 /* The first stack starts at the RAM high address */
 /* stack grows down. Fully decremental stack */
-/*git test*/
 
 /* ----- Type Definitions Variables ----- */
 typedef struct Block Block;
