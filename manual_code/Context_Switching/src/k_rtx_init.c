@@ -1,8 +1,8 @@
 /** 
  * @file:   k_rtx_init.c
  * @brief:  Kernel initialization C file
- * @auther: Yiqing Huang
- * @date:   2014/01/17
+ * @author: GG (yes re), Reesey, RayMak, and LJ
+ * @date:   2015/02/01
  */
 
 #include "k_rtx_init.h"
@@ -19,6 +19,5 @@ void k_rtx_init(void)
         __enable_irq();
 	
 	/* start the first process */
-	
         k_release_processor();
 }
