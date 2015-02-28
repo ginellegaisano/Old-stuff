@@ -106,42 +106,43 @@ void test1(void){
 	PCB* iterator;
 
 
-	initial = (int)get_process_priority(0);
+	initial = (int)get_process_priority(6);
 	iterator = getReadyQ(initial)->first;
-	while (iterator != NULL && iterator->m_pid != 0) {
+	while (iterator != NULL && iterator->m_pid != 6) {
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
 		failed = failed + 1;
 	}
 	
-	set_process_priority(0,LOW);
-	final = get_process_priority(0);
+	set_process_priority(2,HIGH);
+	set_process_priority(6,HIGH);
+	final = get_process_priority(6);
 	
 	iterator = getReadyQ(initial)->first;
-	while (iterator != NULL && iterator->m_pid != 0) {
+	while (iterator != NULL && iterator->m_pid != 6) {
 		iterator = iterator->next;
 	}
 	if (iterator != NULL) {
 		failed = failed + 1;
 	}
 	iterator = getReadyQ(final)->first;
-	while (iterator != NULL && iterator->m_pid != 0) {
+	while (iterator != NULL && iterator->m_pid != 6) {
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
 		failed = failed + 1;
 	}
 	
-	if(initial == final || final != LOW) {
+	if(initial == final || final != HIGH) {
 		failed = failed + 1;
 	}
-	initial = set_process_priority(0,10);
-	if (initial == RTX_OK) {
+	final = set_process_priority(6,10);
+	if (final == RTX_OK) {
 		failed = failed + 1;
 	}
 	
-	set_process_priority(0,initial);
+	set_process_priority(6,initial);
 
 	if(failed == 0){
 		printTest();
@@ -151,7 +152,7 @@ void test1(void){
 		printf("test 1 FAIL\n\r");
 		FAILED ++;
 	}
-	set_process_priority(1,LOWEST);
+	set_process_priority(2,LOWEST);
 	while(1) {
 		release_processor();
 	}
@@ -203,11 +204,11 @@ void test2(void){
 		printf("test 2 FAIL\n\r");
 		FAILED ++;
 	}
-	release_processor();
+	set_process_priority(3,LOWEST);
 
 	
-	set_process_priority(4,HIGH);
 	release_memory_block(test5_mem);
+	set_process_priority(4,HIGH);
 	set_process_priority(3, LOWEST);
 	
 	while(1) {
@@ -243,9 +244,6 @@ void test3(void){
 	}
 	set_process_priority(4,LOWEST);
 	
-	//set priority 0
-	set_process_priority(4,MEDIUM);
-	//release_processor();
 	//call for memory -> will be blocked
 	requested = request_memory_block();
 	//release memory
@@ -290,7 +288,6 @@ void test4(void){
 		release_memory_block(requested);
 	}
 	//jump to proc 2;
-	release_processor();
 	//back from 2, check blocked q
 	//fail if blocked q IS NOT empty and not mot moved to the ready queue
 	if(getBlockedResourceQ(MEDIUM) != NULL && getBlockedResourceQ(MEDIUM)->first != NULL ){	
@@ -306,9 +303,7 @@ void test4(void){
 		printf("test 4 FAIL\n\r");
 		FAILED ++;
 	}
-	release_processor();
-
-	set_process_priority(6,HIGH);
+	set_process_priority(5,LOWEST);
 
 	while(1) {
 		release_processor();
@@ -320,10 +315,13 @@ void test4(void){
  */
 void test5(void){
 	PCB* next;
-	int failed = 0;
+ 	int failed = 0;
 	PCB* top;
 	PCB* bottom;
 	
+	release_processor();
+	
+	set_process_priority(6,HIGH);
 	set_process_priority(5,MEDIUM);
 	
 	next = scheduler();
@@ -333,21 +331,25 @@ void test5(void){
 	}
 	
 	set_process_priority(5,LOWEST);
-	pushToReadyQ(LOWEST, next);
-	
+	set_process_priority(4,LOWEST);
+	set_process_priority(3,LOWEST);
+	set_process_priority(2,LOWEST);
+	set_process_priority(1,LOWEST);
 	top = getReadyQ(LOWEST)->first;
 	bottom = getReadyQ(LOWEST)->last;
+	
 	getReadyQ(LOWEST)->first = NULL;
 	getReadyQ(LOWEST)->last = NULL;
 	
 	next = scheduler();
 	
-	if (next->m_pid != 0) {
+	if (next->m_pid != 0) { //this checks if it is null process. but we have no more null process.what should it be?
 		failed = failed + 1;
 	}
 	
 	getReadyQ(LOWEST)->first = top;
 	getReadyQ(LOWEST)->last = bottom;
+	
 	
 	if(failed == 0){
 		printf("G026_test: test 5 OK\n\r");
@@ -357,6 +359,7 @@ void test5(void){
 	}
 
 	set_process_priority(6,LOWEST);
+	
 	
 	while(1) {
 		release_processor();

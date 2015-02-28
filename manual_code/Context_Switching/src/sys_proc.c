@@ -9,9 +9,12 @@
 #include "k_rtx.h"
 #include "rtx.h"
 #include "sys_proc.h"
-
+#ifdef DEBUG_0
+#include "printf.h"
+#endif /* DEBUG_0 */
 void null_process(void) {
 	while (1) {
+		printf("NULL\n\r");
 		release_processor();
 	}
 }

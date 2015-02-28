@@ -188,7 +188,7 @@ int k_set_process_priority(int process_id, int priority){
 
 	if (gp_pcbs[process_id]->m_state == RDY || gp_pcbs[process_id]->m_state == NEW) {		
 		iterator = getReadyQ(gp_pcbs[process_id]->m_priority)->first;
-		while (iterator->next != NULL && iterator->next->m_pid != (process_id+1)) {
+		while (iterator->next != NULL && iterator->next->m_pid != (process_id)) {
 			iterator = iterator->next;
 		}
 		if (iterator == getReadyQ(gp_pcbs[process_id]->m_priority)->first) {
@@ -202,7 +202,7 @@ int k_set_process_priority(int process_id, int priority){
 		pushToReadyQ(priority, gp_pcbs[process_id]);
 	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
 		iterator = getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->first;
-		while (iterator->next != NULL && iterator->next->m_pid != (process_id+1)) {
+		while (iterator->next != NULL && iterator->next->m_pid != (process_id)) {
 			iterator = iterator->next;
 		}
 		if (iterator == getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->first) {
@@ -216,7 +216,7 @@ int k_set_process_priority(int process_id, int priority){
 		push(getBlockedResourceQ(priority), gp_pcbs[process_id]);
 	}
 	
-	if ((gp_current_process->m_pid == process_id && priority > gp_current_process->m_priority) || priority < gp_current_process->m_priority)
+	if ((gp_current_process->m_pid == process_id && priority > gp_current_process->m_priority) || (gp_current_process->m_pid != process_id && priority < gp_current_process->m_priority))
 		flag = true;	
 	g_proc_table[process_id].m_priority = priority;
 	gp_pcbs[process_id]->m_priority = priority;
