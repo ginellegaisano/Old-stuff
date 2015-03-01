@@ -14,6 +14,8 @@ extern Queue **ready_qs;
 extern PCB **gp_pcbs;
 extern Queue* getReadyQ(int priority);
 extern void pushToReadyQ (int priority, Element* p_pcb_old);
+extern void printReadyQ (char* tag);
+extern void printBlockedQ (char* tag);
 extern Queue* getBlockedResourceQ(int priority);
 extern PCB *scheduler(void);
 

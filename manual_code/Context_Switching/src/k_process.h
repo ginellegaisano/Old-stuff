@@ -28,6 +28,8 @@ extern void __rte(void);             	  /* pop exception stack frame */
 extern void set_test_procs(void);     	/* test process initial set up */
 extern Element* pop(Queue* self);						/* pop from anu queue structure*/
 extern void pushToReadyQ (int priority, Element* p_pcb_old);
+extern void printReadyQ (char* tag);
+extern void printBlockedQ (char* tag);
 extern void push (Queue* queue, Element* p_pcb_old);
 extern Element* popFromReadyQ (int priority);
 extern Queue* getReadyQ(int priority);

@@ -221,7 +221,7 @@ void test2(void){
  * @brief: a process that tests memory ownership 
  */
 void test3(void){
-	int failed;
+	int failed = 0; 
 	void * requested;
 	requested = request_memory_block();
 	test5_mem = requested;
@@ -259,7 +259,6 @@ void test3(void){
  * @brief: a process that tests the out of memory exception + tests the blocked queue size
  */
 void test4(void){
-	
 	int number_mem_blocks = get_total_num_blocks(); //101
 	void * mem_blocks[500];
 	void * requested;
@@ -270,7 +269,7 @@ void test4(void){
 	set_process_priority(4,MEDIUM);
 	//release_processor();
 	//fills up the memory block array. Also requests ALL memory.
-	for (i = 0; i < number_mem_blocks - 2; i ++){
+	for (i = 0; i < number_mem_blocks - 3; i ++){
 		requested = request_memory_block();
 		mem_blocks[i] = requested;
 	}
@@ -284,7 +283,7 @@ void test4(void){
 	}
 	
 	//release all memory
-	for (i = 0; i < number_mem_blocks - 2; i ++){
+	for (i = 0; i < (int)number_mem_blocks - 3; i ++){
 		requested = mem_blocks[i];
 		release_memory_block(requested);
 	}

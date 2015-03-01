@@ -68,7 +68,7 @@ void process_init()
 		}
 		(gp_pcbs[i])->mp_sp = sp;
 		element = k_request_element();
-		element->data = gp_pcbs[i];
+		element->data = (PCB*)(gp_pcbs[i]);
 		pushToReadyQ((g_proc_table[i]).m_priority, element);
 	}
 }
@@ -157,7 +157,6 @@ int k_release_processor(void)
 {
 	PCB *p_pcb_old = NULL;
 	p_pcb_old = gp_current_process;
-	
 	gp_current_process = scheduler();
 	if ( gp_current_process == NULL  ) {
 		gp_current_process = p_pcb_old; // revert back to the old process
@@ -206,10 +205,11 @@ int k_set_process_priority(int process_id, int priority){
 		if (iterator == getReadyQ(gp_pcbs[process_id]->m_priority)->first) {
 			element = popFromReadyQ(gp_pcbs[process_id]->m_priority);
 		} else {
-			if (iterator->next == getReadyQ(gp_pcbs[process_id]->m_priority)->last) {
+			element = iterator->next;
+			if (element == getReadyQ(gp_pcbs[process_id]->m_priority)->last) {
 				getReadyQ(gp_pcbs[process_id]->m_priority)->last = iterator;
 			}
-			iterator->next = iterator->next->next;
+			iterator->next = element->next;
 		}
 		pushToReadyQ(priority, element);
 	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
@@ -220,10 +220,11 @@ int k_set_process_priority(int process_id, int priority){
 		if (iterator == getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->first) {
 			element = pop(getBlockedResourceQ(gp_pcbs[process_id]->m_priority));
 		} else {
-			if (iterator->next == getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->last) {
+			element = iterator->next;
+			if (element == getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->last) {
 				getBlockedResourceQ(gp_pcbs[process_id]->m_priority)->last = iterator;
 			}
-			iterator->next = iterator->next->next;
+			iterator->next = element->next;
 		}
 		push(getBlockedResourceQ(priority), element);
 	}

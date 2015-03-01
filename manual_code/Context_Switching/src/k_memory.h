@@ -35,6 +35,8 @@ void pushToReadyQ (int priority, Element* p_pcb_old);
 Element* popFromReadyQ (int priority);
 Queue* getReadyQ(int priority);
 Queue* getBlockedResourceQ(int priority);
+void printReadyQ (char* tag);
+void printBlockedQ (char* tag);
 int getMSP (void);
 int k_get_total_num_blocks(void);
 

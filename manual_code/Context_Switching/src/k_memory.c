@@ -28,7 +28,7 @@ struct Block { //fixed size, defined above
 Element* pop(Queue* self) {
 	Element* element = NULL;
 	
-	if (self == NULL || self->first->data == NULL) {
+	if (self == NULL || self->first == NULL) {
 		return NULL;
 	} else if (self->first->next == NULL) { //queue only has 1 element
 		element = self->first;
@@ -58,8 +58,45 @@ int push(Queue* self, Element* element) {
 	return RTX_OK;
 };
 
+void printReadyQ(char* tag) {
+	Element* iterator = NULL;
+	int i;
+	
+	printf("Ready Queue: %s\n\r", tag);
+	for (i = 0; i < NUM_PRIORITIES; i++) {
+		iterator = getReadyQ(i)->first;
+		printf("Queue: %d\n\r", i);
+		while (iterator != NULL) {
+			PCB* pcb = iterator->data;
+			printf("PID: %d\n\r", pcb->m_pid);
+			iterator = iterator->next;
+		}
+		printf("\n\r");
+	}
+	printf("\n\r\n\r");
+}
+
+void printBlockedQ(char* tag) {
+	Element* iterator = NULL;
+	int i;
+	
+	printf("Blocked Queue: %s\n\r", tag);
+	for (i = 0; i < NUM_PRIORITIES; i++) {
+		iterator = getBlockedResourceQ(i)->first;
+		printf("Queue: %d\n\r", i);
+		while (iterator != NULL) {
+			PCB* pcb = iterator->data;
+			printf("PID: %d\n\r", pcb->m_pid);
+			iterator = iterator->next;
+		}
+		printf("\n\r");
+	}
+	printf("\n\r\n\r");
+}
+
 Block* MSP;
 Block* ElementBlock;
+Element* currElement;
 //array of queues, organized by priority
 Queue* blocked_resource_qs[NUM_PRIORITIES]; 
 Queue* ready_qs[NUM_PRIORITIES];
@@ -215,7 +252,9 @@ void memory_init(void)
 	}
 	
 	ElementBlock = k_request_memory_block();
-	for (i = (int)ElementBlock; i < (int)ElementBlock + sizeof(Block*); i+= sizeof(Element*)) {
+	total_mem_blocks --;
+	currElement = (Element*)(int) ElementBlock + sizeof(Block*) + sizeof(int);
+	for (i = (int)currElement; i < (int)ElementBlock + BLOCK_SIZE + sizeof(Block*) + sizeof(int); i+= sizeof(Element*)) {
 		((Element*)(i))->data = NULL;
 	}
 }
@@ -249,22 +288,23 @@ U32 *alloc_stack(U32 size_b)
  */
 void *k_request_element(void) {
 		Block* currBlock;
-		Element* currElement;
 		int i;
 		
 		currBlock = ElementBlock;
-		currElement = (Element*)(int) currBlock;
 		
 		while (currElement->data != NULL) {
-			if ((int)currElement + sizeof(Element*) > (int)currBlock + sizeof(Block*)) {
+			if ((int)currElement + sizeof(Element*) > (int)currBlock + BLOCK_SIZE + sizeof(int)*2) {
 				if (currBlock->next == NULL) {
 					currBlock->next = k_request_memory_block();
-					for (i = (int)currBlock; i < (int)currBlock + sizeof(Block*); i+= sizeof(Element*)) {
+					total_mem_blocks --;
+					for (i = (int)currBlock->next + sizeof(Block*) + sizeof(int); i < (int)currBlock - sizeof(Element*) - 1; i+= sizeof(Element*)) {
 						((Element*)(i))->data = NULL;
 					}
+					currBlock->next->next = NULL;
 				}
 				currBlock = currBlock->next;
-				currElement = (Element*)(int) currBlock;
+				
+				currElement = (Element*)(int) currBlock + sizeof(Block*) + sizeof(int);
 			} else {
 				currElement += sizeof(Element*);
 			}
