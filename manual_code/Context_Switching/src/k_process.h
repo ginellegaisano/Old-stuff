@@ -35,5 +35,6 @@ extern Queue* getBlockedResourceQ(int priority);
 
 int k_get_process_priority(int process_id);
 int k_set_process_priority(int process_id, int priority); 
+int k_send_message(int process_id, void *message_envelope);
 
 #endif /* ! K_PROCESS_H_ */

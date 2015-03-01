@@ -62,4 +62,8 @@ extern int k_set_process_priority(int,int);
 #define set_process_priority(process_id, priority) _set_process_priority((U32)k_set_process_priority, process_id, priority)
 extern int _set_process_priority(U32 p_func, int process_id, int priority) __SVC_0;
 
+extern int k_send_message(int,void *);
+#define send_message(process_id, message_envelope) _send_message((U32)k_send_message, process_id, message_envelope)
+extern int _send_message(U32 p_func, int process_id, void *message_envelope) __SVC_0;
+
 #endif /* !RTX_H_ */

@@ -19,6 +19,12 @@
 #define NUM_TESTS 5
 #define NUM_PRIORITIES 5
 
+
+/* ------- Message Types --------*/
+#define DEFAULT 0
+#define KCD_REG 1
+#define NUM_MAILBOXES 2
+
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x200         /* user proc stack size 512B   */
 #else
@@ -33,7 +39,8 @@ typedef int bool;
 #define false 0
 
 /* process states, note we only assume four states in this example */
-typedef enum {NEW = 0, RDY, RUN, BLOCKED_ON_RESOURCE} PROC_STATE_E;  
+typedef enum {NEW = 0, RDY, RUN, BLOCKED_ON_RESOURCE, BLOCKED_ON_RECEIVE} PROC_STATE_E;  
+typedef struct Queue Queue;
 
 /*
   PCB data structure definition.
@@ -50,6 +57,7 @@ struct PCB
 	PROC_STATE_E m_state;   /* state of the process */
 	int m_priority;	
 	PCB * next;
+	Queue *mailbox;
 };
 
 /* initialization table item */
@@ -63,13 +71,19 @@ typedef struct proc_init
 
 //typedef struct BlockedElement BlockedElement;
 
-
-
-typedef struct Queue Queue;
+//typedef struct Queue Queue;
 
 struct Queue {
 		PCB* first;
 		PCB* last;
+};
+
+typedef struct msgbuf msgbuf;
+
+struct msgbuf {
+	int sender_id;
+	int mtype; /* user defined message type */
+	char mtext[1]; /* body of the message */
 };
 
 #endif // ! K_RTX_H_
