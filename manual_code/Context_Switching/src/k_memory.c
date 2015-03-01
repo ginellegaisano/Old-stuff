@@ -26,9 +26,9 @@ struct Block { //fixed size, defined above
 } ;
 
 Element* pop(Queue* self) {
-	Element* element;
+	Element* element = NULL;
 	
-	if (self == NULL || self->first == NULL) {
+	if (self == NULL || self->first->data == NULL) {
 		return NULL;
 	} else if (self->first->next == NULL) { //queue only has 1 element
 		element = self->first;
@@ -164,8 +164,6 @@ void memory_init(void)
 		p_end += sizeof(PCB); 
 	}
 	
-	ElementBlock = k_request_memory_block();
-	
 	/* initializing blocked and ready queues (array of queues, organized by PRIORITY) 
 	Currently 1D for blocked, will need to eventually be 2D when we have multiple events */
 	for (i = 0; i < NUM_PRIORITIES; i++) {
@@ -215,6 +213,11 @@ void memory_init(void)
 		MSP = current;
 		total_mem_blocks ++;
 	}
+	
+	ElementBlock = k_request_memory_block();
+	for (i = (int)ElementBlock; i < (int)ElementBlock + sizeof(Block*); i+= sizeof(Element*)) {
+		((Element*)(i))->data = NULL;
+	}
 }
 
 /**
@@ -247,6 +250,7 @@ U32 *alloc_stack(U32 size_b)
 void *k_request_element(void) {
 		Block* currBlock;
 		Element* currElement;
+		int i;
 		
 		currBlock = ElementBlock;
 		currElement = (Element*)(int) currBlock;
@@ -255,6 +259,9 @@ void *k_request_element(void) {
 			if ((int)currElement + sizeof(Element*) > (int)currBlock + sizeof(Block*)) {
 				if (currBlock->next == NULL) {
 					currBlock->next = k_request_memory_block();
+					for (i = (int)currBlock; i < (int)currBlock + sizeof(Block*); i+= sizeof(Element*)) {
+						((Element*)(i))->data = NULL;
+					}
 				}
 				currBlock = currBlock->next;
 				currElement = (Element*)(int) currBlock;

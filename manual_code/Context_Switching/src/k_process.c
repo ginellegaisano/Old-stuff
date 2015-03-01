@@ -87,9 +87,9 @@ PCB *scheduler(void)
 	int i;
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		element = popFromReadyQ(i);
-		pcb = (PCB*) element -> data;
-		element->data = NULL;
-		if (pcb != NULL) {
+		if (element != NULL) {
+			pcb = (PCB*) element -> data;
+			element->data = NULL;
 			if (gp_current_process == NULL) {
 				gp_current_process = pcb;
 			}
