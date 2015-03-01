@@ -184,9 +184,10 @@ void c_UART0_IRQHandler(void)
 		/* read UART. Read RBR will clear the interrupt */
 		g_char_in = pUart->RBR;
 #ifdef DEBUG_0
-		uart1_put_string("Reading a char = ");
-		uart1_put_char(g_char_in);
-		uart1_put_string("\n\r");
+		//printf("Reading a char = ");
+		//printf("%d", g_char_in);
+		//printf("\n\r");
+		printf("Reading a char = %c \n\r", g_char_in);
 #endif // DEBUG_0
 		
 		g_buffer[12] = g_char_in; // nasty hack

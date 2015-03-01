@@ -226,7 +226,7 @@ int k_set_process_priority(int process_id, int priority){
 	
 	return RTX_OK;
 }
-
+/*
 int k_send_message(int process_id, void *message_envelope) {
 	msgbuf *msg;
 	PCB *process;
@@ -282,4 +282,4 @@ void *receive_message(int *sender_id) {
 }
 
 
-
+*/

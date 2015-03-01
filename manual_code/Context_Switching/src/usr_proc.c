@@ -93,7 +93,9 @@ void testHandler(void){
 	printTest();
 	printf("END\n\r");
 
-	
+	while(1) {
+		release_processor();
+	}
 }
 
 /**
