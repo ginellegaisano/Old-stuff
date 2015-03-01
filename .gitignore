@@ -1,11 +1,13 @@
-*.uvgi*
+*.uvgui*
 *.axf
 *.htm
+*.ini
 *.map
 *.plg
 *.tra
 *.dep
 *.crf
+*.iex
 *.o
 *.d
 *.lnp

@@ -189,7 +189,7 @@ int k_set_process_priority(int process_id, int priority){
 	if (gp_pcbs[process_id]->m_state == RDY || gp_pcbs[process_id]->m_state == NEW) {		
 		iterator = getReadyQ(gp_pcbs[process_id]->m_priority)->first;
 		while (iterator->next != NULL && iterator->next->m_pid != (process_id)) {
-			iterator = iterator->next;
+aaa			iterator = iterator->next;
 		}
 		if (iterator == getReadyQ(gp_pcbs[process_id]->m_priority)->first) {
 			popFromReadyQ(gp_pcbs[process_id]->m_priority);
@@ -226,7 +226,7 @@ int k_set_process_priority(int process_id, int priority){
 	
 	return RTX_OK;
 }
-
+/*
 int k_send_message(int process_id, void *message_envelope) {
 	msgbuf *msg;
 	PCB *process;
@@ -282,4 +282,4 @@ void *receive_message(int *sender_id) {
 }
 
 
-
+*/
