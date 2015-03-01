@@ -15,48 +15,14 @@
 #include <LPC17xx.h>
 #include <system_LPC17xx.h>
 #include "rtx.h"
-#ifdef DEBUG_0
-#include "uart_polling.h"
-#include "uart.h"
-
-#include "printf.h"
-#endif /* DEBUG_0 */
-
-extern uint8_t g_send_char;
 
 int main() 
 {	
-	LPC_UART_TypeDef *pUart;
-
 	/* CMSIS system initialization */
 	SystemInit(); 
-#ifdef DEBUG_0
-	init_printf(NULL, putc);
-#endif /* DEBUG_0 */	
+
 	/* start the RTX and built-in processes */
 	rtx_init();  
- /* 
-	__disable_irq();
-	
-#ifdef DEBUG_0
-	init_printf(NULL, putc);
-#endif // DEBUG_0
-	__enable_irq();
-
-	uart1_put_string("COM1> Type a character at COM0 terminal\n\r");
-
-	pUart = (LPC_UART_TypeDef *) LPC_UART0;
-	
-	while( 1 ) {
-		
-		if (g_send_char == 0) {
-			pUart->IER = IER_RLS | IER_RBR;
-		} else if (g_send_char == 1) {
-			pUart->IER = IER_THRE | IER_RLS | IER_RBR;
-		}
-     
-	}
-*/
 	
 	/* We should never reach here!!! */
 	return RTX_ERR;  
