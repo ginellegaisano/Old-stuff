@@ -58,7 +58,6 @@ void process_init()
 		(gp_pcbs[i])->m_pid = (int)(g_proc_table[i]).m_pid;
 		(gp_pcbs[i])->m_state = NEW;
 		(gp_pcbs[i])->m_priority = (g_proc_table[i]).m_priority;
-		gp_pcbs[i]->next = NULL;
 		
 		sp = alloc_stack((g_proc_table[i]).m_stack_size);
 		*(--sp)  = INITIAL_xPSR;      // user process initial xPSR  
@@ -179,7 +178,7 @@ int k_release_processor(void)
  * @return priority value of process
  */
 int k_get_process_priority(int process_id) {
-	if (process_id < 0 || process_id > NUM_TEST_PROCS){
+	if (process_id < 0 || process_id > NUM_PROCS){
 		return -1;
 	}
 	return (int)g_proc_table[process_id].m_priority;
@@ -194,7 +193,7 @@ int k_set_process_priority(int process_id, int priority){
 	Element* iterator = NULL;
 	Element* element;
 	bool flag = false;
-	if (process_id < 0 || process_id > NUM_TEST_PROCS || priority < 0 || priority > NUM_PRIORITIES)
+	if (process_id < 0 || process_id > NUM_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
 
 	if (gp_pcbs[process_id]->m_state == RDY || gp_pcbs[process_id]->m_state == NEW) {		
@@ -240,60 +239,3 @@ int k_set_process_priority(int process_id, int priority){
 	return RTX_OK;
 }
 
-/*
-int k_send_message(int process_id, void *message_envelope) {
-	msgbuf *msg;
-	PCB *process;
-	Queue *mailbox;
-	
-	if(process_id > NUM_PROCS || process_id < 1) {
-		return RTX_ERR;
-	}
-	
-	//cast void pointer to msg
-	msg = (msgbuf *)message_envelope;
-	process = gp_pcbs[process_id];
-	mailbox = process->mailbox;
-		
-	if(msg == NULL) {
-		return RTX_ERR;
-	}
-	__disable_irq();
-	//add that message to the process_id PCB mailbox
-	//add process_id to "header" in this memory block
-	msg->sender_id = gp_current_process->m_pid;
-	mailbox->push(msg);
-	
-		//check if destination process is blocked on received for message type
-	if( process->m_state == BLOCKED_ON_RECEIVE) {
-		process->m_state = RDY;
-		pushToReadyQ(process->m_priority, process);
-		//removeFromBlockedResource(process); To be implememented
-		if(process->m_priority < gp_current_process->m_priority){
-			k_release_processor();
-		}
-	}
-	__enable_irq();
-	return RTX_OK;
-}
-
-//returns a pointer to the message, 
-void *receive_message(int *sender_id) {
-	msgbuf *ret_val;
-	Queue *mailbox = gp_current_process->mailbox;
-	if(mailbox->first == NULL) {
-		gp_current_process->m_state = BLOCKED_ON_RECEIVE;
-		k_release_processor();
-	}
-	__disable_irq();
-
-	ret_val = (msgbuf *)mailbox->pop();
-	*sender_id = ret_val->sender_id;
-	
-	__enable_irq();
-		
-	return (void *)ret_val;
-}
-
-
-*/

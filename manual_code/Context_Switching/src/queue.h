@@ -20,6 +20,10 @@ Queue* getReadyQ(int priority);
 void setReadyQ(int priority, Queue* q);
 Queue* getBlockedResourceQ(int priority);
 void setBlockedResourceQ(int priority, Queue* q);
+Queue* getBlockedReceiveQ(int priority);
+void setBlockedReceiveQ(int priority, Queue* q);
+Queue* getTimedQ(void);
+void setTimedQ(Queue* q);
 void printReadyQ (char* tag);
 void printBlockedQ (char* tag);
 

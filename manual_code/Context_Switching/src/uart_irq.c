@@ -178,9 +178,6 @@ void c_UART0_IRQHandler(void)
 	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
 	int i = 0;
 	
-#ifdef DEBUG_0
-	uart1_put_string("Entering c_UART0_IRQHandler\n\r");
-#endif // DEBUG_0
 
 	/* Reading IIR automatically acknowledges the interrupt */
 	IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
@@ -221,8 +218,7 @@ void c_UART0_IRQHandler(void)
 			}
 		}
 		
-		//g_buffer[12] = g_char_in; // nasty hack
-		g_send_char = 1;
+		//g_buffer[12] = g_char_in; // nasty hack		g_send_char = 1;
 	} else if (IIR_IntId & IIR_THRE) {
 	/* THRE Interrupt, transmit holding register becomes empty */
 /*
@@ -243,6 +239,7 @@ void c_UART0_IRQHandler(void)
 #ifdef DEBUG_0
 			uart1_put_string("Finish writing. Turning off IER_THRE\n\r");
 #endif // DEBUG_0
+
 			pUart->IER ^= IER_THRE; // toggle the IER_THRE bit 
 			pUart->THR = '\0';
 			g_send_char = 0;
@@ -250,9 +247,8 @@ void c_UART0_IRQHandler(void)
 		}
 */
 	} else {  /* not implemented yet */
-#ifdef DEBUG_0
-			uart1_put_string("Should not get here!\n\r");
-#endif // DEBUG_0
+		
+		//TODO: figure out what goes here
 		return;
 	}	
 }

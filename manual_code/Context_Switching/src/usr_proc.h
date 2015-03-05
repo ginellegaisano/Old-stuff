@@ -23,12 +23,9 @@ extern PCB *scheduler(void);
 
 /* ----- Functions ----- */
 void set_test_procs(void);
-void proc1(void);
-void proc2(void);
-void proc3(void);
-void proc4(void);
-void proc5(void);
-void proc6(void);
+void A(void);
+void B(void);
+void C(void);
 void testHandler(void);
 void test1(void);
 void test2(void);

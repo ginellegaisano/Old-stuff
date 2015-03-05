@@ -7,6 +7,7 @@
  */
 
 #include "k_rtx.h"
+#include "msg.h"
 #include "rtx.h"
 #include "uart_polling.h"
 #include "usr_proc.h"
@@ -16,7 +17,7 @@
 #endif /* DEBUG_0 */
 
 /* initialization table item */
-PROC_INIT g_test_procs[NUM_TEST_PROCS];
+PROC_INIT g_test_procs[NUM_PROCS];
  
 int FAILED = 0;
 void * test5_mem = NULL;
@@ -36,7 +37,7 @@ void printTest() {
 
 void set_test_procs() {
 	int i;
-	for( i = 0; i < NUM_TEST_PROCS; i++ ) {
+	for( i = 0; i < NUM_PROCS; i++ ) {
 		g_test_procs[i].m_pid=(U32)(i+1);
 		g_test_procs[i].m_priority=LOW;
 		g_test_procs[i].m_stack_size=USR_SZ_STACK;
@@ -48,13 +49,24 @@ void set_test_procs() {
 	g_test_procs[3].mpf_start_pc = &test3;
 	g_test_procs[4].mpf_start_pc = &test4;
 	g_test_procs[5].mpf_start_pc = &test5;
+	g_test_procs[6].mpf_start_pc = &A;
+	g_test_procs[7].mpf_start_pc = &B;
+	g_test_procs[8].mpf_start_pc = &C;
 }
 
 /**
  * @brief: Empty Procedure
  */
-void proc1(void)
+void A(void)
 {
+	int *sender;
+	msgbuf *message;
+	
+	message = receive_message(sender);
+	
+	printf("Sender : %d\n\r", *sender);
+
+	printf("Text: %c\n\r", message->mtext[0]);
 	while (1) {
 			release_processor();
 	}
@@ -63,7 +75,7 @@ void proc1(void)
 /**
  * @brief: Empty Procedure
  */
-void proc2(void)
+void B(void)
 {
 	//release process
 	while(1) {
@@ -71,6 +83,16 @@ void proc2(void)
 	}
 }
 
+/**
+ * @brief: Empty Procedure
+ */
+void C(void)
+{
+	//release process
+	while(1) {
+		release_processor();
+	}
+}
 /**
  * @brief: a process that tests the allocation and deallocation of a memory block
  */
@@ -98,7 +120,7 @@ void testHandler(void){
  * @brief: a process that tests getting and setting priority as well as setting priority to an illegal value.
  */
 void test1(void){
-	
+	/*
 	int failed = 0;
 	int initial = 0;
 	int final = 0; 
@@ -152,6 +174,8 @@ void test1(void){
 		FAILED ++;
 	}
 	set_process_priority(2,LOWEST);
+	*/
+	
 	while(1) {
 		release_processor();
 	}
@@ -163,7 +187,7 @@ void test1(void){
 	*  			 and when trying to free a memory block twice, returns an error
  */
 void test2(void){
-
+/*
 	int failed = 0;
 	int ret_code;
 	void * requested;
@@ -210,7 +234,7 @@ void test2(void){
 	release_memory_block(test5_mem);
 	set_process_priority(4,HIGH);
 	set_process_priority(3, LOWEST);
-
+*/
 
 	while(1) {
 		release_processor();
@@ -221,6 +245,7 @@ void test2(void){
  * @brief: a process that tests memory ownership 
  */
 void test3(void){
+	/*
 	int failed = 0; 
 	void * requested;
 	requested = request_memory_block();
@@ -249,7 +274,7 @@ void test3(void){
 	requested = request_memory_block();
 	//release memory
 	release_memory_block(requested);
-	
+	*/
 		while(1) {
 		release_processor();
 	}
@@ -259,6 +284,7 @@ void test3(void){
  * @brief: a process that tests the out of memory exception + tests the blocked queue size
  */
 void test4(void){
+	/*
 	int number_mem_blocks = get_total_num_blocks(); //101
 	void * mem_blocks[500];
 	void * requested;
@@ -304,16 +330,25 @@ void test4(void){
 		FAILED ++;
 	}
 	set_process_priority(5,LOWEST);
-
+*/
 	while(1) {
 		release_processor();
 	}
 	
 }
 /**
- * @brief: a process that tests preemption
+ * @brief: a process that tests message passing
  */
 void test5(void){
+	msgbuf *message = request_memory_block();
+	
+	message->mtype = DEFAULT;
+	message->mtext[0] = 'a';
+	
+	send_message(7, message);
+	
+	
+	
 	/*PCB* next;
 	int failed = 0;
 	Element* top;

@@ -8,6 +8,8 @@
 
 #include <LPC17xx.h>
 #include "timer.h"
+#include "queue.h"
+#include "msg.h"
 #include "printf.h"
 
 #define BIT(X) (1<<X)
@@ -113,14 +115,32 @@ __asm void TIMER0_IRQHandler(void)
  */
 void c_TIMER0_IRQHandler(void)
 {
+	Queue *q;
+	Element *i;
+	Message *message;
 	/* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
 	LPC_TIM0->IR = BIT(0);  
 	
 	g_timer_count++ ;
 	
-	if (g_timer_count == 10) { 
+	if (g_timer_count % 1000 == 0) { 
 			printf("%d\r\n", g_timer_count);
-			g_timer_count = 0; /* reset the counter */
+			g_timer_count = 0;
+			q = getTimedQ();
+			i = q->first;
+			while(i->next != NULL) {
+				message = (Message *)i->data;
+				message->delay -= 1;
+				if(message->delay <= 0 ){
+					pop(q,0);
+					push_mailbox(message->sender_id, message);
+				}
+				i = i->next;
+			}		
 		}  
+}
+
+int get_time(void) {
+	return g_timer_count;
 }
 

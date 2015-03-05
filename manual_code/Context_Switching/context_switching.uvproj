@@ -447,14 +447,9 @@
               <FilePath>.\src\k_process.c</FilePath>
             </File>
             <File>
-              <FileName>sys_proc.c</FileName>
+              <FileName>timer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\sys_proc.c</FilePath>
-            </File>
-            <File>
-              <FileName>queue.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\queue.c</FilePath>
+              <FilePath>.\src\timer.c</FilePath>
             </File>
             <File>
               <FileName>uart_irq.c</FileName>
@@ -462,9 +457,14 @@
               <FilePath>.\src\uart_irq.c</FilePath>
             </File>
             <File>
-              <FileName>timer.c</FileName>
+              <FileName>sys_proc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\timer.c</FilePath>
+              <FilePath>.\src\sys_proc.c</FilePath>
+            </File>
+            <File>
+              <FileName>msg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\msg.c</FilePath>
             </File>
           </Files>
         </Group>

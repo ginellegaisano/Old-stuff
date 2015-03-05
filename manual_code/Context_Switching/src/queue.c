@@ -13,7 +13,9 @@
 
 //array of queues, organized by priority
 Queue* blocked_resource_qs[NUM_PRIORITIES]; 
+Queue* blocked_receive_qs[NUM_PRIORITIES]; 
 Queue* ready_qs[NUM_PRIORITIES];
+Queue* timed_q[1];
 
 Element* pop(Queue* self) {
 	Element* element = NULL;
@@ -161,3 +163,37 @@ Queue* getBlockedResourceQ(int priority) {
 void setBlockedResourceQ(int priority, Queue* q) {
 	blocked_resource_qs[priority] = q;
 }
+/**
+ * @brief getBlockedReceiveQ().
+ * @param priority
+ * @return returns *Queue stored in blocked_receive_qs at index[priority] 
+ */
+Queue* getBlockedReceiveQ(int priority) {
+	return blocked_receive_qs[priority];
+}
+/**
+ * @brief setBlockedResourceQ().
+ * @param priority
+ * @param q
+ */
+void setBlockedReceiveQ(int priority, Queue* q) {
+	blocked_resource_qs[priority] = q;
+}
+
+/**
+ * @brief getTimedQ().
+ * @param priority
+ * @return returns *Queue stored in blocked_receive_qs at index[priority] 
+ */
+Queue* getTimedQ(void) {
+	return timed_q[0];
+}
+/**
+ * @brief getTimedQ().
+ * @param priority
+ * @param q
+ */
+void setTimedQ(Queue* q) {
+	timed_q[0] = q;
+}
+

@@ -6,7 +6,6 @@
  */
 
 #include "k_memory.h"
-
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* ! DEBUG_0 */
@@ -118,6 +117,15 @@ void memory_init(void)
 		q2->last = NULL;
 		
 		setReadyQ(i, q2);
+	}
+	
+	for ( i = 0; i < NUM_PROCS; i++) {
+		Queue* q3 = (Queue *)p_end;
+		p_end += sizeof(Queue);
+		q3->first = NULL;
+		q3->last = NULL;
+		
+		gp_pcbs[i]->mailbox = q3;
 	}
 
 	/* prepare for alloc_stack() to allocate memory for stacks */

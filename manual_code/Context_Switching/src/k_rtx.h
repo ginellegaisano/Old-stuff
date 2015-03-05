@@ -14,10 +14,10 @@
 #define RTX_OK  0
 
 #define NULL 0
-#define NUM_TEST_PROCS 7
-#define NUM_PROCS 7
-#define NUM_TESTS 5
 #define NUM_PRIORITIES 5
+#define NUM_TEST_PROCS 6
+#define NUM_TESTS 5
+#define NUM_PROCS 10
 
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x200         /* user proc stack size 512B   */
@@ -33,7 +33,21 @@ typedef int bool;
 #define false 0
 
 /* process states, note we only assume four states in this example */
-typedef enum {NEW = 0, RDY, RUN, BLOCKED_ON_RESOURCE} PROC_STATE_E;  
+typedef enum {NEW = 0, RDY, RUN, BLOCKED_ON_RESOURCE, BLOCKED_ON_RECEIVE} PROC_STATE_E;  
+
+typedef struct Element Element;
+struct Element {
+	Element* next; //therefore we can take out PCB -> next. 
+	void* data;
+} ;
+
+typedef struct Queue Queue;
+
+struct Queue {
+		Element* first;
+		Element* last;
+};
+
 
 /*
   PCB data structure definition.
@@ -49,7 +63,8 @@ struct PCB
 	U32 m_pid;		/* process id */
 	PROC_STATE_E m_state;   /* state of the process */
 	int m_priority;	
-	PCB * next;
+	Queue *mailbox;
+	
 };
 
 /* initialization table item */
@@ -63,18 +78,9 @@ typedef struct proc_init
 
 //typedef struct BlockedElement BlockedElement;
 
-typedef struct Element Element;
-struct Element {
-	Element* next; //therefore we can take out PCB -> next. 
-	void* data;
-} ;
 
 
-typedef struct Queue Queue;
 
-struct Queue {
-		Element* first;
-		Element* last;
-};
+
 
 #endif // ! K_RTX_H_

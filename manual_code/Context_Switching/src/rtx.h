@@ -9,8 +9,8 @@
 #define RTX_ERR -1
 #define RTX_OK 0
 #define NULL 0
-#define NUM_TEST_PROCS 7
-#define NUM_PROCS 7
+
+
 /* Process Priority. The bigger the number is, the lower the priority is*/
 #define HIGH    0
 #define MEDIUM  1
@@ -65,5 +65,13 @@ extern int _get_process_priority(U32 p_func, int process_id) __SVC_0;
 extern int k_set_process_priority(int,int);
 #define set_process_priority(process_id, priority) _set_process_priority((U32)k_set_process_priority, process_id, priority)
 extern int _set_process_priority(U32 p_func, int process_id, int priority) __SVC_0;
+
+extern int k_delayed_send(int, void *, int);
+#define delayed_send(process_id, message_envelope, delay) _delayed_send((U32)k_delayed_send, process_id, message_envelope, delay)
+extern int _delayed_send(U32 p_func, int process_id, void *message_envelope, int delay) __SVC_0;
+
+extern int k_send_message(int, void *);
+#define send_message(process_id, message_envelope) _send_message((U32)k_send_message, process_id, message_envelope)
+extern int _send_message(U32 p_func, int process_id, void *message_envelope) __SVC_0;
 
 #endif /* !RTX_H_ */

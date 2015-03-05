@@ -22,7 +22,7 @@ extern unsigned int Image$$RW_IRAM1$$ZI$$Limit;
 
 extern PCB **gp_pcbs;
 extern PCB *gp_current_process;
-extern PROC_INIT g_proc_table[NUM_TEST_PROCS];
+extern PROC_INIT g_proc_table[NUM_PROCS];
 extern Queue **ready_qs;								/* ready queue*/
 extern Queue **blocked_resource_qs;			/* blocked resources queue*/
 
@@ -41,5 +41,6 @@ extern Element* pop(Queue* self);
 extern void push(Queue* self, Element* element);
 extern void setReadyQ(int priority, Queue* q);
 extern void setBlockedResourceQ(int priority, Queue* q);
+
 
 #endif /* ! K_MEM_H_ */
