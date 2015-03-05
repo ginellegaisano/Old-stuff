@@ -14,7 +14,7 @@
 #endif /* DEBUG_0 */
 void null_process(void) {
 	while (1) {
-		printf("NULL\n\r");
+		//printf("NULL\n\r");
 		release_processor();
 	}
 }

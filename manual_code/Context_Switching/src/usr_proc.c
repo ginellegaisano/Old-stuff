@@ -36,7 +36,6 @@ void printTest() {
 
 void set_test_procs() {
 	int i;
-	
 	for( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		g_test_procs[i].m_pid=(U32)(i+1);
 		g_test_procs[i].m_priority=LOW;
@@ -49,7 +48,6 @@ void set_test_procs() {
 	g_test_procs[3].mpf_start_pc = &test3;
 	g_test_procs[4].mpf_start_pc = &test4;
 	g_test_procs[5].mpf_start_pc = &test5;
-
 }
 
 /**
@@ -57,7 +55,6 @@ void set_test_procs() {
  */
 void proc1(void)
 {
-
 	while (1) {
 			release_processor();
 	}
@@ -68,7 +65,6 @@ void proc1(void)
  */
 void proc2(void)
 {
-	
 	//release process
 	while(1) {
 		release_processor();
@@ -92,7 +88,7 @@ void testHandler(void){
 	printf("%d/%d tests FAIL\n\r", FAILED, NUM_TESTS);
 	printTest();
 	printf("END\n\r");
-
+		
 	while(1) {
 		release_processor();
 	}
@@ -102,11 +98,11 @@ void testHandler(void){
  * @brief: a process that tests getting and setting priority as well as setting priority to an illegal value.
  */
 void test1(void){
+	
 	int failed = 0;
 	int initial = 0;
 	int final = 0; 
 	Element* iterator;
-
 
 	initial = (int)get_process_priority(6);
 	iterator = getReadyQ(initial)->first;
@@ -145,7 +141,7 @@ void test1(void){
 		failed = failed + 1;
 	}
 	
-	set_process_priority(6,initial);
+	set_process_priority(6,LOW);
 
 	if(failed == 0){
 		printTest();
@@ -167,6 +163,7 @@ void test1(void){
 	*  			 and when trying to free a memory block twice, returns an error
  */
 void test2(void){
+
 	int failed = 0;
 	int ret_code;
 	void * requested;
@@ -209,11 +206,12 @@ void test2(void){
 	}
 	set_process_priority(3,LOWEST);
 
-	
+
 	release_memory_block(test5_mem);
 	set_process_priority(4,HIGH);
 	set_process_priority(3, LOWEST);
-	
+
+
 	while(1) {
 		release_processor();
 	}
@@ -296,7 +294,7 @@ void test4(void){
 		failed ++;
 	}
 	set_process_priority(4,LOWEST);
-	
+
 	if(failed == 0){
 		printTest();
 		printf("test 4 OK\n\r");
@@ -316,58 +314,73 @@ void test4(void){
  * @brief: a process that tests preemption
  */
 void test5(void){
-	PCB* next;
+	/*PCB* next;
 	int failed = 0;
 	Element* top;
 	Element* bottom;
 	
 	release_processor();
+	printReadyQ("8egin test 5");
 	
 	set_process_priority(6,HIGH);
 	set_process_priority(5,MEDIUM);
-	
-	next = scheduler();
+	printReadyQ("8fter setting pr8rity 5");
+
+	//next = scheduler();
 	
 	if (next->m_pid != 5) {
 		failed = failed + 1;
 	}
-	
-	set_process_priority(5,LOWEST);
-	set_process_priority(4,LOWEST);
-	set_process_priority(3,LOWEST);
-	set_process_priority(2,LOWEST);
-	set_process_priority(1,LOWEST);
-
-	/*
 	top = request_element();
 	top->data = next;
-	pushToReadyQ(LOWEST, top);*/
+	top->next=NULL;
+	pushToReadyQ(LOW, top);	
 	
-	top = getReadyQ(LOWEST)->first;
-	bottom = getReadyQ(LOWEST)->last;
+	set_process_priority(5,LOW);
+		printReadyQ("8fter sett8ng allllllll pr8rities 5 l8w");
+
+	set_process_priority(4,LOW);
+		printReadyQ("8fter sett8ng allllllll pr8rities 4 l8w");
+
+	set_process_priority(3,LOW);
+		printReadyQ("8fter sett8ng allllllll pr8rities 3 l8w");
+
+	set_process_priority(2,LOW);
+		printReadyQ("8fter sett8ng allllllll pr8rities 2 l8w");
+
+	set_process_priority(1,LOW);
+	printReadyQ("8fter sett8ng allllllll pr8rities 1 l8w");
+
+	top = getReadyQ(LOW)->first;
+	bottom = getReadyQ(LOW)->last;
+
+	getReadyQ(LOW)->first = NULL;
+	getReadyQ(LOW)->last = NULL;
 	
-	getReadyQ(LOWEST)->first = NULL;
-	getReadyQ(LOWEST)->last = NULL;
+	//next = scheduler();
 	
-	next = scheduler();
-	
-	if (next->m_pid != 0) { //this checks if it is null process. but we have no more null process.what should it be?
+	if (next->m_pid != 0) { //this checks if it is null process
 		failed = failed + 1;
 	}
 	
-	getReadyQ(LOWEST)->first = top;
-	getReadyQ(LOWEST)->last = bottom;
+	getReadyQ(LOW)->first = top;
+	getReadyQ(LOW)->last = bottom;
 	
 	
 	if(failed == 0){
 		printf("G026_test: test 5 OK\n\r");
+		printReadyQ("test5");
 	} else {
 		printf("G026_test: test 5 FAIL\n\r");
 		FAILED ++;
 	}
 
+	set_process_priority(5,LOWEST);
+	set_process_priority(4,LOWEST);
+	set_process_priority(3,LOWEST);
+	set_process_priority(2,LOWEST);
 	set_process_priority(6,LOWEST);
-	
+	*/
 	
 	while(1) {
 		release_processor();

@@ -297,4 +297,3 @@ void *receive_message(int *sender_id) {
 
 
 */
->>>>>>> Timer and Keyboard interrupts working
