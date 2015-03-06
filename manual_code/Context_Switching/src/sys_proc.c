@@ -12,6 +12,8 @@
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* DEBUG_0 */
+void send_wall_clock_message(Message *msg, msgbuf *envelope, char *mtext);
+
 void null_process(void) {
 	while (1) {
 		//printf("NULL\n\r");
@@ -21,9 +23,9 @@ void null_process(void) {
 
 void wall_clock(void){
 	int * blah; // the output parameter
-	int hour = 0;
-	int minute = 0;
-	int second = 0;
+	int* hour = 0;
+	int* minute = 0;
+	int* second = 0;
 	int temp = 0;
 	int i=0;
 	msgbuf* envelope;
@@ -76,6 +78,43 @@ void wall_clock(void){
 					send_wall_clock_message(msg, envelope, '');
 				}
 		}
+	}
+}
+void set_time(int *hour, int *minute, int *second){
+	
+	
+	
+	
+	
+	
+	
+	//DO SOMETHING HERE!
+	
+	
+	
+	
+	
+	
+	
+// int m = second/60;
+// int h = 
+}
+void CRT_print(void){
+	char * str;
+	int i;
+	msg = (Message *)receive_message(blah);
+	while(1){
+		str = msg->envelope->mtext;
+		k_release_memory_block(msg->envelope);
+		k_release_memory_block(msg);
+		//atomic(on)?????
+		printf("\n\r");
+		for (i = 0; i < sizeof(str)/sizeof(str[0]); i++) {
+					printf("%c", str[i]);
+		}
+		//atomic(off)??
+		
+		
 	}
 }
 void send_wall_clock_message(Message *msg, msgbuf *envelope, char *mtext){

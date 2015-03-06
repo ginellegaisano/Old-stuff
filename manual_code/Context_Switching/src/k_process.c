@@ -58,8 +58,13 @@ void process_init()
 		g_proc_table[7].m_stack_size = USR_SZ_STACK;
 		g_proc_table[7].mpf_start_pc = &wall_clock;
 	
+		g_proc_table[8].m_pid = 13;
+		g_proc_table[8].m_priority = 0;
+		g_proc_table[8].m_stack_size = USR_SZ_STACK;
+		g_proc_table[8].mpf_start_pc = &CRT_print;
+	
 	/* initilize exception stack frame (i.e. initial context) for each process */
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
+	for ( i = 0; i < NUM_PROCS; i++ ) {
 		int j;
 		(gp_pcbs[i])->m_pid = (int)(g_proc_table[i]).m_pid;
 		(gp_pcbs[i])->m_state = NEW;

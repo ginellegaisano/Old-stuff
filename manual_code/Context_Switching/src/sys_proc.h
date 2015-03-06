@@ -10,5 +10,6 @@
 
 void null_process(void);
 void wall_clock(void);
+void CRT_print(void);
 
 #endif

@@ -30,6 +30,15 @@ msgbuf * envelope;
  * The step number in the comments matches the item number in Section 14.1 on pg 298
  * of LPC17xx_UM
  */
+ 
+bool check_format(char* str) {
+	int i = 0;
+	for(i = 3; i < 10; i = i + 3) {
+		if (str[i] >= '0' && str[i] <= '9' && str[i+1] >= '0' && str[i+1] <= '9')
+			return false;
+	}
+	return true;
+}
 int uart_irq_init(int n_uart) {
 
 	LPC_UART_TypeDef *pUart;
@@ -196,13 +205,16 @@ void c_UART0_IRQHandler(void)
 #endif // DEBUG_0
 */
 		if (!waiting_for_command) {
-				if(g_char_in == 'r') {
+			#ifdef _DEBUG_HOTKEYS
+			if(g_char_in == 'r') {
 					printReadyQ(" ");
 			}
 			else if (g_char_in == 'b') {
 					printBlockedQ(" ");
 			}
-			else if (g_char_in == '%') {
+			//insert blocked on recieve queues here when done. 
+			#endif 
+			if (g_char_in == '%') {
 				waiting_for_command = true;
 				printf("%c", g_char_in);
 			}
@@ -227,7 +239,7 @@ void c_UART0_IRQHandler(void)
 						envelope->mtext = '';
 						msg->envelope = envelope;
 						k_send_message(11, msg); //assuming in ms
-				} else if (clock_on == true && char_count == 11 && g_buffer[0] == 'W' && g_buffer[1] == 'S') {
+				} else if (clock_on == true && char_count == 11 && g_buffer[0] == 'W' && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
 						msg = (Message *) k_request_memory_block();
 						envelope = (msgbuf *) k_request_memory_block();
 						envelope->mtype = 0;
@@ -251,11 +263,15 @@ void c_UART0_IRQHandler(void)
 						clock_on = false;
 					}
 				else {
-					printf("\n\r");
-					for (i = 0; i < char_count; i++) {
-						printf("%c", g_buffer[i]);
-					}
-					printf(" is not a command.\n\r");
+					envelope = (msgbuf *) k_request_memory_block();
+					envelope->mtype = 0;
+					envelope->mtext = g_buffer;
+					msg->envelope = envelope;
+					k_send_message(13, msg); //assuming in ms
+// 					for (i = 0; i < char_count; i++) {
+// 						printf("%c", g_buffer[i]);
+// 					}
+// 					printf(" is not a command.\n\r");
 					waiting_for_command = false;
 					char_count = 0;
 				}
