@@ -18,6 +18,7 @@ extern void printReadyQ (char* tag);
 extern void printBlockedQ (char* tag);
 extern Queue* getBlockedResourceQ(int priority);
 extern PCB *scheduler(void);
+extern PCB *scheduler(void);
 
 #define PID_P2 2
 

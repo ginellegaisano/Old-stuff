@@ -12,6 +12,35 @@
 #include "k_rtx.h"
 #include "k_memory.h"
 
+void setMessageText(msgbuf* message, char text[], int textLength) {
+	int i = 0;
+	int j = 0;
+	
+	while (i < sizeof(message->mtext) || j < textLength) {
+		if (j < textLength) {
+			message->mtext[i] = text[j];
+		} else {
+			message->mtext[i] = NULL;
+		}
+		i++;
+		j++;
+	}
+}
+
+int checkMessageText(msgbuf* message, char text[]) {
+	int i = 0;
+	int j = 0;
+	
+	while (i < sizeof(message->mtext)/sizeof(char) && j < sizeof(text)/sizeof(char)) {
+		if (message->mtext[i] != text[j]) {
+			return 0;
+		}
+		i++;
+		j++;
+	}
+	return 1;
+}
+
 void *build_message(int process_id, void *message_envelope, int delay) {
 	Message *message = (Message *)k_request_memory_block();
 	msgbuf *msg; 
@@ -93,7 +122,7 @@ void *receive_message(int *sender_id) {
 	}
 	__disable_irq();
 
-	ret_val = (Message *)((Element *)pop(mailbox)->data);
+	ret_val = (Message *)(pop(mailbox)->data);
 	*sender_id =  ret_val->sender_id;
 	
 	__enable_irq();

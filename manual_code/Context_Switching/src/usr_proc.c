@@ -21,6 +21,8 @@ PROC_INIT g_test_procs[NUM_PROCS];
  
 int FAILED = 0;
 void * test5_mem = NULL;
+char TEST_MSG_1[] = "aaaaaaaaaaaa";
+char TEST_MSG_2[] = "babel";
 
 typedef struct LinkedElement LinkedElement;
 
@@ -59,14 +61,23 @@ void set_test_procs() {
  */
 void A(void)
 {
-	int *sender;
-	msgbuf *message;
+	msgbuf *message = request_memory_block();
 	
-	message = receive_message(sender);
+	message->mtype = DEFAULT;
+	setMessageText(message, TEST_MSG_1, sizeof(TEST_MSG_1));
 	
-	printf("Sender : %d\n\r", *sender);
-
-	printf("Text: %c\n\r", message->mtext[0]);
+	send_message(6, message);
+	set_process_priority(7, LOWEST);
+	
+	
+	setMessageText(message, TEST_MSG_2, sizeof(TEST_MSG_2));
+	k_delayed_send(6, message, 3);
+	
+	setMessageText(message, TEST_MSG_1, sizeof(TEST_MSG_2));
+	send_message(6, message);
+	
+	set_process_priority(7, LOWEST);
+	
 	while (1) {
 			release_processor();
 	}
@@ -77,6 +88,7 @@ void A(void)
  */
 void B(void)
 {
+	set_process_priority(8,LOWEST);
 	//release process
 	while(1) {
 		release_processor();
@@ -88,6 +100,7 @@ void B(void)
  */
 void C(void)
 {
+	set_process_priority(9,LOWEST);
 	//release process
 	while(1) {
 		release_processor();
@@ -175,6 +188,7 @@ void test1(void){
 	}
 	set_process_priority(2,LOWEST);
 	*/
+	set_process_priority(2, LOWEST);
 	
 	while(1) {
 		release_processor();
@@ -236,6 +250,7 @@ void test2(void){
 	set_process_priority(3, LOWEST);
 */
 
+	set_process_priority(3, LOWEST);
 	while(1) {
 		release_processor();
 	}
@@ -275,7 +290,8 @@ void test3(void){
 	//release memory
 	release_memory_block(requested);
 	*/
-		while(1) {
+	set_process_priority(4,LOWEST);
+	while(1) {
 		release_processor();
 	}
 	
@@ -329,8 +345,9 @@ void test4(void){
 		printf("test 4 FAIL\n\r");
 		FAILED ++;
 	}
+	*/
 	set_process_priority(5,LOWEST);
-*/
+	
 	while(1) {
 		release_processor();
 	}
@@ -340,82 +357,47 @@ void test4(void){
  * @brief: a process that tests message passing
  */
 void test5(void){
-	msgbuf *message = request_memory_block();
-	
-	message->mtype = DEFAULT;
-	message->mtext[0] = 'a';
-	
-	send_message(7, message);
-	
-	
-	
-	/*PCB* next;
 	int failed = 0;
-	Element* top;
-	Element* bottom;
+
+	int *sender = k_request_memory_block();
+	msgbuf *message;
 	
-	release_processor();
-	printReadyQ("8egin test 5");
+	set_process_priority(6,MEDIUM);
+	set_process_priority(7,HIGH);
 	
-	set_process_priority(6,HIGH);
-	set_process_priority(5,MEDIUM);
-	printReadyQ("8fter setting pr8rity 5");
-
-	//next = scheduler();
+	message = receive_message(sender);
 	
-	if (next->m_pid != 5) {
-		failed = failed + 1;
-	}
-	top = request_element();
-	top->data = next;
-	top->next=NULL;
-	pushToReadyQ(LOW, top);	
-	
-	set_process_priority(5,LOW);
-		printReadyQ("8fter sett8ng allllllll pr8rities 5 l8w");
-
-	set_process_priority(4,LOW);
-		printReadyQ("8fter sett8ng allllllll pr8rities 4 l8w");
-
-	set_process_priority(3,LOW);
-		printReadyQ("8fter sett8ng allllllll pr8rities 3 l8w");
-
-	set_process_priority(2,LOW);
-		printReadyQ("8fter sett8ng allllllll pr8rities 2 l8w");
-
-	set_process_priority(1,LOW);
-	printReadyQ("8fter sett8ng allllllll pr8rities 1 l8w");
-
-	top = getReadyQ(LOW)->first;
-	bottom = getReadyQ(LOW)->last;
-
-	getReadyQ(LOW)->first = NULL;
-	getReadyQ(LOW)->last = NULL;
-	
-	//next = scheduler();
-	
-	if (next->m_pid != 0) { //this checks if it is null process
+	if (*sender != 7) {
 		failed = failed + 1;
 	}
 	
-	getReadyQ(LOW)->first = top;
-	getReadyQ(LOW)->last = bottom;
+	if (checkMessageText(message, TEST_MSG_1) == 0) {
+		failed = failed + 1;
+	}
+	
+	set_process_priority(7,HIGH);
+	
+	message = receive_message(sender);
+	if (checkMessageText(message, TEST_MSG_1) == 0) {
+		failed = failed + 1;
+	}
+	
+	/*message = receive_message(sender);
+	if (checkMessageText(message, TEST_MSG_2) == 0) {
+		failed = failed + 1;
+	}*/
 	
 	
 	if(failed == 0){
-		printf("G026_test: test 5 OK\n\r");
-		printReadyQ("test5");
+		printTest();
+		printf("test 5 OK\n\r");
 	} else {
-		printf("G026_test: test 5 FAIL\n\r");
+		printTest();
+		printf("test 5 FAIL\n\r");
 		FAILED ++;
 	}
-
-	set_process_priority(5,LOWEST);
-	set_process_priority(4,LOWEST);
-	set_process_priority(3,LOWEST);
-	set_process_priority(2,LOWEST);
+	release_memory_block(sender);
 	set_process_priority(6,LOWEST);
-	*/
 	
 	while(1) {
 		release_processor();

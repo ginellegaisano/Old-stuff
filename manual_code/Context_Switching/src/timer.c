@@ -132,7 +132,7 @@ void c_TIMER0_IRQHandler(void)
 				message = (Message *)i->data;
 				message->delay -= 1;
 				if(message->delay <= 0 ){
-					pop(q,0);
+					pop(q);
 					push_mailbox(message->sender_id, message);
 				}
 				i = i->next;

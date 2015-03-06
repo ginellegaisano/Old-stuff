@@ -39,12 +39,19 @@ Element* removeFromQ(Queue* self, int id) {
 	Element* iterator = self->first;
 	Element* element = NULL;
 	
+	if (iterator == NULL) {
+		return element;
+	}
+	
+	if (((PCB*)(iterator->data))->m_pid == id) {
+		element = pop(self);
+		return element;
+	}
+	
 	while (iterator->next != NULL && ((PCB*)(iterator->next->data))->m_pid != (id)) {
 		iterator = iterator->next;
 	}
-	if (iterator == self->first) {
-		element = pop(self);
-	} else {
+	if (iterator->next != NULL && ((PCB*)(iterator->next->data))->m_pid == (id)) {
 		element = iterator->next;
 		if (element == self->last) {
 			self->last = iterator;
