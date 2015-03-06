@@ -9,5 +9,6 @@
 #define SYS_PROC_H_
 
 void null_process(void);
+void wall_clock(void);
 
 #endif

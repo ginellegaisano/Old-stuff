@@ -14,14 +14,16 @@
 #endif
 
 
-uint8_t g_buffer[]= "four";
+uint8_t g_buffer[]= "123456789012345";
 uint8_t *gp_buffer = g_buffer;
 uint8_t g_send_char = 0;
 uint8_t g_char_in;
 uint8_t g_char_out;
 bool waiting_for_command = false;
+bool clock_on = false;
 int char_count = 0;
-
+Message * msg;
+msgbuf * envelope;
 /**
  * @brief: initialize the n_uart
  * NOTES: It only supports UART0. It can be easily extended to support UART1 IRQ.
@@ -202,19 +204,61 @@ void c_UART0_IRQHandler(void)
 			}
 			else if (g_char_in == '%') {
 				waiting_for_command = true;
+				printf("%c", g_char_in);
 			}
 		} else {
+			
 			if (char_count < 16 && g_char_in != '\x0D') {
 				g_buffer[char_count] = g_char_in;
+				printf("%c", g_char_in);
 				char_count++;
 			}
 			else {
-				for (i = 0; i < char_count; i++) {
-					printf("%c", g_buffer[i]);
+				if (char_count == 1 && g_buffer[0] == 'W') {
+					if (clock_on == false){
+						//request the memory to make the message block
+						//we made a message envelope. called envelope
+						
+						clock_on = true;
+					}
+						msg = (Message *) k_request_memory_block();
+						envelope = (msgbuf *) k_request_memory_block();
+						envelope->mtype = 0;
+						envelope->mtext = '';
+						msg->envelope = envelope;
+						k_send_message(11, msg); //assuming in ms
+				} else if (clock_on == true && char_count == 11 && g_buffer[0] == 'W' && g_buffer[1] == 'S') {
+						msg = (Message *) k_request_memory_block();
+						envelope = (msgbuf *) k_request_memory_block();
+						envelope->mtype = 0;
+						envelope->mtext = g_buffer;
+						msg->envelope = envelope;
+						k_send_message(11, msg); //assuming in ms
 				}
-				printf("\n\r");
-				waiting_for_command = false;
-				char_count = 0;
+					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'R') {
+						envelope = (msgbuf *) k_request_memory_block();
+						envelope->mtype = 0;
+						envelope->mtext = g_buffer[1];
+						msg->envelope = envelope;
+						k_send_message(11, msg); //assuming in ms
+					}
+					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'T') {
+						envelope = (msgbuf *) k_request_memory_block();
+						envelope->mtype = 0;
+						envelope->mtext = g_buffer[1];
+						msg->envelope = envelope;
+						k_send_message(11, msg); //assuming in ms
+						clock_on = false;
+					}
+				else {
+					printf("\n\r");
+					for (i = 0; i < char_count; i++) {
+						printf("%c", g_buffer[i]);
+					}
+					printf(" is not a command.\n\r");
+					waiting_for_command = false;
+					char_count = 0;
+				}
 			}
 		}
 		

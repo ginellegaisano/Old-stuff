@@ -26,8 +26,9 @@ PCB **gp_pcbs;                  /* array of pcbs */
 PCB *gp_current_process = NULL; /* always point to the current RUN process */
 
 /* process initialization table */
+
 PROC_INIT g_proc_table[NUM_PROCS];
-extern PROC_INIT g_test_procs[NUM_PROCS];
+extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 /**
  * @brief: initialize all processes in the system
@@ -40,7 +41,7 @@ void process_init()
   
   /* fill out the initialization table */
 	set_test_procs();
-	for ( i = 1; i < NUM_PROCS; i++ ) {
+	for ( i = 1; i < NUM_TEST_PROCS; i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i-1].m_pid;
 		g_proc_table[i].m_priority = g_test_procs[i-1].m_priority;
 		g_proc_table[i].m_stack_size = g_test_procs[i-1].m_stack_size;
@@ -52,8 +53,13 @@ void process_init()
 		g_proc_table[0].m_stack_size = USR_SZ_STACK;
 		g_proc_table[0].mpf_start_pc = &null_process;
 	
+		g_proc_table[7].m_pid = 11;
+		g_proc_table[7].m_priority = 0;
+		g_proc_table[7].m_stack_size = USR_SZ_STACK;
+		g_proc_table[7].mpf_start_pc = &wall_clock;
+	
 	/* initilize exception stack frame (i.e. initial context) for each process */
-	for ( i = 0; i < NUM_PROCS; i++ ) {
+	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		int j;
 		(gp_pcbs[i])->m_pid = (int)(g_proc_table[i]).m_pid;
 		(gp_pcbs[i])->m_state = NEW;
