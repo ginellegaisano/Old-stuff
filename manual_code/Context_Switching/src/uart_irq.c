@@ -11,10 +11,11 @@
 #include "uart_polling.h"
 #ifdef DEBUG_0
 #include "printf.h"
+#include "msg.h"
 #endif
 
 
-uint8_t g_buffer[]= "123456789012345";
+uint8_t g_buffer[]= "0123456789012345";
 uint8_t *gp_buffer = g_buffer;
 uint8_t g_send_char = 0;
 uint8_t g_char_in;
@@ -22,8 +23,7 @@ uint8_t g_char_out;
 bool waiting_for_command = false;
 bool clock_on = false;
 int char_count = 0;
-Message * msg;
-msgbuf * envelope;
+
 /**
  * @brief: initialize the n_uart
  * NOTES: It only supports UART0. It can be easily extended to support UART1 IRQ.
@@ -31,14 +31,14 @@ msgbuf * envelope;
  * of LPC17xx_UM
  */
  
-bool check_format(char* str) {
-	int i = 0;
-	for(i = 3; i < 10; i = i + 3) {
+bool check_format(char *str) {
+	int i;
+	for (i = 3; i < 10; i = i + 3) {
 		if (str[i] < '0' && str[i] > '9' && str[i+1] < '0' && str[i+1] > '9')
 			return false;
 	}
 	return true;
-}
+} 
 int uart_irq_init(int n_uart) {
 
 	LPC_UART_TypeDef *pUart;
@@ -187,8 +187,9 @@ void c_UART0_IRQHandler(void)
 {
 	uint8_t IIR_IntId;	    // Interrupt ID from IIR 		 
 	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
-	int i = 0;
-	
+	int i;
+	Message * msg;
+	msgbuf * envelope;
 
 	/* Reading IIR automatically acknowledges the interrupt */
 	IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
@@ -204,25 +205,20 @@ void c_UART0_IRQHandler(void)
 		printf("Reading a char = %c \n\r", g_char_in);
 #endif // DEBUG_0
 */
+		printf("%c", g_char_in);
 		if (!waiting_for_command) {
-			#ifdef _DEBUG_HOTKEYS
-			if(g_char_in == 'r') {
+				if(g_char_in == 'r') {
 					printReadyQ(" ");
 			}
 			else if (g_char_in == 'b') {
 					printBlockedQ(" ");
 			}
-			//insert blocked on recieve queues here when done. 
-			#endif 
-			if (g_char_in == '%') {
+			else if (g_char_in == '%') {
 				waiting_for_command = true;
-				printf("%c", g_char_in);
 			}
 		} else {
-			
 			if (char_count < 16 && g_char_in != '\x0D') {
 				g_buffer[char_count] = g_char_in;
-				printf("%c", g_char_in);
 				char_count++;
 			}
 			else {
@@ -236,45 +232,51 @@ void c_UART0_IRQHandler(void)
 						msg = (Message *) k_request_memory_block();
 						envelope = (msgbuf *) k_request_memory_block();
 						envelope->mtype = 0;
-						envelope->mtext = '';
-						msg->envelope = envelope;
-						k_send_message(11, msg); //assuming in ms
+						envelope->mtext[0] = ' ';
+						msg->message = envelope;
+						k_send_message(11, msg);
 				} else if (clock_on == true && char_count == 11 && g_buffer[0] == 'W' && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
 						msg = (Message *) k_request_memory_block();
 						envelope = (msgbuf *) k_request_memory_block();
 						envelope->mtype = 0;
-						envelope->mtext = g_buffer;
-						msg->envelope = envelope;
-						k_send_message(11, msg); //assuming in ms
+						for (i = 0; i < char_count; i++) {
+							envelope->mtext[i] = g_buffer[i];
+						}
+						msg->message = envelope;
+						k_send_message(11, msg);
 				}
 					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'R') {
+						msg = (Message *) k_request_memory_block();
 						envelope = (msgbuf *) k_request_memory_block();
 						envelope->mtype = 0;
-						envelope->mtext = g_buffer[1];
-						msg->envelope = envelope;
-						k_send_message(11, msg); //assuming in ms
+						envelope->mtext[0] = g_buffer[1];
+						msg->message = envelope;
+						k_send_message(11, msg); 
 					}
 					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'T') {
+						msg = (Message *) k_request_memory_block();
 						envelope = (msgbuf *) k_request_memory_block();
 						envelope->mtype = 0;
-						envelope->mtext = g_buffer[1];
-						msg->envelope = envelope;
-						k_send_message(11, msg); //assuming in ms
+						envelope->mtext[0] = g_buffer[1];
+						msg->message = envelope;
+						k_send_message(11, msg);
 						clock_on = false;
 					}
 				else {
+					msg = (Message *) k_request_memory_block();
 					envelope = (msgbuf *) k_request_memory_block();
 					envelope->mtype = 0;
-					envelope->mtext = g_buffer;
-					msg->envelope = envelope;
-					k_send_message(13, msg); //assuming in ms
-// 					for (i = 0; i < char_count; i++) {
-// 						printf("%c", g_buffer[i]);
-// 					}
-// 					printf(" is not a command.\n\r");
+					for (i = 0; i < char_count; i++) {
+							envelope->mtext[i] = g_buffer[i];
+					}
+					msg->message = envelope;
+					k_send_message(13, msg); 
+ 					
 					waiting_for_command = false;
 					char_count = 0;
 				}
+				waiting_for_command = false;
+				char_count = 0;
 			}
 		}
 		

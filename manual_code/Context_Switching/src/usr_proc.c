@@ -398,7 +398,7 @@ void test5(void){
 	}
 	release_memory_block(sender);
 	set_process_priority(6,LOWEST);
-	
+
 	while(1) {
 		release_processor();
 	}

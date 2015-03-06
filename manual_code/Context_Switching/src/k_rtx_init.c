@@ -20,7 +20,8 @@ void k_rtx_init(void)
         memory_init();
         process_init();
         __enable_irq();
+
 	
 	/* start the first process */
-        k_release_processor();
+       k_release_processor();
 }

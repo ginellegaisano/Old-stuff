@@ -254,9 +254,6 @@ void *k_request_memory_block(void) {
  * POST:  updates free memory heap. updates MSP.
  */
 int k_release_memory_block(void *p_mem_blk) {
-	
-	//change so that we can release message memory blocks IF we are sender or destination. and its a msgblock.
-	
 	Block* released = (Block*)p_mem_blk;
 	Element *element;
 	int i;
