@@ -27,9 +27,9 @@ void null_process(void) {
 
 void wall_clock(void){
 	int * blah; // the output parameter
-	int* hour = 0;
-	int* minute = 0;
-	int* second = 0;
+	int hour;
+	int minute;
+	int second;
 	int temp = 0;
 	int i=0;
 	msgbuf* envelope;
@@ -41,68 +41,80 @@ void wall_clock(void){
 		 if (msg != NULL) { //checks if msg got deallocated?
 			 if (msg->message->mtext[0] == ' ') { //increment second
 				 second++;
-				 if (*second > 60) {
-						*minute++;
-						if (*minute > 60) {
-							*hour++;
-							*minute = 0;
+				 if (second > 60) {
+						minute++;
+						if (minute > 60) {
+							hour++;
+							minute = 0;
 						}
-						*second = 0;
+						second = 0;
 					}
-					printf("%02d:%02d:%02d", *hour, *minute, *second);
+					printf("%02d:%02d:%02d", hour, minute, second);
 					send_wall_clock_message(msg, envelope);
 				} else if (msg->message->mtext[0] == 'R') {
-						*hour = 0;
-						*minute = 0;
-						*second = 0;
-						printf("%02d:%02d:%02d", *hour, *minute, *second);
+						hour = 0;
+						minute = 0;
+						second = 0;
+						printf("%02d:%02d:%02d", hour, minute, second);
 						//deallocate then create a new one.
 						send_wall_clock_message(msg, envelope);
 				} else if (msg->message->mtext[0] == 'T') {
-						*hour = 0;
-						*minute = 0;
-						*second = 0;
+						hour = 0;
+						minute = 0;
+						second = 0;
 				} else if (msg->message->mtext[0] == 'S') {
 					for(i = 3; i < 10; i = i + 3) {
 						temp = (msg->message->mtext[i] - '0') * 10 + msg->message->mtext[i + 1] - '0';
 						switch(i) {
 							case 3:
-								*hour = temp;
+								hour = temp;
 								break;
 							case 6:
-								*minute = temp;
+								minute = temp;
 								break;
 							case 9:
-								*second = temp;
+								second = temp;
 								break;
 						}
+						 if (msg->message->mtext[0] == ' ') { //increment second
+					 if (second > 60) {
+							minute++;
+							if (minute > 60) {
+								hour++;
+								minute = 0;
+							}
+							second = 0;
+						}
+						printf("%02d:%02d:%02d", hour, minute, second);
+						send_wall_clock_message(msg, envelope);
 					} 
 					
-					printf("%02d:%02d:%02d", *hour, *minute, *second);
+					printf("%02d:%02d:%02d", hour, minute, second);
 					send_wall_clock_message(msg, envelope);
 				}
+			}
 		}
 	}
 }
-void set_time(int *hour, int *minute, int *second){
-	
-	
-	
-	
-	
-	
-	
-	//DO SOMETHING HERE!
-	
-	
-	
-	
-	
-	
-	
-// int m = second/60;
-// int h = 
-}
+// void set_time(int *hour, int *minute, int *second){
+// 	
+// 	
+// 	
+// 	
+// 	
+// 	
+// 	
+// 	//DO SOMETHING HERE!
+// 	
+// 	
+// 	
+// 	
+// 	
+// 	
+// 	
+// // int m = second/60;
+// // int h = 
+// }
 void CRT_print(void){
 	char * str;
 	int i;

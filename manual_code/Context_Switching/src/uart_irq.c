@@ -213,6 +213,9 @@ void c_UART0_IRQHandler(void)
 			else if (g_char_in == 'b') {
 					printBlockedQ(" ");
 			}
+			else if(g_char_in == 'm'){
+				printBlockedReceiveQ(" ");
+			}
 			else if (g_char_in == '%') {
 				waiting_for_command = true;
 			}
@@ -234,7 +237,7 @@ void c_UART0_IRQHandler(void)
 						envelope->mtype = 0;
 						envelope->mtext[0] = ' ';
 						msg->message = envelope;
-						k_send_message(11, msg);
+						k_send_message(NUM_PROCS - 2, msg);
 				} else if (clock_on == true && char_count == 11 && g_buffer[0] == 'W' && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
 						msg = (Message *) k_request_memory_block();
 						envelope = (msgbuf *) k_request_memory_block();
@@ -243,7 +246,7 @@ void c_UART0_IRQHandler(void)
 							envelope->mtext[i] = g_buffer[i];
 						}
 						msg->message = envelope;
-						k_send_message(11, msg);
+						k_send_message(NUM_PROCS - 2, msg);
 				}
 					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'R') {
 						msg = (Message *) k_request_memory_block();
@@ -251,7 +254,7 @@ void c_UART0_IRQHandler(void)
 						envelope->mtype = 0;
 						envelope->mtext[0] = g_buffer[1];
 						msg->message = envelope;
-						k_send_message(11, msg); 
+						k_send_message(NUM_PROCS - 2, msg); 
 					}
 					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'T') {
 						msg = (Message *) k_request_memory_block();
@@ -259,7 +262,7 @@ void c_UART0_IRQHandler(void)
 						envelope->mtype = 0;
 						envelope->mtext[0] = g_buffer[1];
 						msg->message = envelope;
-						k_send_message(11, msg);
+						k_send_message(NUM_PROCS - 2, msg);
 						clock_on = false;
 					}
 				else {
@@ -270,7 +273,7 @@ void c_UART0_IRQHandler(void)
 							envelope->mtext[i] = g_buffer[i];
 					}
 					msg->message = envelope;
-					k_send_message(13, msg); 
+					k_send_message(NUM_PROCS - 1, msg); 
  					
 					waiting_for_command = false;
 					char_count = 0;

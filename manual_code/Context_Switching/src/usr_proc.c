@@ -64,9 +64,9 @@ void A(void)
 	
 	message = receive_message(sender);
 	
-	printf("Sender : %d\n\r", *sender);
+	//printf("Sender : %d\n\r", *sender);
 
-	printf("Text: %c\n\r", message->mtext[0]);
+	//printf("Text: %c\n\r", message->mtext[0]);
 	while (1) {
 			release_processor();
 	}
@@ -175,7 +175,8 @@ void test1(void){
 	}
 	set_process_priority(2,LOWEST);
 	*/
-	
+		printf("test 1 OK\n\r");
+
 	while(1) {
 		release_processor();
 	}
@@ -345,7 +346,7 @@ void test5(void){
 	message->mtype = DEFAULT;
 	message->mtext[0] = 'a';
 	
-	send_message(7, message);
+	//send_message(7, message);
 
 	/*PCB* next;
 	int failed = 0;
@@ -414,7 +415,6 @@ void test5(void){
 	set_process_priority(2,LOWEST);
 	set_process_priority(6,LOWEST);
 	*/
-	set_process_priority(6,LOWEST);
 	while(1) {
 		release_processor();
 	}
