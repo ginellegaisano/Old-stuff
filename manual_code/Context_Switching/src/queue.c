@@ -76,6 +76,23 @@ int push(Queue* self, Element* element) {
 	
 	return RTX_OK;
 };
+void printBlockedReceiveQ(char* tag) {
+	Element* iterator = NULL;
+	int i;
+	
+	printf("Blocked on Receive Queue: %s\n\r", tag);
+	for (i = 0; i < NUM_PRIORITIES; i++) {
+		iterator = getBlockedReceiveQ(i)->first;
+		printf("Queue: %d\n\r", i);
+		while (iterator != NULL) {
+			PCB* pcb = iterator->data;
+			printf("PID: %d\n\r", pcb->m_pid);
+			iterator = iterator->next;
+		}
+		printf("\n\r");
+	}
+	printf("\n\r\n\r");
+} 
 
 void printReadyQ(char* tag) {
 	Element* iterator = NULL;

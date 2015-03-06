@@ -77,7 +77,7 @@ void A(void)
 	send_message(6, message);
 	
 	set_process_priority(7, LOWEST);
-	
+
 	while (1) {
 			release_processor();
 	}
@@ -189,7 +189,7 @@ void test1(void){
 	set_process_priority(2,LOWEST);
 	*/
 	set_process_priority(2, LOWEST);
-	
+
 	while(1) {
 		release_processor();
 	}
@@ -357,6 +357,7 @@ void test4(void){
  * @brief: a process that tests message passing
  */
 void test5(void){
+	PCB* next;
 	int failed = 0;
 
 	int *sender = k_request_memory_block();

@@ -26,5 +26,6 @@ Queue* getTimedQ(void);
 void setTimedQ(Queue* q);
 void printReadyQ (char* tag);
 void printBlockedQ (char* tag);
+void printBlockedReceiveQ(char* tag);
 
 #endif

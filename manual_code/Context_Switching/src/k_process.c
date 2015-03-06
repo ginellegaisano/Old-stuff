@@ -54,12 +54,12 @@ void process_init()
 		g_proc_table[0].mpf_start_pc = &null_process;
 	
 
-		g_proc_table[NUM_PROCS - 2].m_pid = 11;
-		g_proc_table[NUM_PROCS - 2].m_priority = 4;
+		g_proc_table[NUM_PROCS - 2].m_pid = NUM_PROCS - 2;
+		g_proc_table[NUM_PROCS - 2].m_priority = 0;
 		g_proc_table[NUM_PROCS - 2].m_stack_size = USR_SZ_STACK;
 		g_proc_table[NUM_PROCS - 2].mpf_start_pc = &wall_clock;
 	
-		g_proc_table[NUM_PROCS - 1].m_pid = 13;
+		g_proc_table[NUM_PROCS - 1].m_pid = NUM_PROCS - 1;
 		g_proc_table[NUM_PROCS - 1].m_priority = 4;
 		g_proc_table[NUM_PROCS - 1].m_stack_size = USR_SZ_STACK;
 		g_proc_table[NUM_PROCS - 1].mpf_start_pc = &CRT_print;
@@ -127,15 +127,16 @@ int process_switch(PCB *p_pcb_old)
 	if (state == NEW) {
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
 
+			p_pcb_old->mp_sp = (U32 *) __get_MSP();
 			if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE && p_pcb_old->m_state != BLOCKED_ON_RECEIVE) {
 				p_pcb_old->m_state = RDY;
-				//need to push to respective priority ready queue
-				//need to go to the gp_proc_table to get priority
 				element = k_request_element();
 				element->data = p_pcb_old;
 				pushToReadyQ(p_pcb_old->m_priority, element);
 			}
-			p_pcb_old->mp_sp = (U32 *) __get_MSP();
+			//need to push to respective priority ready queue
+			//need to go to the gp_proc_table to get priority
+			
 		}
 			gp_current_process->m_state = RUN;
 		__set_MSP((U32) gp_current_process->mp_sp);
@@ -144,13 +145,13 @@ int process_switch(PCB *p_pcb_old)
 
 	/* The following will only execute if the if block above is FALSE */
 	if (state == RDY){
+		p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 		if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE && p_pcb_old->m_state != BLOCKED_ON_RECEIVE) {
 			p_pcb_old->m_state = RDY;
 			element = k_request_element();
 			element->data = p_pcb_old;
 			pushToReadyQ(p_pcb_old->m_priority, element);
 		}
-		p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 		gp_current_process->m_state = RUN;
 		__set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack    
 	} else {

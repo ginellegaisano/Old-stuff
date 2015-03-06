@@ -123,7 +123,7 @@ void c_TIMER0_IRQHandler(void)
 	
 	g_timer_count++ ;
 	
-	if (g_timer_count % 1000 == 0) { 
+	if (g_timer_count % 100 == 0) { 
 			printf("%d\r\n", g_timer_count);
 			g_timer_count = 0;
 			q = getTimedQ();

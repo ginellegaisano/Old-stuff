@@ -115,10 +115,17 @@ int k_send_message(int process_id, void *message_envelope) {
 //returns a pointer to the message, 
 void *receive_message(int *sender_id) {
 	Message *ret_val;
+	int priority;
+	Element* element;
 	Queue *mailbox = gp_current_process->mailbox;
 	if(mailbox->first == NULL) {
 		gp_current_process->m_state = BLOCKED_ON_RECEIVE;
-		k_release_processor();
+		priority = g_proc_table[gp_current_process->m_pid].m_priority;
+		//push PCB of current process on blocked_resource_qs; << here we are pushing a PCB. <<
+		element = k_request_element();
+		element->data = gp_current_process;
+		push(getBlockedReceiveQ(priority), element);
+		release_processor();
 	}
 	__disable_irq();
 
