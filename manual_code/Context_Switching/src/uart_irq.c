@@ -34,7 +34,7 @@ msgbuf * envelope;
 bool check_format(char* str) {
 	int i = 0;
 	for(i = 3; i < 10; i = i + 3) {
-		if (str[i] >= '0' && str[i] <= '9' && str[i+1] >= '0' && str[i+1] <= '9')
+		if (str[i] < '0' && str[i] > '9' && str[i+1] < '0' && str[i+1] > '9')
 			return false;
 	}
 	return true;
