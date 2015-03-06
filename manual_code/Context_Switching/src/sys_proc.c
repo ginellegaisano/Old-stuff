@@ -9,17 +9,21 @@
 #include "k_rtx.h"
 #include "rtx.h"
 #include "sys_proc.h"
+#include "msg.h"
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* DEBUG_0 */
-void send_wall_clock_message(Message *msg, msgbuf *envelope, char *mtext);
+
+void send_wall_clock_message(Message *msg, msgbuf *envelope);
+void CRT_print(void);
 
 void null_process(void) {
 	while (1) {
-		//printf("NULL\n\r");
+		printf("NULL\n\r");
 		release_processor();
 	}
 }
+
 
 void wall_clock(void){
 	int * blah; // the output parameter
@@ -35,47 +39,47 @@ void wall_clock(void){
 	while(1){
 		 msg = (Message *)receive_message(blah);
 		 if (msg != NULL) { //checks if msg got deallocated?
-			 if (msg->envelope->mtext == '') { //increment second
+			 if (msg->message->mtext[0] == ' ') { //increment second
 				 second++;
-				 if (second > 60) {
-						minute++;
-						if (minute > 60) {
-							hour++;
-							minute = 0;
+				 if (*second > 60) {
+						*minute++;
+						if (*minute > 60) {
+							*hour++;
+							*minute = 0;
 						}
-						second = 0;
+						*second = 0;
 					}
-					printf("%02d:%02d:%02d", hour, minute, second);
-					send_wall_clock_message(msg, envelope, '');
-				} else if (msg->envelope->mtext == 'R') {
-						hour = 0;
-						minute = 0;
-						second = 0;
-						printf("%02d:%02d:%02d", hour, minute, second);
+					printf("%02d:%02d:%02d", *hour, *minute, *second);
+					send_wall_clock_message(msg, envelope);
+				} else if (msg->message->mtext[0] == 'R') {
+						*hour = 0;
+						*minute = 0;
+						*second = 0;
+						printf("%02d:%02d:%02d", *hour, *minute, *second);
 						//deallocate then create a new one.
-						send_wall_clock_message(msg, envelope, '');
-				} else if (msg->envelope->mtext == 'T') {
-						hour = 0;
-						minute = 0;
-						second = 0;
-				} else if (msg->envelope->mtext[0] == 'S') {
+						send_wall_clock_message(msg, envelope);
+				} else if (msg->message->mtext[0] == 'T') {
+						*hour = 0;
+						*minute = 0;
+						*second = 0;
+				} else if (msg->message->mtext[0] == 'S') {
 					for(i = 3; i < 10; i = i + 3) {
-						temp = (msg->envelope->mtext[i] - '0') * 10 + msg->envelope->mtext[i + 1] - '0';
+						temp = (msg->message->mtext[i] - '0') * 10 + msg->message->mtext[i + 1] - '0';
 						switch(i) {
 							case 3:
-								hour = temp;
+								*hour = temp;
 								break;
 							case 6:
-								minute = temp;
+								*minute = temp;
 								break;
 							case 9:
-								second = temp;
+								*second = temp;
 								break;
 						}
 					} 
 					
-					printf("%02d:%02d:%02d", hour, minute, second);
-					send_wall_clock_message(msg, envelope, '');
+					printf("%02d:%02d:%02d", *hour, *minute, *second);
+					send_wall_clock_message(msg, envelope);
 				}
 		}
 	}
@@ -102,10 +106,11 @@ void set_time(int *hour, int *minute, int *second){
 void CRT_print(void){
 	char * str;
 	int i;
-	msg = (Message *)receive_message(blah);
+	int * blah; // the output parameter
+	Message *msg = (Message *)receive_message(blah);
 	while(1){
-		str = msg->envelope->mtext;
-		k_release_memory_block(msg->envelope);
+		str = msg->message->mtext;
+		k_release_memory_block(msg->message);
 		k_release_memory_block(msg);
 		//atomic(on)?????
 		printf("\n\r");
@@ -117,13 +122,13 @@ void CRT_print(void){
 		
 	}
 }
-void send_wall_clock_message(Message *msg, msgbuf *envelope, char *mtext){
-					k_release_memory_block(msg->envelope);
+void send_wall_clock_message(Message *msg, msgbuf *envelope){
+					k_release_memory_block(msg->message);
 					k_release_memory_block(msg);
 					msg = (Message *) k_request_memory_block();
 				  envelope = (msgbuf *) k_request_memory_block();
 					envelope->mtype = 0; //DEFAULT TYPE???
-					envelope->mtext = mtext;
-					msg->envelope = envelope;
-					delay_send_message(11, msg, 1000); //assuming in ms
+					envelope->mtext[0] = ' ';
+					msg->message = envelope;
+					k_delayed_send(11, msg, 1); //assuming in ms
 }

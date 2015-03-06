@@ -7,6 +7,8 @@
  
 #ifndef MSG_H_
 #define MSG_H
+#include "k_memory.h"
+
 /* ----- Definitions ----- */
 #define DEFAULT 0
 #define KCD_REG 1
@@ -17,7 +19,7 @@
 typedef struct msgbuf msgbuf;
 struct msgbuf {
 	int mtype;
-	char mtext[1];
+	char mtext[BLOCK_SIZE - sizeof(int)];
 };
 
 typedef struct Message Message;

@@ -346,9 +346,7 @@ void test5(void){
 	message->mtext[0] = 'a';
 	
 	send_message(7, message);
-	
-	
-	
+
 	/*PCB* next;
 	int failed = 0;
 	Element* top;
@@ -416,7 +414,7 @@ void test5(void){
 	set_process_priority(2,LOWEST);
 	set_process_priority(6,LOWEST);
 	*/
-	
+	set_process_priority(6,LOWEST);
 	while(1) {
 		release_processor();
 	}
