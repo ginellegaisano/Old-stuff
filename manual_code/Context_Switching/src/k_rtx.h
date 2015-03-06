@@ -17,7 +17,7 @@
 #define NUM_PRIORITIES 5
 #define NUM_TEST_PROCS 6
 #define NUM_TESTS 5
-#define NUM_PROCS 10
+#define NUM_PROCS 12
 
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x200         /* user proc stack size 512B   */
