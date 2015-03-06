@@ -9,6 +9,7 @@
 #define K_MEM_H_
 
 #include "k_rtx.h"
+#include "queue.h"
 
 /* ----- Definitions ----- */
 #define RAM_END_ADDR 0x10008000
@@ -22,6 +23,8 @@ extern unsigned int Image$$RW_IRAM1$$ZI$$Limit;
 extern PCB **gp_pcbs;
 extern PCB *gp_current_process;
 extern PROC_INIT g_proc_table[NUM_TEST_PROCS];
+extern Queue **ready_qs;								/* ready queue*/
+extern Queue **blocked_resource_qs;			/* blocked resources queue*/
 
 
 /* ----- Functions ------ */
@@ -31,13 +34,12 @@ U32 *alloc_stack(U32 size_b);
 void *k_request_memory_block(void);
 void *k_request_element(void);
 int k_release_memory_block(void *);
-void pushToReadyQ (int priority, Element* p_pcb_old);
-Element* popFromReadyQ (int priority);
-Queue* getReadyQ(int priority);
-Queue* getBlockedResourceQ(int priority);
-void printReadyQ (char* tag);
-void printBlockedQ (char* tag);
 int getMSP (void);
 int k_get_total_num_blocks(void);
+
+extern Element* pop(Queue* self);
+extern void push(Queue* self, Element* element);
+extern void setReadyQ(int priority, Queue* q);
+extern void setBlockedResourceQ(int priority, Queue* q);
 
 #endif /* ! K_MEM_H_ */

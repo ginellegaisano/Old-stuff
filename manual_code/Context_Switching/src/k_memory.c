@@ -25,81 +25,9 @@ struct Block { //fixed size, defined above
 	int pid;
 } ;
 
-Element* pop(Queue* self) {
-	Element* element = NULL;
-	
-	if (self == NULL || self->first == NULL) {
-		return NULL;
-	} else if (self->first->next == NULL) { //queue only has 1 element
-		element = self->first;
-		element->next = NULL;
-		self->first = NULL;
-		self->last = NULL;
-		return element;
-	}
-	element = self->first;
-	self->first = self->first->next;
-	element->next = NULL;
-	return element;
-};
-
-int push(Queue* self, Element* element) {
-	element->next = NULL;
-	
-	if (self->first == NULL) { //queue was formerly empty
-			self->first = element;
-			self->last = element;
-	} else {
-		self->last->next = element;
-		self->last = element;
-	}
-	self->last->next = NULL;
-	
-	return RTX_OK;
-};
-
-void printReadyQ(char* tag) {
-	Element* iterator = NULL;
-	int i;
-	
-	printf("Ready Queue: %s\n\r", tag);
-	for (i = 0; i < NUM_PRIORITIES; i++) {
-		iterator = getReadyQ(i)->first;
-		printf("Queue: %d\n\r", i);
-		while (iterator != NULL) {
-			PCB* pcb = iterator->data;
-			printf("PID: %d\n\r", pcb->m_pid);
-			iterator = iterator->next;
-		}
-		printf("\n\r");
-	}
-	printf("\n\r\n\r");
-}
-
-void printBlockedQ(char* tag) {
-	Element* iterator = NULL;
-	int i;
-	
-	printf("Blocked Queue: %s\n\r", tag);
-	for (i = 0; i < NUM_PRIORITIES; i++) {
-		iterator = getBlockedResourceQ(i)->first;
-		printf("Queue: %d\n\r", i);
-		while (iterator != NULL) {
-			PCB* pcb = iterator->data;
-			printf("PID: %d\n\r", pcb->m_pid);
-			iterator = iterator->next;
-		}
-		printf("\n\r");
-	}
-	printf("\n\r\n\r");
-}
-
 Block* MSP;
 Block* ElementBlock;
 Element* currElement;
-//array of queues, organized by priority
-Queue* blocked_resource_qs[NUM_PRIORITIES]; 
-Queue* ready_qs[NUM_PRIORITIES];
 
 /**
  * @brief: Initialize RAM as follows:
@@ -128,46 +56,6 @@ Queue* ready_qs[NUM_PRIORITIES];
 0x10000000+---------------------------+ Low Address
 
 */
-
-/**
- * @brief pushToReadyQ(). 
- * @param priority of the pcb to push onto the ready Queue
- * @param pointer to the pcb
- * 
- * POST: add Element pcb to ready queue at index [priority]
- */
-void pushToReadyQ (int priority, Element* p_pcb_old) {
-	push(ready_qs[priority], p_pcb_old);
-}
-
-/**
- * @brief popFromReadyQ(). 
- * @param priority
- * @return first pcb at priority
- *
- * POST: ready_qs is updated. first pcb of index priority is removed
- */
-Element* popFromReadyQ (int priority) {
-	return pop(ready_qs[priority]);
-}
-
-/**
- * @brief getReadyQ().
- * @param priority
- * @return returns *Queue stored in ready_qs at index[priority] 
- */
-Queue* getReadyQ(int priority) {
-	return ready_qs[priority];
-}
-
-/**
- * @brief getBlockedResourceQ().
- * @param priority
- * @return returns *Queue stored in blocked_resource_qs at index[priority] 
- */
-Queue* getBlockedResourceQ(int priority) {
-	return blocked_resource_qs[priority];
-}
 	
 /**
  * @brief getMSP()
@@ -220,7 +108,7 @@ void memory_init(void)
 		}
 		
 		q1->last = q1->first;*/
-		blocked_resource_qs[i] = q1;
+		setBlockedResourceQ(i, q1);
 	}
 	
 	for ( i = 0; i < NUM_PRIORITIES; i++) {
@@ -229,7 +117,7 @@ void memory_init(void)
 		q2->first = NULL;
 		q2->last = NULL;
 		
-		ready_qs[i] = q2;
+		setReadyQ(i, q2);
 	}
 
 	/* prepare for alloc_stack() to allocate memory for stacks */
@@ -331,7 +219,7 @@ void *k_request_memory_block(void) {
 		//push PCB of current process on blocked_resource_qs; << here we are pushing a PCB. <<
 		element = k_request_element();
 		element->data = gp_current_process;
-		push(blocked_resource_qs[priority], element);
+		push(getBlockedResourceQ(priority), element);
 		//update PCB of current process' state
 		gp_current_process->m_state = BLOCKED_ON_RESOURCE;
 		k_release_processor(); 
