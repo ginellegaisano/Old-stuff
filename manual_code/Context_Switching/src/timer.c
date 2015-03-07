@@ -117,7 +117,7 @@ void c_TIMER0_IRQHandler(void)
 {
 	Queue *q;
 	Element *i;
-	Message *message;
+	Envelope *envelope;
 	/* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
 	LPC_TIM0->IR = BIT(0);  
 	
@@ -129,11 +129,11 @@ void c_TIMER0_IRQHandler(void)
 			q = getTimedQ();
 			i = q->first;
 			while(i != NULL) {
-				message = (Message *)i->data;
-				message->delay -= 1;
-				if(message->delay <= 0 ){
+				envelope = (Envelope *)i->data;
+				envelope->delay -= 1;
+				if(envelope->delay <= 0 ){
 					pop(q);
-					push_mailbox(message->destination_id, i);
+					push_mailbox(envelope);
 				}
 				i = i->next;
 			}		

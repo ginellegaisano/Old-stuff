@@ -14,7 +14,7 @@
 #include "printf.h"
 #endif /* DEBUG_0 */
 
-void send_wall_clock_message(Message *msg, msgbuf *envelope);
+void send_wall_clock_message(Envelope *msg, msgbuf *envelope);
 void CRT_print(void);
 
 void null_process(void) {
@@ -33,11 +33,11 @@ void wall_clock(void){
 	int temp = 0;
 	int i=0;
 	msgbuf* envelope;
-	Message *msg;
+	Envelope *msg;
 	
 	//blocked on send!
 	while(1){
-		 msg = (Message *)receive_message(blah);
+		 msg = (Envelope *)receive_message(blah);
 		 if (msg != NULL) { //checks if msg got deallocated?
 			 if (msg->message->mtext[0] == ' ') { //increment second
 				 second++;
@@ -116,7 +116,7 @@ void CRT_print(void){
 	char * str;
 	int i;
 	int * blah; // the output parameter
-	Message *msg = (Message *)receive_message(blah);
+	Envelope *msg = (Envelope *)receive_message(blah);
 	while(1){
 		str = msg->message->mtext;
 		k_release_memory_block(msg->message);
@@ -131,10 +131,10 @@ void CRT_print(void){
 		
 	}
 }
-void send_wall_clock_message(Message *msg, msgbuf *envelope){
+void send_wall_clock_message(Envelope *msg, msgbuf *envelope){
 					k_release_memory_block(msg->message);
 					k_release_memory_block(msg);
-					msg = (Message *) k_request_memory_block();
+					msg = (Envelope *) k_request_memory_block();
 				  envelope = (msgbuf *) k_request_memory_block();
 					envelope->mtype = 0; //DEFAULT TYPE???
 					envelope->mtext[0] = ' ';

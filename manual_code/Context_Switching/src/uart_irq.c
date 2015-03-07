@@ -188,8 +188,9 @@ void c_UART0_IRQHandler(void)
 	uint8_t IIR_IntId;	    // Interrupt ID from IIR 		 
 	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
 	int i;
-	Message * msg;
-	msgbuf * envelope;
+	msgbuf *message;
+	
+	char text[120];
 
 	/* Reading IIR automatically acknowledges the interrupt */
 	IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
@@ -232,48 +233,32 @@ void c_UART0_IRQHandler(void)
 						
 						clock_on = true;
 					}
-						msg = (Message *) k_request_memory_block();
-						envelope = (msgbuf *) k_request_memory_block();
-						envelope->mtype = 0;
-						envelope->mtext[0] = ' ';
-						msg->message = envelope;
-						k_send_message(NUM_PROCS - 2, msg);
+						message = allocate_message(KCD_REG, text);
+						k_send_message(NUM_PROCS - 2, message);
 				} else if (clock_on == true && char_count == 11 && g_buffer[0] == 'W' && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
-						msg = (Message *) k_request_memory_block();
-						envelope = (msgbuf *) k_request_memory_block();
-						envelope->mtype = 0;
+						message = allocate_message(KCD_REG, text);
 						for (i = 1; i < char_count; i++) {
 							envelope->mtext[i-1] = g_buffer[i];
 						}
-						msg->message = envelope;
-						k_send_message(NUM_PROCS - 2, msg);
+						k_send_message(NUM_PROCS - 2, message);
 				}
 					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'R') {
-						msg = (Message *) k_request_memory_block();
-						envelope = (msgbuf *) k_request_memory_block();
-						envelope->mtype = 0;
-						envelope->mtext[0] = g_buffer[1];
-						msg->message = envelope;
-						k_send_message(NUM_PROCS - 2, msg); 
+						message = allocate_message(KCD_REG, text);
+						message->mtext[0] = g_buffer[1];
+						k_send_message(NUM_PROCS - 2, message); 
 					}
 					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'T') {
-						msg = (Message *) k_request_memory_block();
-						envelope = (msgbuf *) k_request_memory_block();
-						envelope->mtype = 0;
-						envelope->mtext[0] = g_buffer[1];
-						msg->message = envelope;
-						k_send_message(NUM_PROCS - 2, msg);
+						message = allocate_message(KCD_REG, text);
+						message->mtext[0] = g_buffer[1];
+						k_send_message(NUM_PROCS - 2, message);
 						clock_on = false;
 					}
 				else {
-					msg = (Message *) k_request_memory_block();
-					envelope = (msgbuf *) k_request_memory_block();
-					envelope->mtype = 0;
+					message = allocate_message(KCD_REG, text);
 					for (i = 0; i < char_count; i++) {
-							envelope->mtext[i] = g_buffer[i];
+							message->mtext[i] = g_buffer[i];
 					}
-					msg->message = envelope;
-					k_send_message(NUM_PROCS - 1, msg); 
+					k_send_message(NUM_PROCS - 1, message); 
  					
 					waiting_for_command = false;
 					char_count = 0;

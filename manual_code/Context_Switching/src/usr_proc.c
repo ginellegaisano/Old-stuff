@@ -23,6 +23,9 @@ int FAILED = 0;
 void * test3_mem = NULL;
 char TEST_MSG_1[] = "aaaaaaaaaaaa";
 char TEST_MSG_2[] = "babel";
+int messages_sent = 0;
+int messages_received = 0;
+int NUM_TEST_MESSAGES = 600;
 
 int a_count = 0;
 int b_count = 0;
@@ -108,27 +111,32 @@ void set_test_procs() {
  */
 void A(void) //pid = 7
 {
-	msgbuf *message = request_memory_block();
-	msgbuf *message2 = request_memory_block();
+	int i;
+	
+	msgbuf *message = allocate_message(DEFAULT, TEST_MSG_1);
+	msgbuf *message2 = allocate_message(DEFAULT, TEST_MSG_2);
 	
 		/** TEST1 code */
 	a_count ++;
 	release_processor();
 	
-	/*TEST5 code*/
-
-	message->mtype = DEFAULT;
-	setMessageText(message, TEST_MSG_1, sizeof(TEST_MSG_1));	
-	
-	message2->mtype = DEFAULT;
-	setMessageText(message2, TEST_MSG_2, sizeof(TEST_MSG_2));
-	
-	delayed_send(6, message2, 3);
+	/*TEST5 code*/		
+	//delayed_send(6, message2, 3);
 	send_message(6, message);
-	
-	set_process_priority(7, LOWEST);
-	
+		
 	release_processor();
+
+	/*TEST5 stress test code	*/
+		/*
+
+	for (i = 0; i < NUM_TEST_MESSAGES; i++) {
+		message = allocate_message(DEFAULT, TEST_MSG_1);
+	
+		send_message(8, message);
+		messages_sent = messages_sent + 1;
+		release_processor();
+	}
+	*/
 	while (1) {
 			release_processor();
 	}
@@ -139,11 +147,25 @@ void A(void) //pid = 7
  */
 void B(void) //pid = 8
 {
+	int i;
+	int *sender = k_request_memory_block();
+	msgbuf *message;
+	
+	
 	/* TEST3 code */
 	b_count = release_memory_block(test3_mem);
 	release_processor();
 	
-	//release process
+	/* TEST5 stress test code */
+	/*
+	set_process_priority(7, HIGH);
+	for (i = 0; i < NUM_TEST_MESSAGES; i++) {
+		message = receive_message(sender);
+		
+		messages_received = messages_received + 1;
+		release_processor();
+	}
+	*/
 	while(1) {
 		release_processor();
 	}
@@ -412,7 +434,6 @@ void test5(void){
 	
 	//Preempt and switch to A
 	set_process_priority(7,HIGH);
-	set_process_priority(1,4);
 	
 	//Receive message sent from A
 	message = receive_message(sender);
@@ -426,7 +447,7 @@ void test5(void){
 	if (checkMessageText(message, TEST_MSG_1) == 0) {
 		failed = failed + 1;
 	}
-	
+	/*
 	release_processor();
 	set_process_priority(7,LOWEST);
 
@@ -443,11 +464,25 @@ void test5(void){
 	}	
 	
 	release_memory_block(sender);
+	
+	
+	set_process_priority(7, HIGH);
+	
+	if (messages_sent != messages_received ) {
+		failed = failed + 1;
+	}
+	
+	if (messages_received != NUM_TEST_MESSAGES) {
+		failed = failed + 1;
+	}
+	*/
+	release_memory_block(sender);
 
 
 	endTest(failed + test5_count, 6);
 	set_process_priority(6,LOWEST);
 	
+	//Signal to test handler that tests are finished running
 	message2->mtype = DEFAULT;
 	setMessageText(message2, TEST_MSG_1, sizeof(TEST_MSG_1));	
 	send_message(1, message2);
