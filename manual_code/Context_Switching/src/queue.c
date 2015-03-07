@@ -201,7 +201,7 @@ Queue* getBlockedReceiveQ(int priority) {
  * @param q
  */
 void setBlockedReceiveQ(int priority, Queue* q) {
-	blocked_resource_qs[priority] = q;
+	blocked_receive_qs[priority] = q;
 }
 
 /**

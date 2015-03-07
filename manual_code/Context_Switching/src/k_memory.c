@@ -90,26 +90,18 @@ void memory_init(void)
 	
 	/* initializing blocked and ready queues (array of queues, organized by PRIORITY) 
 	Currently 1D for blocked, will need to eventually be 2D when we have multiple events */
+	//setting blocked Resources Q
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		Queue* q1 = (Queue *)p_end;
 		p_end += sizeof(Queue);
 		q1->first = NULL;
 		q1->last = NULL;
-		/*for (q = 0; i < NUM_TEST_PROCS; q++) {
-			BlockedElement *element = (BlockedElement *)p_end;
-			p_end += sizeof(BlockedElement);
-			if (q1->first == NULL) {
-				q1->first = element;
-			}
-			element->process = NULL;
-			element->next = q1->last;
-			q1->last = element;
-		}
-		
-		q1->last = q1->first;*/
 		setBlockedResourceQ(i, q1);
 	}
 	
+
+	
+	//setting reading Q
 	for ( i = 0; i < NUM_PRIORITIES; i++) {
 		Queue* q2 = (Queue *)p_end;
 		p_end += sizeof(Queue);
@@ -117,6 +109,15 @@ void memory_init(void)
 		q2->last = NULL;
 		
 		setReadyQ(i, q2);
+	}
+	
+	//setting the blocked_resources_qs
+	for (i = 0; i < NUM_PRIORITIES; i++) {
+		Queue* q3 = (Queue *)p_end;
+		p_end += sizeof(Queue);
+		q3->first = NULL;
+		q3->last = NULL;
+		setBlockedReceiveQ(i, q3);
 	}
 	
 	for ( i = 0; i < NUM_PROCS; i++) {
