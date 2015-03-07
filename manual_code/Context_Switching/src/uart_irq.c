@@ -242,8 +242,8 @@ void c_UART0_IRQHandler(void)
 						msg = (Message *) k_request_memory_block();
 						envelope = (msgbuf *) k_request_memory_block();
 						envelope->mtype = 0;
-						for (i = 0; i < char_count; i++) {
-							envelope->mtext[i] = g_buffer[i];
+						for (i = 1; i < char_count; i++) {
+							envelope->mtext[i-1] = g_buffer[i];
 						}
 						msg->message = envelope;
 						k_send_message(NUM_PROCS - 2, msg);

@@ -27,9 +27,9 @@ void null_process(void) {
 
 void wall_clock(void){
 	int * blah; // the output parameter
-	int hour;
-	int minute;
-	int second;
+	int hour=0;
+	int minute=0;
+	int second=0;
 	int temp = 0;
 	int i=0;
 	msgbuf* envelope;
@@ -63,35 +63,32 @@ void wall_clock(void){
 						minute = 0;
 						second = 0;
 				} else if (msg->message->mtext[0] == 'S') {
-					for(i = 3; i < 10; i = i + 3) {
+					for(i = 2; i < 10; i = i + 3) {
 						temp = (msg->message->mtext[i] - '0') * 10 + msg->message->mtext[i + 1] - '0';
 						switch(i) {
-							case 3:
+							case 2:
 								hour = temp;
 								break;
-							case 6:
+							case 5:
 								minute = temp;
 								break;
-							case 9:
+							case 8:
 								second = temp;
 								break;
 						}
-						 if (msg->message->mtext[0] == ' ') { //increment second
+					}
 					 if (second > 60) {
 							minute++;
 							if (minute > 60) {
 								hour++;
-								minute = 0;
+								minute = minute % 60;
 							}
-							second = 0;
+							second = second % 60;
 						}
-						printf("%02d:%02d:%02d", hour, minute, second);
-						send_wall_clock_message(msg, envelope);
-					} 
 					
 					printf("%02d:%02d:%02d", hour, minute, second);
 					send_wall_clock_message(msg, envelope);
-				}
+				
 			}
 		}
 	}
@@ -142,5 +139,5 @@ void send_wall_clock_message(Message *msg, msgbuf *envelope){
 					envelope->mtype = 0; //DEFAULT TYPE???
 					envelope->mtext[0] = ' ';
 					msg->message = envelope;
-					k_delayed_send(11, msg, 1); //assuming in ms
+					k_delayed_send(NUM_PROCS - 2, msg, 1); //assuming in ms
 }

@@ -42,7 +42,7 @@ int checkMessageText(msgbuf* message, char text[]) {
 }
 
 void *build_message(int process_id, void *message_envelope, int delay) {
-	Message *message = (Message *)k_request_memory_block();
+ 	Message *message = (Message *)k_request_memory_block();
 	msgbuf *msg; 
 	Element *envelope;
 	
@@ -54,7 +54,7 @@ void *build_message(int process_id, void *message_envelope, int delay) {
 	}
 	message->destination_id = process_id;
 	message->message = msg;
-	//message->time = current time;
+	message->time = get_time();
 	message->delay = delay;
 	envelope = k_request_element();
 	envelope->data = (Message*)(message);
