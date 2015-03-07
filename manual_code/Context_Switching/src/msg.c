@@ -117,6 +117,7 @@ void *receive_message(int *sender_id) {
 	Message *ret_val;
 	int priority;
 	Element* element;
+	Element* received;
 	Queue *mailbox = gp_current_process->mailbox;
 	if(mailbox->first == NULL) {
 		gp_current_process->m_state = BLOCKED_ON_RECEIVE;
@@ -129,7 +130,9 @@ void *receive_message(int *sender_id) {
 	}
 	__disable_irq();
 
-	ret_val = (Message *)(pop(mailbox)->data);
+	received = pop(mailbox);
+	ret_val = (Message *)(received->data);
+	received->data = NULL;
 	*sender_id =  ret_val->sender_id;
 	
 	__enable_irq();

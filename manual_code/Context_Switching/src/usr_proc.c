@@ -364,6 +364,7 @@ void test5(void){
 	
 	set_process_priority(6,MEDIUM);
 	set_process_priority(7,HIGH);
+	set_process_priority(1,4);
 	
 	message = receive_message(sender);
 	
@@ -379,6 +380,7 @@ void test5(void){
 	if (checkMessageText(message, TEST_MSG_2) == 0) {
 		failed = failed + 1;
 	}
+	set_process_priority(1,MEDIUM);
 	
 	
 	if(failed == 0){
