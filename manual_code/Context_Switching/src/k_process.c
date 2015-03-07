@@ -55,7 +55,7 @@ void process_init()
 	
 
 		g_proc_table[NUM_PROCS - 2].m_pid = NUM_PROCS - 2;
-		g_proc_table[NUM_PROCS - 2].m_priority = 0;
+		g_proc_table[NUM_PROCS - 2].m_priority = 4;
 		g_proc_table[NUM_PROCS - 2].m_stack_size = USR_SZ_STACK;
 		g_proc_table[NUM_PROCS - 2].mpf_start_pc = &wall_clock;
 	
@@ -207,20 +207,21 @@ int k_set_process_priority(int process_id, int priority){
 	bool flag = false;
 	if (process_id < 0 || process_id > NUM_PROCS || priority < 0 || priority > NUM_PRIORITIES)
 		return RTX_ERR;
-
 	if (gp_pcbs[process_id]->m_state == RDY || gp_pcbs[process_id]->m_state == NEW) {		
 		element = removeFromQ(getReadyQ(gp_pcbs[process_id]->m_priority), process_id);
 		pushToReadyQ(priority, element);
+
 	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
 		element = removeFromQ(getBlockedResourceQ(gp_pcbs[process_id]->m_priority), process_id);
 		push(getBlockedResourceQ(priority), element);
 	}
-	
+
 	if ((gp_current_process->m_pid == process_id && priority > gp_current_process->m_priority) || (gp_current_process->m_pid != process_id && priority < gp_current_process->m_priority))
 		flag = true;	
 	g_proc_table[process_id].m_priority = priority;
 	gp_pcbs[process_id]->m_priority = priority;
 	
+
 	if (flag)
 		k_release_processor();
 	

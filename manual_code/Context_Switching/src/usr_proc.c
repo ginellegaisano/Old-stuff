@@ -20,9 +20,21 @@
 PROC_INIT g_test_procs[NUM_PROCS];
  
 int FAILED = 0;
-void * test5_mem = NULL;
+void * test3_mem = NULL;
 char TEST_MSG_1[] = "aaaaaaaaaaaa";
 char TEST_MSG_2[] = "babel";
+
+int a_count = 0;
+int b_count = 0;
+int c_count = 0;
+
+int test1_count = 0;
+int test2_count = 0;
+int test3_count = 0;
+int test4_count = 0;
+int test5_count = 0;
+
+
 
 typedef struct LinkedElement LinkedElement;
 
@@ -37,6 +49,36 @@ void printTest() {
 	#endif /* DEBUG_0 */
 }
 
+void endTest(int failed, int test) {
+	//Reset dummy process priorities
+
+
+	set_process_priority(7, LOWEST);
+	set_process_priority(8, LOWEST);
+	set_process_priority(9, LOWEST);
+	set_process_priority(1, LOWEST);
+
+	
+	a_count = 0;
+	b_count = 0;
+	c_count = 0;
+
+	test1_count = 0;
+	test2_count = 0;
+	test3_count = 0;
+	test4_count = 0;
+	test5_count = 0;
+
+	if(failed == 0){
+		printTest();
+		printf("test %d OK\n\r", test);
+	} else {
+		printTest();
+		printf("test %d FAIL\n\r", test);
+		FAILED ++;
+	}
+}	
+
 void set_test_procs() {
 	int i;
 	for( i = 0; i < NUM_PROCS; i++ ) {
@@ -44,6 +86,11 @@ void set_test_procs() {
 		g_test_procs[i].m_priority=LOW;
 		g_test_procs[i].m_stack_size=USR_SZ_STACK;
 	}
+	
+	g_test_procs[6].m_priority=LOWEST;
+	g_test_procs[7].m_priority=LOWEST;
+	g_test_procs[8].m_priority=LOWEST;
+	
 	
 	g_test_procs[0].mpf_start_pc = &testHandler;
 	g_test_procs[1].mpf_start_pc = &test1;
@@ -59,12 +106,17 @@ void set_test_procs() {
 /**
  * @brief: Empty Procedure
  */
-void A(void)
+void A(void) //pid = 7
 {
 	msgbuf *message = request_memory_block();
 	msgbuf *message2 = request_memory_block();
-
 	
+		/** TEST1 code */
+	a_count ++;
+	release_processor();
+	
+	/*TEST5 code*/
+
 	message->mtype = DEFAULT;
 	setMessageText(message, TEST_MSG_1, sizeof(TEST_MSG_1));	
 	
@@ -77,7 +129,6 @@ void A(void)
 	set_process_priority(7, LOWEST);
 	
 	release_processor();
-
 	while (1) {
 			release_processor();
 	}
@@ -86,9 +137,12 @@ void A(void)
 /**
  * @brief: Empty Procedure
  */
-void B(void)
+void B(void) //pid = 8
 {
-	set_process_priority(8,LOWEST);
+	/* TEST3 code */
+	b_count = release_memory_block(test3_mem);
+	release_processor();
+	
 	//release process
 	while(1) {
 		release_processor();
@@ -98,9 +152,31 @@ void B(void)
 /**
  * @brief: Empty Procedure
  */
-void C(void)
+void C(void) //pid == 9
 {
-	set_process_priority(9,LOWEST);
+	
+	/*TEST4 code */
+	/*
+	//fills up the memory block array. Also requests ALL memory.
+	int number_mem_blocks = get_total_num_blocks(); //101
+	void * mem_blocks[500];
+	void * requested;
+	int i;
+	
+	for (i = 0; i < number_mem_blocks - 3; i ++){
+		requested = request_memory_block();
+		mem_blocks[i] = requested;
+	}
+	c_count ++;
+	
+	//release all memory
+	for (i = 0; i < (int)number_mem_blocks - 3; i ++){
+		requested = mem_blocks[i];
+		release_memory_block(requested);
+	}
+	
+	release_processor();
+	*/
 	//release process
 	while(1) {
 		release_processor();
@@ -110,12 +186,15 @@ void C(void)
  * @brief: a process that tests the allocation and deallocation of a memory block
  */
 void testHandler(void){
+	int *sender;
 	printTest();
 	printf("START\n\r");
 	printTest();
 	printf("total %d tests\n\r", NUM_TESTS );
+
+
 	set_process_priority(1, LOWEST);
-	release_processor();
+	receive_message(sender);
 	
 	printTest();
 	printf("%d/%d tests OK\n\r", NUM_TESTS - FAILED, NUM_TESTS);
@@ -133,63 +212,60 @@ void testHandler(void){
  * @brief: a process that tests getting and setting priority as well as setting priority to an illegal value.
  */
 void test1(void){
-	/*
+	
 	int failed = 0;
 	int initial = 0;
 	int final = 0; 
 	Element* iterator;
+	
+	set_process_priority(2, MEDIUM);
 
-	initial = (int)get_process_priority(6);
+
+	//Check that process A is put on the correct ready queue
+	initial = (int)get_process_priority(7);
 	iterator = getReadyQ(initial)->first;
 
-	while (iterator != NULL && ((PCB*)(iterator->data))->m_pid != 6) {
+	while (iterator != NULL && ((PCB*)(iterator->data))->m_pid != 7) {
 		iterator = iterator->next;
 	}
 	if (iterator == NULL) {
 		failed = failed + 1;
 	}
 	
-	set_process_priority(2,HIGH);
-	set_process_priority(6,HIGH);
-	final = get_process_priority(6);
 	
+	//Check that setting priority to high preempts and updates queue correctly
+	set_process_priority(7,HIGH);
+	final = get_process_priority(7);
+	
+	//A popped from low ready queue
 	iterator = getReadyQ(initial)->first;
-	while (iterator != NULL && ((PCB*)(iterator->data))->m_pid != 6) {
+	while (iterator != NULL && ((PCB*)(iterator->data))->m_pid != 7) {
 		iterator = iterator->next;
 	}
 	if (iterator != NULL) {
 		failed = failed + 1;
 	}
-	iterator = getReadyQ(final)->first;
-	while (iterator != NULL && ((PCB*)(iterator->data))->m_pid != 6) {
-		iterator = iterator->next;
-	}
-	if (iterator == NULL) {
+	
+	//A premepted
+	if(a_count != 1) {
 		failed = failed + 1;
 	}
 	
-	if(initial == final || final != HIGH) {
+	//Get and set priorities correctly changed priorities
+	if(initial != LOWEST || final != HIGH) {
 		failed = failed + 1;
 	}
-	final = set_process_priority(6,10);
+	
+	//Set priority to invalid value
+	final = set_process_priority(7,10);
 	if (final == RTX_OK) {
 		failed = failed + 1;
 	}
 	
-	set_process_priority(6,LOW);
 
-	if(failed == 0){
-		printTest();
-		printf("test 1 OK\n\r");
-	} else {
-		printTest();
-		printf("test 1 FAIL\n\r");
-		FAILED ++;
-	}
-	set_process_priority(2,LOWEST);
-	*/
+	endTest(failed + test1_count, 1);
 	set_process_priority(2, LOWEST);
-
+	
 	while(1) {
 		release_processor();
 	}
@@ -201,13 +277,13 @@ void test1(void){
 	*  			 and when trying to free a memory block twice, returns an error
  */
 void test2(void){
-/*
 	int failed = 0;
 	int ret_code;
 	void * requested;
 	int initial;
 	int final;
-	
+
+	set_process_priority(3, MEDIUM);
 	initial = getMSP();
 
 	requested = request_memory_block();
@@ -233,22 +309,11 @@ void test2(void){
 	if (ret_code != RTX_ERR) {
 		failed++;
 	}
-	
-	if(failed == 0){
-		printTest();
-		printf("test 2 OK\n\r");
-	} else {
-		printTest();
-		printf("test 2 FAIL\n\r");
-		FAILED ++;
-	}
-	set_process_priority(3,LOWEST);
+
+	endTest(failed + test2_count, 2);
 
 
-	release_memory_block(test5_mem);
-	set_process_priority(4,HIGH);
-	set_process_priority(3, LOWEST);
-*/
+	set_process_priority(3, LOW);
 
 	set_process_priority(3, LOWEST);
 	while(1) {
@@ -260,38 +325,30 @@ void test2(void){
  * @brief: a process that tests memory ownership 
  */
 void test3(void){
-	/*
 	int failed = 0; 
 	void * requested;
 	requested = request_memory_block();
-	test5_mem = requested;
+	test3_mem = requested;
+	set_process_priority(4, MEDIUM);
 
-	//shove back on to ready queue
-	set_process_priority(3,HIGH);
-
-	//release_processor();
-	if (test5_mem == NULL) {
+	//Test that memory was allocated
+	if (requested == NULL) {
 		failed = failed + 1;
 	}
+
+	//shove B to high queue, B will attempt to free test3_mem
+	set_process_priority(8,HIGH);
+
+	if(b_count != -1) {
+		failed ++;
+	}
+	
 	release_memory_block(requested);
 
-	if(failed == 0){
-		printTest();
-		printf("test 3 OK\n\r");
-	} else {
-		printTest();
-		printf("test 3 FAIL\n\r");
-		FAILED ++;
-	}
-	set_process_priority(4,LOWEST);
+	endTest(failed + test3_count, 3);
+	set_process_priority(4, LOWEST);
 	
-	//call for memory -> will be blocked
-	requested = request_memory_block();
-	//release memory
-	release_memory_block(requested);
-	*/
-	set_process_priority(4,LOWEST);
-	while(1) {
+		while(1) {
 		release_processor();
 	}
 	
@@ -300,54 +357,40 @@ void test3(void){
  * @brief: a process that tests the out of memory exception + tests the blocked queue size
  */
 void test4(void){
-	/*
-	int number_mem_blocks = get_total_num_blocks(); //101
-	void * mem_blocks[500];
-	void * requested;
-	int i;
-	int failed = 0;
-	//set priority 0
-	set_process_priority(5,MEDIUM);
-	set_process_priority(4,MEDIUM);
-	//release_processor();
-	//fills up the memory block array. Also requests ALL memory.
-	for (i = 0; i < number_mem_blocks - 3; i ++){
-		requested = request_memory_block();
-		mem_blocks[i] = requested;
-	}
-	//jump to proc2
-	release_processor();
-	//back from proc2, test blocked_resource_qs size (for priority 0)
-	//fail if blocked q is empty
-	if(getBlockedResourceQ(MEDIUM) == NULL &&
-		getBlockedResourceQ(MEDIUM)->first == NULL ){
-		failed ++;
-	}
-	
-	//release all memory
-	for (i = 0; i < (int)number_mem_blocks - 3; i ++){
-		requested = mem_blocks[i];
-		release_memory_block(requested);
-	}
-	//jump to proc 2;
-	//back from 2, check blocked q
-	//fail if blocked q IS NOT empty and not mot moved to the ready  
-	if(getBlockedResourceQ(MEDIUM) != NULL && getBlockedResourceQ(MEDIUM)->first != NULL ){	
-		failed ++;
-	}
-	set_process_priority(4,LOWEST);
+		int failed = 0;
 
-	if(failed == 0){
-		printTest();
-		printf("test 4 OK\n\r");
-	} else {
-		printTest();
-		printf("test 4 FAIL\n\r");
-		FAILED ++;
-	}
-	*/
-	set_process_priority(5,LOWEST);
+	/*
+	void *test4_mem;
 	
+	set_process_priority(5,MEDIUM);
+	
+	//Take one memory block
+	test4_mem = request_memory_block();
+	
+	//Have process C try consume all memory
+	set_process_priority(9,HIGH);
+
+	// check that C was blocked
+	if(getBlockedResourceQ(HIGH) == NULL &&
+		getBlockedResourceQ(HIGH)->first == NULL ){
+		failed ++;
+	}
+	
+	//Check that releasing memory unblocks C
+	release_memory_block(test4_mem);
+	if(c_count == 0) {
+			failed ++;
+	}
+	if(getBlockedResourceQ(HIGH) != NULL && getBlockedResourceQ(HIGH)->first != NULL ){	
+		failed ++;
+	}
+	
+	 
+	endTest(failed + test4_count, 4);
+	set_process_priority(5,LOW);
+*/
+endTest(failed + test4_count, 4);
+set_process_priority(5,LOWEST);
 	while(1) {
 		release_processor();
 	}
@@ -357,43 +400,58 @@ void test4(void){
  * @brief: a process that tests message passing
  */
 void test5(void){
+	PCB* next;
+	msgbuf *message = request_memory_block();
+
 	int failed = 0;
 
 	int *sender = k_request_memory_block();
-	msgbuf *message;
+	msgbuf *message2;
 	
 	set_process_priority(6,MEDIUM);
+	
+	//Preempt and switch to A
 	set_process_priority(7,HIGH);
 	set_process_priority(1,4);
 	
+	//Receive message sent from A
 	message = receive_message(sender);
 	
+	//Check that sender was set correctly
 	if (*sender != 7) {
 		failed = failed + 1;
 	}
 	
+	//Check that mtext was set correctly
 	if (checkMessageText(message, TEST_MSG_1) == 0) {
 		failed = failed + 1;
 	}
-			
+	
+	release_processor();
+	set_process_priority(7,LOWEST);
+
+	//check that not delayed message arives first
+	message = receive_message(sender);
+	if (checkMessageText(message, TEST_MSG_1) == 0) {
+		failed = failed + 1;
+	}
+	
+	//Check that delayed message arrives
 	message = receive_message(sender);
 	if (checkMessageText(message, TEST_MSG_2) == 0) {
 		failed = failed + 1;
-	}
-	set_process_priority(1,MEDIUM);
+	}	
 	
-	
-	if(failed == 0){
-		printTest();
-		printf("test 5 OK\n\r");
-	} else {
-		printTest();
-		printf("test 5 FAIL\n\r");
-		FAILED ++;
-	}
 	release_memory_block(sender);
-	set_process_priority(6,LOWEST);
 
+
+	endTest(failed + test5_count, 6);
+	set_process_priority(6,LOWEST);
+	
+	message2->mtype = DEFAULT;
+	setMessageText(message2, TEST_MSG_1, sizeof(TEST_MSG_1));	
+	send_message(1, message2);
+	
 	while(1) {
 		release_processor();
 	}

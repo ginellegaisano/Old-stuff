@@ -266,7 +266,6 @@ int k_release_memory_block(void *p_mem_blk) {
 	Block* released = (Block*)p_mem_blk;
 	Element *element;
 	int i;
-	//atomic(on);
 
 	if (released == NULL) {
 		return RTX_ERR;
@@ -278,19 +277,20 @@ int k_release_memory_block(void *p_mem_blk) {
 	released -> next = MSP -> next;
 	released -> pid = NULL;
 	MSP = released;
-	
+	 __enable_irq();
+
 	 //unblocking resources
 	for (i = 0; i < NUM_PRIORITIES; i++) {
-		element = pop(blocked_resource_qs[i]);
+		element = pop(getBlockedResourceQ(i));
 		if (element != NULL) {
 			((PCB*)(element->data))->m_state = RDY;
 			pushToReadyQ(i,element);
-			break;
+			if(((PCB*)(element->data))->m_priority < gp_current_process->m_priority) {
+				k_release_processor();
+			}
 		}
 	}
 	
-	//atomic(off);
-	 __enable_irq();
 	return RTX_OK;
 }
 /**
