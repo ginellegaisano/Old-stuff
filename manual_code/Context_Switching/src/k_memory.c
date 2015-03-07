@@ -76,6 +76,7 @@ void memory_init(void)
 {
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	int i;
+	Queue* q4;
 	
 	/* 4 bytes padding */
 	p_end += 4;
@@ -128,6 +129,13 @@ void memory_init(void)
 		
 		gp_pcbs[i]->mailbox = q3;
 	}
+	
+	q4 = (Queue *)p_end;
+	p_end += sizeof(Queue);
+	q4->first = NULL;
+	q4->last = NULL;
+	
+	setTimedQ(q4);
 
 	/* prepare for alloc_stack() to allocate memory for stacks */
 	gp_stack = (U32 *)RAM_END_ADDR;
@@ -194,7 +202,7 @@ void *k_request_element(void) {
 				if (currBlock->next == NULL) {
 					currBlock->next = k_request_memory_block();
 					total_mem_blocks --;
-					for (i = (int)currBlock->next + sizeof(Block*) + sizeof(int); i < (int)currBlock - sizeof(Element*) - 1; i+= sizeof(Element*)) {
+					for (i = (int)currBlock->next + sizeof(Block*) + sizeof(int); i < (int)currBlock->next + BLOCK_SIZE - sizeof(Element*); i+= sizeof(Element*)) {
 						((Element*)(i))->data = NULL;
 					}
 					currBlock->next->next = NULL;

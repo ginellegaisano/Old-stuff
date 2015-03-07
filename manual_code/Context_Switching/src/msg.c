@@ -62,7 +62,7 @@ void *build_message(int process_id, void *message_envelope, int delay) {
 	return envelope;
 }
 
-int push_mailbox(int process_id, void *message) {
+int push_mailbox(int process_id, Element *envelope) {
 	PCB *process;
 	Element *pcb;
 
@@ -75,7 +75,7 @@ int push_mailbox(int process_id, void *message) {
 	
 	__disable_irq();
 	
-	push(mailbox, message);
+	push(mailbox, envelope);
 	
 		//check if destination process is blocked on received for message type
 	if( process->m_state == BLOCKED_ON_RECEIVE) {

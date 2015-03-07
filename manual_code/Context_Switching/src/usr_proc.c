@@ -62,21 +62,21 @@ void set_test_procs() {
 void A(void)
 {
 	msgbuf *message = request_memory_block();
+	msgbuf *message2 = request_memory_block();
+
 	
 	message->mtype = DEFAULT;
-	setMessageText(message, TEST_MSG_1, sizeof(TEST_MSG_1));
+	setMessageText(message, TEST_MSG_1, sizeof(TEST_MSG_1));	
 	
-	send_message(6, message);
-	set_process_priority(7, LOWEST);
+	message2->mtype = DEFAULT;
+	setMessageText(message2, TEST_MSG_2, sizeof(TEST_MSG_2));
 	
-	
-	setMessageText(message, TEST_MSG_2, sizeof(TEST_MSG_2));
-	k_delayed_send(6, message, 3);
-	
-	setMessageText(message, TEST_MSG_1, sizeof(TEST_MSG_2));
+	delayed_send(6, message2, 3);
 	send_message(6, message);
 	
 	set_process_priority(7, LOWEST);
+	
+	release_processor();
 
 	while (1) {
 			release_processor();
@@ -357,7 +357,6 @@ void test4(void){
  * @brief: a process that tests message passing
  */
 void test5(void){
-	PCB* next;
 	int failed = 0;
 
 	int *sender = k_request_memory_block();
@@ -375,18 +374,11 @@ void test5(void){
 	if (checkMessageText(message, TEST_MSG_1) == 0) {
 		failed = failed + 1;
 	}
-	
-	set_process_priority(7,HIGH);
-	
+			
 	message = receive_message(sender);
-	if (checkMessageText(message, TEST_MSG_1) == 0) {
-		failed = failed + 1;
-	}
-	
-	/*message = receive_message(sender);
 	if (checkMessageText(message, TEST_MSG_2) == 0) {
 		failed = failed + 1;
-	}*/
+	}
 	
 	
 	if(failed == 0){

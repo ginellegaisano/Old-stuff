@@ -123,17 +123,16 @@ void c_TIMER0_IRQHandler(void)
 	
 	g_timer_count++ ;
 	
-	if (g_timer_count % 100 == 0) { 
-			printf("%d\r\n", g_timer_count);
+	if (g_timer_count % 28 == 0) {
 			g_timer_count = 0;
 			q = getTimedQ();
 			i = q->first;
-			while(i->next != NULL) {
+			while(i != NULL) {
 				message = (Message *)i->data;
 				message->delay -= 1;
 				if(message->delay <= 0 ){
 					pop(q);
-					push_mailbox(message->sender_id, message);
+					push_mailbox(message->destination_id, i);
 				}
 				i = i->next;
 			}		
