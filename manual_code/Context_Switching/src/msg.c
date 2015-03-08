@@ -41,7 +41,6 @@ int checkMessageText(msgbuf* message, char text[]) {
 	return 1;
 }
 
-
 //Packages message into an envelope  to be put in a mailbox
 Envelope *build_envelope(int process_id, msgbuf *message_envelope, int delay) {
 	Envelope *envelope = (Envelope *)k_request_memory_block();

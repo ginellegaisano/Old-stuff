@@ -60,7 +60,7 @@ void process_init()
 		g_proc_table[NUM_PROCS - 2].mpf_start_pc = &wall_clock;
 	
 		g_proc_table[NUM_PROCS - 1].m_pid = NUM_PROCS - 1;
-		g_proc_table[NUM_PROCS - 1].m_priority = 0;
+		g_proc_table[NUM_PROCS - 1].m_priority = 4;
 		g_proc_table[NUM_PROCS - 1].m_stack_size = USR_SZ_STACK;
 		g_proc_table[NUM_PROCS - 1].mpf_start_pc = &CRT_print;
 	
