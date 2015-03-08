@@ -119,19 +119,19 @@ void CRT_print(void){
 	char * str;
 	int i;
 	int * blah; // the output parameter
-	Envelope *msg = (Envelope *)receive_message(blah);
 	while(1){
+			Envelope *msg = (Envelope *)receive_message(blah);
+
 		str = msg->message->mtext;
-		k_release_memory_block(msg->message);
-		k_release_memory_block(msg);
+
 		//atomic(on)?????
 		printf("\n\r");
 		for (i = 0; i < sizeof(str)/sizeof(str[0]); i++) {
 					printf("%c", str[i]);
 		}
+		k_release_memory_block(msg->message);
+		k_release_memory_block(msg);
 		//atomic(off)??
-		
-		
 	}
 }
 void send_wall_clock_message(Envelope *msg, msgbuf *envelope){

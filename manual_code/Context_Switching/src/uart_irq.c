@@ -237,11 +237,9 @@ void c_UART0_IRQHandler(void)
 						k_send_message(NUM_PROCS - 2, message);
 				} else if (clock_on == true && char_count == 11 && g_buffer[0] == 'W' && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
 
-						msg = (Message *) k_request_memory_block();
-						envelope = (msgbuf *) k_request_memory_block();
-						envelope->mtype = 0;
+						message = allocate_message(KCD_REG, text);
 						for (i = 1; i < char_count; i++) {
-							envelope->mtext[i-1] = g_buffer[i];
+							message->mtext[i-1] = g_buffer[i];
 						}
 						k_send_message(NUM_PROCS - 2, message);
 				}
