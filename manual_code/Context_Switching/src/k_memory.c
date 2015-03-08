@@ -161,6 +161,7 @@ void memory_init(void)
 	currElement = (Element*)(int) ElementBlock + sizeof(Block*) + sizeof(int);
 	for (i = (int)currElement; i < (int)ElementBlock + BLOCK_SIZE + sizeof(Block*) + sizeof(int); i+= sizeof(Element*)) {
 		((Element*)(i))->data = NULL;
+		((Element*)(i))->block = ElementBlock;
 	}
 }
 
@@ -198,12 +199,13 @@ void *k_request_element(void) {
 		currBlock = ElementBlock;
 		
 		while (currElement->data != NULL) {
-			if ((int)currElement + sizeof(Element*) > (int)currBlock + BLOCK_SIZE + sizeof(int)*2) {
+			if ((int)currElement + sizeof(Element*) > (int)currBlock + BLOCK_SIZE + sizeof(int)*3) {
 				if (currBlock->next == NULL) {
 					currBlock->next = k_request_memory_block();
 					total_mem_blocks --;
 					for (i = (int)currBlock->next + sizeof(Block*) + sizeof(int); i < (int)currBlock->next + BLOCK_SIZE - sizeof(Element*); i+= sizeof(Element*)) {
 						((Element*)(i))->data = NULL;
+						((Element*)(i))->block = currBlock->next;
 					}
 					currBlock->next->next = NULL;
 				}
@@ -217,7 +219,26 @@ void *k_request_element(void) {
 		
 		return currElement;
 }
+int k_release_element_block(void * released){
+	Element *element = released;
+	Block * elementBlock = element->block;
+	int i;
+	bool empty = true;
 
+	for (i = (int)elementBlock  + sizeof(int); i < (int)elementBlock + sizeof(Block*) + sizeof(int); i += sizeof(Element*)){
+		if (((Element*)(i))->data != NULL) empty = false;
+	}
+	if(empty){
+
+		__disable_irq();
+		elementBlock -> next = MSP -> next;
+		elementBlock -> pid = NULL;
+		MSP = elementBlock;
+		total_mem_blocks++;
+		 __enable_irq(); //released the memory block.
+	}
+	return RTX_OK; //something to say that i didnt release the memory block because it had something in it.
+}
 /**
  * @brief: k_request_memory_block()- 
  *				 removes memory block from free memory lists. returns pointer to free memory block.
@@ -253,6 +274,7 @@ void *k_request_memory_block(void) {
 	 __enable_irq();
 	return (void *) a;
 }
+
 
 /**
  * @brief: k_release_memory_block()- 

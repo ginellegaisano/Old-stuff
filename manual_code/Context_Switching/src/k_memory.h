@@ -36,6 +36,7 @@ void *k_request_element(void);
 int k_release_memory_block(void *);
 int getMSP (void);
 int k_get_total_num_blocks(void);
+int k_release_element_block (void *);
 
 extern Element* pop(Queue* self);
 extern void push(Queue* self, Element* element);

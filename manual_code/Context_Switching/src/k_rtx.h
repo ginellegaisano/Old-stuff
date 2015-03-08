@@ -39,8 +39,8 @@ typedef struct Element Element;
 struct Element {
 	Element* next; //therefore we can take out PCB -> next. 
 	void* data;
+	void* block; //a pointer to the start of the memory block that this element is in.
 } ;
-
 typedef struct Queue Queue;
 
 struct Queue {
