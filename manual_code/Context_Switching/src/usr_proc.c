@@ -21,12 +21,14 @@ PROC_INIT g_test_procs[NUM_PROCS];
  
 int FAILED = 0;
 void * test3_mem = NULL;
-/*char TEST_MSG_1[7] = {'a','a','a','a','a','a','a'};
+char TEST_MSG_1[7] = {'a','a','a','a','a','a','a'};
 char TEST_MSG_2[5] = {'b','a','b','l','e'};
-char TEST_MSG_3[5] = {'d','e','l','a','y'};*/
+char TEST_MSG_3[5] = {'d','e','l','a','y'};
+/*
 char TEST_MSG_1[] = "aaaaaaa";
 char TEST_MSG_2[] = "bable";
 char TEST_MSG_3[] = "delay";
+*/
 
 int messages_sent = 0;
 int messages_received = 0;
@@ -118,8 +120,8 @@ void A(void) //pid = 7
 {
 	int *sender;
 	msgbuf *message;
-	msgbuf *message2 = allocate_message(DEFAULT, TEST_MSG_2, 5);
-	msgbuf *message_delay = allocate_message(DEFAULT, TEST_MSG_3, 5);
+	msgbuf *message2 = allocate_message(DEFAULT, TEST_MSG_2);
+	msgbuf *message_delay = allocate_message(DEFAULT, TEST_MSG_3);
 
 		/** TEST1 code */
 	a_count ++;
@@ -158,9 +160,9 @@ void A(void) //pid = 7
  */
 void B(void) //pid = 8
 {
-	int i;
+//	int i;
 	//int *sender = k_request_memory_block();
-	msgbuf *message;
+//	msgbuf *message;
 	
 	
 	/* TEST3 code */
@@ -216,7 +218,7 @@ void C(void) //pid == 9
  * @brief: a process that tests the allocation and deallocation of a memory block
  */
 void testHandler(void){
-	int *sender;
+//	int *sender;
 	printTest();
 	printf("START\n\r");
 	printTest();
@@ -370,7 +372,7 @@ void test3(void){
 		failed ++;
 	}
 	
-	release_memory_block(requested);*/
+	release_memory_block(requested);
 
 	endTest(failed + test3_count, 3);
 	set_process_priority(4, LOWEST);
@@ -434,7 +436,7 @@ void test4(void){
  */
 void test5(void){
 	int failed = 0;
-	int i = 0;
+//	int i = 0;
 
 	
 	

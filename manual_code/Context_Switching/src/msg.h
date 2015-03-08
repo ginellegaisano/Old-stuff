@@ -33,14 +33,14 @@ struct Envelope{
 };
 
 
-void setMessageText(msgbuf*, char text[], int);
+void setMessageText(msgbuf*, char text[]);
 int checkMessageText(msgbuf*, char text[]);
 
 int push_mailbox(Envelope *);
 Envelope *pop_mailbox(int);
-msgbuf *allocate_message(int, char text[], int length);
+msgbuf *allocate_message(int, char text[]);
 int deallocate_message(msgbuf *);
-msgbuf *k_allocate_message(int, char text[], int length);
+msgbuf *k_allocate_message(int, char text[]);
 int k_deallocate_message(msgbuf *);
 
 void *k_receive_message(int *);

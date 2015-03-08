@@ -198,7 +198,7 @@ void c_UART0_IRQHandler(void)
 	if (IIR_IntId & IIR_RDA) { // Receive Data Avaialbe
 		/* read UART. Read RBR will clear the interrupt */
 		g_char_in = pUart->RBR;
-		message = k_allocate_message(DEFAULT, " ", 1);
+		message = k_allocate_message(DEFAULT, "");
 		message->mtext[0] = g_char_in;
 		k_send_message(NUM_PROCS - 1, message); //send a message to UART.
 /*

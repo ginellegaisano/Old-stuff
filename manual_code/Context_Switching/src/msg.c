@@ -12,19 +12,19 @@
 #include "k_rtx.h"
 #include "k_memory.h"
 
-void setMessageText(msgbuf* message, char text[]) {
+void setMessageText(msgbuf* message, char *text) {
 	int i = 0;
-	int j = 0;
 	
-	while (i < sizeof(message->mtext)/sizeof(char) && j < sizeof(text)/sizeof(char)) {
-		if (j < textLength) {
-			message->mtext[i] = text[j];
-		} else {
-			message->mtext[i] = NULL;
-		}
+	while (i < 120) {
+		message->mtext[i] = NULL;
 		i++;
-		j++;
 	}
+	i = 0;
+	while(*(text+i)) {
+		message->mtext[i] = text[i];
+		i++;
+	} 
+	text = NULL;
 }
 
 int checkMessageText(msgbuf* message, char text[]) {
@@ -67,11 +67,11 @@ int destroy_envelope(Envelope *envelope){
 };
 
 //Creates an message to be passed into send message
-msgbuf *k_allocate_message(int type, char text[], int length){
+msgbuf *k_allocate_message(int type, char text[]){
 		msgbuf *message = k_request_memory_block();
 	
 		message->mtype = type;
-		setMessageText(message, text, length);	
+		setMessageText(message, text);	
 		return message;
 }
 
@@ -89,11 +89,11 @@ int k_deallocate_message(msgbuf *message){
 
 
 //Creates an message to be passed into send message
-msgbuf *allocate_message(int type, char text[], int length){
+msgbuf *allocate_message(int type, char text[]){
 		msgbuf *message = request_memory_block();
 	
 		message->mtype = type;
-		setMessageText(message, text, length);	
+		setMessageText(message, text);	
 		return message;
 }
 
@@ -196,6 +196,7 @@ void *k_receive_message(int *sender_id) {
 	}
 	
 	__disable_irq();
+	process = gp_current_process;
 
 	received = pop_mailbox(process->m_pid);
 	message = received->message;
