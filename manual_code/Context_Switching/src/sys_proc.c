@@ -41,6 +41,7 @@ void wall_clock(void){
 
 		 if (msg != NULL) { //checks if msg got deallocated?
 			 if (msg->mtext[0] == ' ') {
+				 second++;
 				 if (second > 60){
 					 minute ++;
 					 second = second % 60;
@@ -109,16 +110,15 @@ void CRT_print(void){
 void send_wall_clock_message(msgbuf *msg){
 		k_deallocate_message(msg);
 		msg = k_allocate_message(DEFAULT, " ");
-		k_delayed_send(NUM_PROCS - 2, msg, 1); 
+		k_delayed_send(NUM_PROCS - 3, msg, 1); 
 }
 
-void UART_iprocess(void){
-	//this is actually KCD 
+void KCD(void) {
 	msgbuf * msg = NULL;
 	//house keeping.
 	char g_buffer[128];
 	int PID_Clock = NUM_PROCS - 3;
-	int PID_CRT = NUM_PROCS -2;
+	int PID_CRT = NUM_PROCS - 2;
 	char enter = '\x0D';
 	char backspace = '\x08';
 	char command = '%';
@@ -130,9 +130,9 @@ void UART_iprocess(void){
 	bool waiting_for_command = false;
 	int i;
 	bool caught=false;
-	
+
 	while(1){
-		msg = receive_message(output);
+   	msg = receive_message(output);
 		
 		g_char_in = msg->mtext[0];
 		//releasing the message here!!
@@ -202,4 +202,28 @@ void UART_iprocess(void){
 			}
 		}
 	}
+}
+
+void UART_iprocess(void){
+	//this is actually KCD 
+	msgbuf * _msg = NULL;
+	char _g_char_in;
+
+	int * output;
+	while(1){
+   		_msg = receive_message(output);
+			_g_char_in = _msg->mtext[0];
+			k_deallocate_message(_msg);
+			_msg = k_allocate_message(DEFAULT, "");
+			_msg->mtext[0] = _g_char_in;
+		_msg->mtext[1] = _g_char_in;
+		_msg->mtext[2] = _g_char_in;
+		_msg->mtext[3] = _g_char_in;
+		_msg->mtext[4] = _g_char_in;
+		_msg->mtext[5] = _g_char_in;
+		_msg->mtext[6] = _g_char_in;
+			k_send_message(NUM_PROCS - 4, _msg);
+	}
+	
+	
 }

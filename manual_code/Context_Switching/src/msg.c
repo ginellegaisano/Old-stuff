@@ -16,7 +16,7 @@ void setMessageText(msgbuf* message, char text[], int textLength) {
 	int i = 0;
 	int j = 0;
 	
-	while (i < sizeof(message->mtext) || j < textLength) {
+	while (i < sizeof(message->mtext) && j < textLength) {
 		if (j < textLength) {
 			message->mtext[i] = text[j];
 		} else {
@@ -100,6 +100,7 @@ int deallocate_message(msgbuf *message){
 //pushes an evelope onto a mailbox
 int push_mailbox(Envelope *envelope) {
 	Element *element = k_request_element();
+	Element *popped;
 	
 	PCB *process = gp_pcbs[envelope->destination_id];
 	Queue *mailbox = process->mailbox;
@@ -117,9 +118,11 @@ int push_mailbox(Envelope *envelope) {
 		pcb = k_request_element();
 		pcb->data = process;
 		pushToReadyQ(process->m_priority, pcb);
-		removeFromQ(getBlockedReceiveQ(process->m_priority), process->m_pid);  
-		
+		popped = removeFromQ(getBlockedReceiveQ(process->m_priority), process->m_pid);  
+		popped->data = NULL;
+		k_release_element_block(popped);
 		if(process->m_priority < gp_current_process->m_priority){
+			__enable_irq();
 			k_release_processor();
 		}
 	}
@@ -134,7 +137,9 @@ Envelope *pop_mailbox(int process_id){
 	Queue *mailbox = process->mailbox;
 	Element *element = pop(mailbox);
 	Envelope *envelope = (Envelope *)element->data;
+	element->data = NULL;
 	k_release_element_block(element);
+
 	return envelope;
 }
 

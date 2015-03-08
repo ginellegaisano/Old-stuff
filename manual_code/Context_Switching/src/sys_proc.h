@@ -12,4 +12,6 @@ void null_process(void);
 void wall_clock(void);
 void CRT_print(void);
 void UART_iprocess(void);
+void KCD(void);
+
 #endif

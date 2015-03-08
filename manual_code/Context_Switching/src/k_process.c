@@ -54,6 +54,11 @@ void process_init()
 		g_proc_table[0].mpf_start_pc = &null_process;
 	
 
+		g_proc_table[NUM_PROCS - 4].m_pid = NUM_PROCS - 4;
+		g_proc_table[NUM_PROCS - 4].m_priority = 0;
+		g_proc_table[NUM_PROCS - 4].m_stack_size = USR_SZ_STACK;
+		g_proc_table[NUM_PROCS - 4].mpf_start_pc = &KCD;
+	
 		g_proc_table[NUM_PROCS - 3].m_pid = NUM_PROCS - 3;
 		g_proc_table[NUM_PROCS - 3].m_priority = 0;
 		g_proc_table[NUM_PROCS - 3].m_stack_size = USR_SZ_STACK;
@@ -108,6 +113,7 @@ PCB *scheduler(void)
 		if (element != NULL) {
 			pcb = (PCB*) element -> data;
 			element->data = NULL;
+			k_release_element_block(element);
 			if (gp_current_process == NULL) {
 				gp_current_process = pcb;
 			}

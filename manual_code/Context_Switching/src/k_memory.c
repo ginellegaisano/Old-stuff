@@ -172,9 +172,10 @@ void memory_init(void)
 	ElementBlock = k_request_memory_block();
 	total_mem_blocks --;
 	free_blocks = total_mem_blocks;
-	currElement = (Element*)(int) ElementBlock + sizeof(Block*) + sizeof(int);
-	for (i = (int)currElement; i < (int)ElementBlock + BLOCK_SIZE + sizeof(Block*) + sizeof(int); i+= sizeof(Element*)) {
-		((Element*)(i))->data = NULL;
+	currElement = (Element*)((int) ElementBlock + sizeof(int*));
+	for (i = (int)currElement; i < (int)ElementBlock + BLOCK_SIZE - sizeof(Element); i+= 3*sizeof(int*)) {
+		((Element*)(i))->next = NULL;
+	  ((Element*)(i))->data = NULL;
 		((Element*)(i))->block = ElementBlock;
 	}
 }
@@ -209,37 +210,39 @@ U32 *alloc_stack(U32 size_b)
 void *k_request_element(void) {
 		Block* currBlock;
 		int i;
-		
 		currBlock = ElementBlock;
 		
 		while (currElement->data != NULL) {
-			if ((int)currElement + sizeof(Element*) > (int)currBlock + BLOCK_SIZE + sizeof(int)*3) {
+			if ((int)currElement + sizeof(Element) > (int)currElement->block + BLOCK_SIZE - sizeof(Element)) {
 				if (currBlock->next == NULL) {
 					currBlock->next = k_request_memory_block();
 					total_mem_blocks --;
-					for (i = (int)currBlock->next + sizeof(Block*) + sizeof(int); i < (int)currBlock->next + BLOCK_SIZE - sizeof(Element*); i+= sizeof(Element*)) {
-						((Element*)(i))->data = NULL;
+					for (i = (int)currBlock->next + sizeof(int); i < (int)currBlock->next + BLOCK_SIZE - sizeof(Element); i+= 3*sizeof(int*)) {
+						((Element*)(i))->next = NULL;
+					  ((Element*)(i))->data = NULL;
 						((Element*)(i))->block = currBlock->next;
 					}
+					
 					currBlock->next->next = NULL;
 				}
 				currBlock = currBlock->next;
-				
-				currElement = (Element*)(int) currBlock + sizeof(Block*) + sizeof(int);
+				ElementBlock = currBlock;
+				currElement = (Element*)((int) currBlock + sizeof(int));
 			} else {
-				currElement += sizeof(Element*);
+				currElement = (Element*)((int)currElement + 3*sizeof(int));
 			}
 		}
 		
 		return currElement;
 }
 int k_release_element_block(void * released){
-	Element *element = released;
+	Element *element = (Element *)released;
 	Block * elementBlock = element->block;
 	int i;
 	bool empty = true;
-
-	for (i = (int)elementBlock  + sizeof(int); i < (int)elementBlock + sizeof(Block*) + sizeof(int); i += sizeof(Element*)){
+	element->next = NULL;
+	element->data = NULL;
+	for (i = (int)elementBlock  + sizeof(int); i < (int)elementBlock + BLOCK_SIZE + sizeof(int); i += 3*sizeof(int*)){
 		if (((Element*)(i))->data != NULL) empty = false;
 	}
 	if(empty){
@@ -314,7 +317,7 @@ int k_release_memory_block(void *p_mem_blk) {
 	}
 		__disable_irq();
 
-	released -> next = (Block *)(MSP -> next);
+	released -> next = (Block *)(MSP );
 	released -> pid = NULL;
 	MSP = released;
 	free_blocks++;
