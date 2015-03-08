@@ -140,6 +140,21 @@ void *receive_message(int *sender_id) {
 	return (void *)ret_val->message;
 }
 
+int empty_mailbox() {
+	Queue *mailbox = gp_current_process->mailbox;
+	Element *ele = pop(mailbox);
+	Message * msg=NULL;
+	while (ele != NULL) {
+		msg = ele->data;
+		if(msg != NULL){
+			//call lara's clean up for the messages + envelopes.
+			//return RTX_ERR if release doesnt work.
+		}
+		ele = pop(mailbox);
+	}
+	return RTX_OK;
+}
+
 int k_delayed_send(int process_id, void *message_envelope, int delay){
 	Element *envelope;
 	Queue *timed;

@@ -41,7 +41,7 @@ void process_init()
   /* fill out the initialization table */
 	set_test_procs();
 
-	for ( i = 1; i < NUM_PROCS - 2; i++ ) {
+	for ( i = 1; i < NUM_PROCS - 3; i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i-1].m_pid;
 		g_proc_table[i].m_priority = g_test_procs[i-1].m_priority;
 		g_proc_table[i].m_stack_size = g_test_procs[i-1].m_stack_size;
@@ -54,15 +54,22 @@ void process_init()
 		g_proc_table[0].mpf_start_pc = &null_process;
 	
 
+		g_proc_table[NUM_PROCS - 3].m_pid = NUM_PROCS - 3;
+		g_proc_table[NUM_PROCS - 3].m_priority = 0;
+		g_proc_table[NUM_PROCS - 3].m_stack_size = USR_SZ_STACK;
+		g_proc_table[NUM_PROCS - 3].mpf_start_pc = &wall_clock;
+	
 		g_proc_table[NUM_PROCS - 2].m_pid = NUM_PROCS - 2;
-		g_proc_table[NUM_PROCS - 2].m_priority = 4;
+		g_proc_table[NUM_PROCS - 2].m_priority = 0;
 		g_proc_table[NUM_PROCS - 2].m_stack_size = USR_SZ_STACK;
-		g_proc_table[NUM_PROCS - 2].mpf_start_pc = &wall_clock;
+		g_proc_table[NUM_PROCS - 2].mpf_start_pc = &CRT_print;
 	
 		g_proc_table[NUM_PROCS - 1].m_pid = NUM_PROCS - 1;
 		g_proc_table[NUM_PROCS - 1].m_priority = 0;
 		g_proc_table[NUM_PROCS - 1].m_stack_size = USR_SZ_STACK;
-		g_proc_table[NUM_PROCS - 1].mpf_start_pc = &CRT_print;
+		g_proc_table[NUM_PROCS - 1].mpf_start_pc = &UART_iprocess;
+	
+	
 	
 	/* initilize exception stack frame (i.e. initial context) for each process */
 	for ( i = 0; i < NUM_PROCS; i++ ) {

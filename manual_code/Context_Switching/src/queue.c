@@ -82,7 +82,7 @@ void printReadyQ(char* tag) {
 	Element* iterator = NULL;
 	int i;
 	
-	printf("Ready Queue: %s\n\r", tag);
+	printf("\n\rReady Queue: %s\n\r", tag);
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getReadyQ(i)->first;
 		printf("Queue: %d\n\r", i);
