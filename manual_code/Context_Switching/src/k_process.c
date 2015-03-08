@@ -112,7 +112,7 @@ Element *scheduler(void)
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		element = popFromReadyQ(i);
 		if (element != NULL) {
-			pcb = (PCB*) element -> data;
+			pcb = (PCB*) element->data;
 			if (gp_current_process == NULL) {
 				gp_current_process = pcb;
 			}

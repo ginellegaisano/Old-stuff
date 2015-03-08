@@ -109,8 +109,13 @@ void CRT_print(void){
 
 void send_wall_clock_message(msgbuf *msg){
 		k_deallocate_message(msg);
+<<<<<<< HEAD
 		msg = k_allocate_message(DEFAULT, " ");
 		k_delayed_send(NUM_PROCS - 3, msg, 1); 
+=======
+		msg = k_allocate_message(DEFAULT, " ", 1);
+		k_delayed_send(NUM_PROCS - 2, msg, 1); 
+>>>>>>> Hunting for the mysterious message text nullifier
 }
 
 void KCD(void) {
@@ -164,7 +169,7 @@ void KCD(void) {
 			}
 			else { //enter pressed or char_count exceeded.
 				k_deallocate_message(msg);
-				msg = k_allocate_message(DEFAULT, "");
+				msg = k_allocate_message(DEFAULT, "",0);
 				if (char_count > 0){ //check if they pressed anything??
 					if (g_buffer[0] == 'W'){ //all clock functions.
 						if(char_count ==1){

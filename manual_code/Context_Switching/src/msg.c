@@ -12,11 +12,11 @@
 #include "k_rtx.h"
 #include "k_memory.h"
 
-void setMessageText(msgbuf* message, char text[], int textLength) {
+void setMessageText(msgbuf* message, char text[]) {
 	int i = 0;
 	int j = 0;
 	
-	while (i < sizeof(message->mtext) && j < textLength) {
+	while (i < sizeof(message->mtext)/sizeof(char) && j < sizeof(text)/sizeof(char)) {
 		if (j < textLength) {
 			message->mtext[i] = text[j];
 		} else {
@@ -67,28 +67,33 @@ int destroy_envelope(Envelope *envelope){
 };
 
 //Creates an message to be passed into send message
-msgbuf *k_allocate_message(int type, char text[]){
+msgbuf *k_allocate_message(int type, char text[], int length){
 		msgbuf *message = k_request_memory_block();
 	
 		message->mtype = type;
-		setMessageText(message, text, sizeof(text));	
+		setMessageText(message, text, length);	
 		return message;
 }
 
 //Frees the memory associated with a message
 int k_deallocate_message(msgbuf *message){
+		int i = 0;
 		Block *block = (Block *)message;
 		block->pid = gp_current_process->m_pid;
+		while (i < sizeof(message->mtext)/sizeof(char)) {
+			message->mtext[i] = NULL;
+			i++;
+		}
 		return k_release_memory_block(message);
 };
 
 
 //Creates an message to be passed into send message
-msgbuf *allocate_message(int type, char text[]){
+msgbuf *allocate_message(int type, char text[], int length){
 		msgbuf *message = request_memory_block();
 	
 		message->mtype = type;
-		setMessageText(message, text, sizeof(text));	
+		setMessageText(message, text, length);	
 		return message;
 }
 
@@ -96,6 +101,7 @@ msgbuf *allocate_message(int type, char text[]){
 int deallocate_message(msgbuf *message){
 		Block *block = (Block *)message;
 		block->pid = gp_current_process->m_pid;
+		
 		return release_memory_block(message);
 };
 
