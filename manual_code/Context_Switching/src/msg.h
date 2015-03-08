@@ -23,8 +23,8 @@ struct msgbuf {
 	char mtext[(BLOCK_SIZE - sizeof(int))/sizeof(char)];
 };
 
-typedef struct Message Message;
-struct Message{
+typedef struct Envelope Envelope;
+struct Envelope{
 	int sender_id;
 	int destination_id;
 	int time;
@@ -33,7 +33,15 @@ struct Message{
 };
 
 
+void setMessageText(msgbuf*, char text[], int);
+int checkMessageText(msgbuf*, char text[]);
 
+int push_mailbox(Envelope *);
+Envelope *pop_mailbox(int);
+msgbuf *allocate_message(int, char text[]);
+int deallocate_message(msgbuf *);
+msgbuf *k_allocate_message(int, char text[]);
+int k_deallocate_message(msgbuf *);
 
 void *receive_message(int *);
 int k_send_message(int, void *);
