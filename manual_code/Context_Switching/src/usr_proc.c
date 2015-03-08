@@ -186,7 +186,7 @@ void C(void) //pid == 9
 {
 	
 	/*TEST4 code */
-	/*
+	
 	//fills up the memory block array. Also requests ALL memory.
 	int number_mem_blocks = getTotalFreeMemory(); //101
 	void * mem_blocks[500];
@@ -203,7 +203,7 @@ void C(void) //pid == 9
 	}
 		
 	release_processor();
-	*/
+	
 	//release process
 	while(1) {
 		release_processor();
@@ -382,7 +382,7 @@ void test3(void){
  */
 void test4(void){
 	int failed = 0;
-	/*int initialFree = getTotalFreeMemory();
+	int initialFree = getTotalFreeMemory();
 	int finalFree = getTotalFreeMemory();
 
 	void *test4_mem;
@@ -417,7 +417,7 @@ void test4(void){
 		failed ++;
 	}
 	
-	 */
+	 
 	endTest(failed + test4_count, 4);
 	set_process_priority(5,LOW);
 

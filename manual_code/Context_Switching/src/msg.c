@@ -77,6 +77,8 @@ msgbuf *k_allocate_message(int type, char text[]){
 
 //Frees the memory associated with a message
 int k_deallocate_message(msgbuf *message){
+		Block *block = (Block *)message;
+		block->pid = gp_current_process->m_pid;
 		return k_release_memory_block(message);
 };
 
@@ -92,6 +94,8 @@ msgbuf *allocate_message(int type, char text[]){
 
 //Frees the memory associated with a message
 int deallocate_message(msgbuf *message){
+		Block *block = (Block *)message;
+		block->pid = gp_current_process->m_pid;
 		return release_memory_block(message);
 };
 
@@ -163,7 +167,7 @@ int k_send_message(int process_id, void *message_envelope) {
 }
 
 //returns a pointer to the message, 
-void *receive_message(int *sender_id) {	
+void *k_receive_message(int *sender_id) {	
 	PCB *process = gp_current_process;
 	Queue *mailbox = gp_current_process->mailbox;
 	Envelope *received;
@@ -182,7 +186,7 @@ void *receive_message(int *sender_id) {
 		element = k_request_element();
 		element->data = gp_current_process;
 		push(getBlockedReceiveQ(priority), element);
-		release_processor();
+		k_release_processor();
 	}
 	
 	__disable_irq();
