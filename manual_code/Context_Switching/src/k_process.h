@@ -18,7 +18,7 @@
 /* ----- Functions ----- */
 
 void process_init(void);               	/* initialize all procs in the system */
-PCB *scheduler(void);                  	/* pick the pid of the next to run process */
+Element *scheduler(void);                  	/* pick the pid of the next to run process */
 int k_release_process(void);           	/* kernel release_process function */
 extern Queue **ready_qs;								/* ready queue*/
 extern Queue **blocked_resource_qs;			/* blocked resources queue*/

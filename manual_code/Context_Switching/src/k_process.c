@@ -24,6 +24,7 @@
 /* ----- Global Variables ----- */
 PCB **gp_pcbs;                  /* array of pcbs */
 PCB *gp_current_process = NULL; /* always point to the current RUN process */
+Element *gp_current_element = NULL; /* always point to the current RUN element */
 
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_PROCS];
@@ -103,7 +104,7 @@ void process_init()
  *      No other effect on other global variables.
  */
 
-PCB *scheduler(void)
+Element *scheduler(void)
 {
 	Element* element;
 	PCB* pcb;
@@ -112,15 +113,13 @@ PCB *scheduler(void)
 		element = popFromReadyQ(i);
 		if (element != NULL) {
 			pcb = (PCB*) element -> data;
-			element->data = NULL;
-			k_release_element_block(element);
 			if (gp_current_process == NULL) {
 				gp_current_process = pcb;
 			}
-			return pcb;
+			return element;
 		}
 	}
-	return NULL;
+	return element;
 }
 
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
@@ -131,20 +130,17 @@ PCB *scheduler(void)
  *POST: if gp_current_process was NULL, then it gets set to pcbs[0].
  *      No other effect on other global variables.
  */
-int process_switch(PCB *p_pcb_old) 
+int process_switch(Element *element) 
 {
+	PCB *p_pcb_old = (PCB *)element->data;
 	PROC_STATE_E state;
-	Element* element;
 	state = gp_current_process->m_state;
 
 	if (state == NEW) {
 		if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
-
 			p_pcb_old->mp_sp = (U32 *) __get_MSP();
 			if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE && p_pcb_old->m_state != BLOCKED_ON_RECEIVE) {
 				p_pcb_old->m_state = RDY;
-				element = k_request_element();
-				element->data = p_pcb_old;
 				pushToReadyQ(p_pcb_old->m_priority, element);
 			}
 			//need to push to respective priority ready queue
@@ -161,8 +157,6 @@ int process_switch(PCB *p_pcb_old)
 		p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
 		if (p_pcb_old->m_state != BLOCKED_ON_RESOURCE && p_pcb_old->m_state != BLOCKED_ON_RECEIVE) {
 			p_pcb_old->m_state = RDY;
-			element = k_request_element();
-			element->data = p_pcb_old;
 			pushToReadyQ(p_pcb_old->m_priority, element);
 		}
 		gp_current_process->m_state = RUN;
@@ -180,21 +174,27 @@ int process_switch(PCB *p_pcb_old)
  */
 int k_release_processor(void)
 {
-	PCB *p_pcb_old = NULL;
-	p_pcb_old = gp_current_process;
-	gp_current_process = scheduler();
+	Element *element;
+	Element *element_old = gp_current_element;
+	PCB *p_pcb_old = gp_current_process;
+
+	element = scheduler();
+	gp_current_process = (PCB *)element->data;
+	gp_current_element = element;
 	if ( gp_current_process == NULL  ) {
 		gp_current_process = p_pcb_old; // revert back to the old process
+		gp_current_element = element_old;
 		return RTX_ERR;
 	}
   if ( p_pcb_old == NULL ) {
 		p_pcb_old = gp_current_process;
+		element_old = gp_current_element;
 		gp_current_process->m_state = RUN;
 		__set_MSP((U32) gp_current_process->mp_sp);
 		__rte();
 	}
 	
-	process_switch(p_pcb_old);
+	process_switch(element_old);
 	return RTX_OK;
 }
 
