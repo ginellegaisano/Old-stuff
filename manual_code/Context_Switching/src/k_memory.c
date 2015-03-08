@@ -13,6 +13,7 @@
 /* ----- Global Variables ----- */
 U32 *gp_stack; 
 int total_mem_blocks;
+int free_blocks;
 /* The last allocated stack low address. 8 bytes aligned */
 /* The first stack starts at the RAM high address */
 /* stack grows down. Fully decremental stack */
@@ -62,6 +63,17 @@ Element* currElement;
  */
 int getMSP (void) {
 	return (int)MSP;
+}
+
+int getTotalFreeMemory(void){
+	/*Block *iterator = MSP;
+	int counter = 0;
+	while(iterator != NULL){
+		counter ++;
+		iterator = iterator->next;
+	}
+	return counter;*/
+	return free_blocks;
 }
 
 /**
@@ -158,6 +170,7 @@ void memory_init(void)
 	
 	ElementBlock = k_request_memory_block();
 	total_mem_blocks --;
+	free_blocks = total_mem_blocks;
 	currElement = (Element*)(int) ElementBlock + sizeof(Block*) + sizeof(int);
 	for (i = (int)currElement; i < (int)ElementBlock + BLOCK_SIZE + sizeof(Block*) + sizeof(int); i+= sizeof(Element*)) {
 		((Element*)(i))->data = NULL;
@@ -270,6 +283,7 @@ void *k_request_memory_block(void) {
 	//assign process 1 mem block (need to make process table and memory table to assign shit too
 	a->next = NULL;
 	a->pid = gp_current_process->m_pid;
+	free_blocks--;
 	//atomic(off);
 	 __enable_irq();
 	return (void *) a;
@@ -296,9 +310,10 @@ int k_release_memory_block(void *p_mem_blk) {
 	}
 		__disable_irq();
 
-	released -> next = MSP -> next;
+	released -> next = (Block *)(MSP -> next);
 	released -> pid = NULL;
 	MSP = released;
+	free_blocks++;
 	 __enable_irq();
 
 	 //unblocking resources

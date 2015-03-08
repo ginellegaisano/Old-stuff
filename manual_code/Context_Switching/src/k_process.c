@@ -216,8 +216,13 @@ int k_set_process_priority(int process_id, int priority){
 		push(getBlockedResourceQ(priority), element);
 	}
 
-	if ((gp_current_process->m_pid == process_id && priority > gp_current_process->m_priority) || (gp_current_process->m_pid != process_id && priority < gp_current_process->m_priority))
+	if ((gp_current_process->m_pid == process_id && priority > gp_current_process->m_priority) 
+		|| (gp_current_process->m_pid != process_id && priority < gp_current_process->m_priority)){
 		flag = true;	
+	}
+	if (gp_current_process->m_pid == process_id) {
+		gp_current_process->m_priority = priority;
+	}
 	g_proc_table[process_id].m_priority = priority;
 	gp_pcbs[process_id]->m_priority = priority;
 	

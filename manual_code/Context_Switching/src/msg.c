@@ -121,6 +121,7 @@ Envelope *pop_mailbox(int process_id){
 	Queue *mailbox = process->mailbox;
 	Element *element = pop(mailbox);
 	Envelope *envelope = (Envelope *)element->data;
+	//TODO: k_release_element(element);
 	return envelope;
 }
 
@@ -182,7 +183,7 @@ void *receive_message(int *sender_id) {
 int k_delayed_send(int process_id, void *message_envelope, int delay){
 	Envelope *envelope;
 	Queue *timed;
-	Element *element = request_element();
+	Element *element = k_request_element();
 	
 	if(process_id > NUM_PROCS || process_id < 1) {
 		return RTX_ERR;

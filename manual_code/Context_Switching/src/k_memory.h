@@ -35,6 +35,7 @@ void *k_request_memory_block(void);
 void *k_request_element(void);
 int k_release_memory_block(void *);
 int getMSP (void);
+int getTotalFreeMemory(void);
 int k_get_total_num_blocks(void);
 int k_release_element_block (void *);
 
