@@ -9,6 +9,7 @@
 #include "msg.h"
 #include "rtx.h"
 #include "queue.h"
+#include "timer.h"
 #include "k_rtx.h"
 #include "k_memory.h"
 #include "printf.h"
@@ -17,6 +18,7 @@
 void setMessageText(msgbuf* message, char *text) {
 	int i = 0;
 
+	
 	while (i < 120) {
 		message->mtext[i] = NULL;
 		i++;

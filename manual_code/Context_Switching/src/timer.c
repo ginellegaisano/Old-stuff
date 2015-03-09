@@ -12,8 +12,6 @@
 #include "msg.h"
 #include "printf.h"
 
-#define BIT(X) (1<<X)
-
 volatile uint32_t g_timer_count = 0; // increment every 1 ms
 
 /**

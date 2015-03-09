@@ -9,6 +9,7 @@
 #include "uart_polling.h"
 #include "k_memory.h"
 #include "uart.h"
+#include "timer.h"
 #include "k_process.h"
 
 void k_rtx_init(void)

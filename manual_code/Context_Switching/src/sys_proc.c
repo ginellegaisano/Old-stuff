@@ -10,6 +10,7 @@
 #include "rtx.h"
 #include "sys_proc.h"
 #include "msg.h"
+#include "timer.h"
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* DEBUG_0 */

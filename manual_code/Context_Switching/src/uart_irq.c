@@ -15,7 +15,6 @@
 #include "rtx.h"
 #endif
 
-
 uint8_t g_buffer[]= "0123456789012345";
 uint8_t *gp_buffer = g_buffer;
 uint8_t g_send_char = 0;
@@ -188,7 +187,6 @@ void c_UART0_IRQHandler(void)
 {
 	uint8_t IIR_IntId;	    // Interrupt ID from IIR 		 
 	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
-	int i;
 	msgbuf *message;
 	  
 	/* Reading IIR automatically acknowledges the interrupt */

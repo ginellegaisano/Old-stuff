@@ -48,5 +48,6 @@ int k_send_message(int, void *);
 int k_delayed_send(int, void *, int);
 int empty_mailbox(void);
 
+extern bool check_format(char *str);
 
 #endif
