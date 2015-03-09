@@ -19,21 +19,21 @@ extern void printBlockedQ (char* tag);
 extern Queue* getBlockedResourceQ(int priority);
 extern PCB *scheduler(void);
 extern PCB *scheduler(void);
+extern void test1(void);
+extern void test2(void);
+extern void test3(void);
+extern void test4(void);
+extern void test5(void);
+extern void A(void);
+extern void B(void);
+extern void C(void);
 
 #define PID_P2 2
 
 /* ----- Functions ----- */
 void set_test_procs(void);
-void A(void);
-void B(void);
-void C(void);
+void endTest(int failed, int test);
 void testHandler(void);
-void test1(void);
-void test2(void);
-void test3(void);
-void test4(void);
-void test5(void);
-
 
 
 #endif /* USR_PROC_H_ */

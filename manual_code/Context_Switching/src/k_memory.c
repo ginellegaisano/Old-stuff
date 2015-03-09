@@ -255,6 +255,7 @@ int k_release_element_block(void * released){
 		free_blocks++;
 	}
 	__enable_irq(); //released the memory block.
+	//printf("+1 memory block released\n\r");
 
 	return RTX_OK; //something to say that i didnt release the memory block because it had something in it.
 }
@@ -294,6 +295,7 @@ void *k_request_memory_block(void) {
 	free_blocks--;
 	//atomic(off);
 	 __enable_irq();
+	//printf("-1 memory block requested\n\r");
 	return (void *) a;
 }
 
