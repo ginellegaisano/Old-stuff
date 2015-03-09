@@ -15,6 +15,16 @@
 #include "printf.h"
 #endif /* DEBUG_0 */
 
+
+bool check_format(char *str) {
+	int i;
+	for (i = 3; i < 10; i = i + 3) {
+		if (str[i] < '0' && str[i] > '9' && str[i+1] < '0' && str[i+1] > '9')
+			return false;
+	}
+	return true;
+} 
+
 void send_wall_clock_message(msgbuf *msg);
 void CRT_print(void);
 
@@ -56,13 +66,21 @@ void wall_clock(void){
 					 hour = (hour + 1) % 24;
 					 minute = minute % 60;
 				 }
+				 		__disable_irq();
+
 					printf("\n\r%02d:%02d:%02d\n\r", hour, minute, second);
+				 		__enable_irq();
+
 					send_wall_clock_message(msg);
 				} else if (msg->mtext[0] == 'R') {
 						hour = 0;
 						minute = 0;
 						second = 0;
+							__disable_irq();
+
 						printf("\n\r%02d:%02d:%02d\n\r", hour, minute, second);
+							__enable_irq();
+
 						//deallocate then create a new one.
 						send_wall_clock_message(msg);
 				} else if (msg->mtext[0] == 'T') {
@@ -93,7 +111,11 @@ void wall_clock(void){
 								hour = (hour +1 ) % 24;
 								minute = minute % 60;
 					}
+							__disable_irq();
+
 					printf("\n\r%02d:%02d:%02d\n\r", hour, minute, second);
+							__enable_irq();
+
 					send_wall_clock_message(msg);
 			}
 		}
@@ -109,9 +131,9 @@ void CRT_print(void){
 		printf("\n\r");
 		printf("%s\n\r",str);
 		str = NULL;
-		__enable_irq();
 		//release the memory block . to be implemented. 
 		k_deallocate_message(msg);
+		__enable_irq();
 	}
 }
 
@@ -150,13 +172,19 @@ void KCD(void) {
 		k_deallocate_message(msg);
 		if (!waiting_for_command) {
 				if(g_char_in == 'r') {
+					__disable_irq();
 					printReadyQ(" ");
+					__enable_irq();
 			}
 			else if (g_char_in == 'b') {
+				__disable_irq();
 					printBlockedQ(" ");
+				__enable_irq();
 			}
 			else if(g_char_in == 'm'){
+				__disable_irq();
 				printBlockedReceiveQ(" ");
+				__enable_irq();
 			}
 			else if (g_char_in == command) {
 				waiting_for_command = true;
@@ -210,6 +238,7 @@ void KCD(void) {
 				}
 				waiting_for_command = false;
 				char_count = 0;
+				caught = false;
 			}
 		}
 	}

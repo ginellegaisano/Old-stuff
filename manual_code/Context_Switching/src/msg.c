@@ -65,9 +65,9 @@ Envelope *build_envelope(int process_id, msgbuf *message_envelope, int delay) {
 int destroy_envelope(Envelope *envelope){
 
 		if(gp_current_process->m_pid != envelope->destination_id){
-
 			return RTX_ERR;
 		}
+
 		
 		return k_release_memory_block((void *)envelope);
 };
@@ -119,7 +119,6 @@ int push_mailbox(Envelope *envelope) {
 	Element *popped;
 	PCB *process;
 	Queue *mailbox;
-	Element *pcb;
 
 	__disable_irq();
 	element = k_request_element();
@@ -197,7 +196,7 @@ void *k_receive_message(int *sender_id) {
 		gp_current_process->m_state = BLOCKED_ON_RECEIVE;
 		priority = g_proc_table[gp_current_process->m_pid].m_priority;
 		
-		//push PCB of current process on blocked_resource_qs; << here we are pushing a PCB. <<
+		//push PCB of current process on blocked_resource_qs; 
 		element = k_request_element();
 		element->data = gp_current_process;
 		push(getBlockedReceiveQ(priority), element);
@@ -205,8 +204,9 @@ void *k_receive_message(int *sender_id) {
 	}
 	
 	__disable_irq();
-	process = gp_current_process;
 
+	process = gp_current_process;
+	mailbox = gp_current_process->mailbox;
 	received = pop_mailbox(process->m_pid);
 
 	message = received->message;

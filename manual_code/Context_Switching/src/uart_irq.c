@@ -31,14 +31,6 @@ int char_count = 0;
  * of LPC17xx_UM
  */
  
-bool check_format(char *str) {
-	int i;
-	for (i = 3; i < 10; i = i + 3) {
-		if (str[i] < '0' && str[i] > '9' && str[i+1] < '0' && str[i+1] > '9')
-			return false;
-	}
-	return true;
-} 
 int uart_irq_init(int n_uart) {
 
 	LPC_UART_TypeDef *pUart;

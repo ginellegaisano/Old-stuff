@@ -113,7 +113,7 @@ void set_test_procs() {
  */
 void A(void) //pid = 7
 {
-	int *sender;
+	int *sender = (int *)request_memory_block();
 	int i;
 	msgbuf *message;
 	msgbuf *message2 = allocate_message(DEFAULT, TEST_MSG_2, 5);
@@ -146,7 +146,10 @@ void A(void) //pid = 7
 	release_processor();
 
 
-	
+		send_message(8, message);
+		messages_sent = messages_sent + 1;
+		release_processor();
+	release_memory_block(sender);
 	while (1) {
 			release_processor();
 	}
