@@ -15,6 +15,13 @@
 #define RAM_END_ADDR 0x10008000
 #define BLOCK_SIZE 128
 
+/* ----- Type Definitions Variables ----- */
+typedef struct Block Block;
+struct Block { //fixed size, defined above
+	Block* next;
+	int pid;
+} ;
+
 
 /* ----- Variables ----- */
 /* This symbol is defined in the scatter file (see RVCT Linker User Guide) */  

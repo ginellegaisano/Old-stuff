@@ -21,9 +21,14 @@ PROC_INIT g_test_procs[NUM_PROCS];
  
 int FAILED = 0;
 void * test3_mem = NULL;
-char TEST_MSG_1[] = "aaaaaaaaaaaa";
-char TEST_MSG_2[] = "babel";
+char TEST_MSG_1[7] = {'a','a','a','a','a','a','a'};
+char TEST_MSG_2[5] = {'b','a','b','l','e'};
+char TEST_MSG_3[5] = {'d','e','l','a','y'};
+/*
+char TEST_MSG_1[] = "aaaaaaa";
+char TEST_MSG_2[] = "bable";
 char TEST_MSG_3[] = "delay";
+*/
 
 int messages_sent = 0;
 int messages_received = 0;
@@ -119,12 +124,12 @@ void A(void) //pid = 7
 	msgbuf *message_delay = allocate_message(DEFAULT, TEST_MSG_3);
 
 		/** TEST1 code */
-	/*a_count ++;
+	a_count ++;
 	set_process_priority(7,MEDIUM);
-	*/
+	
 	/*TEST5 code*/		
 	//test blocking receive(receive before send in test
-	/*message = receive_message(sender);
+	message = receive_message(sender);
 	deallocate_message(message);
 	
 	//test that delay send arrives last
@@ -132,7 +137,7 @@ void A(void) //pid = 7
 
 	send_message(6, message2);
 		
-	release_processor();*/
+	release_processor();
 
 	/*TEST5 stress test code	*/
 		/*
@@ -155,14 +160,14 @@ void A(void) //pid = 7
  */
 void B(void) //pid = 8
 {
-	int i;
+//	int i;
 	//int *sender = k_request_memory_block();
-	msgbuf *message;
+//	msgbuf *message;
 	
 	
 	/* TEST3 code */
-	/*b_count = release_memory_block(test3_mem);
-	release_processor();*/
+	b_count = release_memory_block(test3_mem);
+	release_processor();
 	
 	/* TEST5 stress test code */
 	/*
@@ -186,7 +191,7 @@ void C(void) //pid == 9
 {
 	
 	/*TEST4 code */
-	/*
+	
 	//fills up the memory block array. Also requests ALL memory.
 	int number_mem_blocks = getTotalFreeMemory(); //101
 	void * mem_blocks[500];
@@ -203,7 +208,7 @@ void C(void) //pid == 9
 	}
 		
 	release_processor();
-	*/
+	
 	//release process
 	while(1) {
 		release_processor();
@@ -213,7 +218,7 @@ void C(void) //pid == 9
  * @brief: a process that tests the allocation and deallocation of a memory block
  */
 void testHandler(void){
-	int *sender;
+//	int *sender;
 	printTest();
 	printf("START\n\r");
 	printTest();
@@ -243,7 +248,7 @@ void test1(void){
 	int final = 0; 
 	Element* iterator;
 	
-	/*set_process_priority(2, MEDIUM);
+	set_process_priority(2, MEDIUM);
 
 
 	//Check that process A is put on the correct ready queue
@@ -287,7 +292,7 @@ void test1(void){
 		failed = failed + 1;
 	}
 	
-*/
+
 	endTest(failed + test1_count, 1);
 	set_process_priority(2, LOWEST);
 	
@@ -308,7 +313,7 @@ void test2(void){
 	int initial;
 	int final;
 
-	/*set_process_priority(3, MEDIUM);
+	set_process_priority(3, MEDIUM);
 	initial = getMSP();
 
 	requested = request_memory_block();
@@ -334,7 +339,7 @@ void test2(void){
 	if (ret_code != RTX_ERR) {
 		failed++;
 	}
-*/
+
 	endTest(failed + test2_count, 2);
 	set_process_priority(3, LOWEST);
 	
@@ -349,7 +354,7 @@ void test2(void){
 void test3(void){
 	int failed = 0; 
 	void * requested;
-	/*requested = request_memory_block();
+	requested = request_memory_block();
 	test3_mem = requested;
 	
 	set_process_priority(4, MEDIUM);
@@ -367,7 +372,7 @@ void test3(void){
 		failed ++;
 	}
 	
-	release_memory_block(requested);*/
+	release_memory_block(requested);
 
 	endTest(failed + test3_count, 3);
 	set_process_priority(4, LOWEST);
@@ -382,7 +387,7 @@ void test3(void){
  */
 void test4(void){
 	int failed = 0;
-	/*int initialFree = getTotalFreeMemory();
+	int initialFree = getTotalFreeMemory();
 	int finalFree = getTotalFreeMemory();
 
 	void *test4_mem;
@@ -417,7 +422,7 @@ void test4(void){
 		failed ++;
 	}
 	
-	 */
+	 
 	endTest(failed + test4_count, 4);
 	set_process_priority(5,LOW);
 
@@ -431,21 +436,23 @@ void test4(void){
  */
 void test5(void){
 	int failed = 0;
+//	int i = 0;
 
-	/*msgbuf *message_send = allocate_message(DEFAULT, TEST_MSG_1);
 	
+	
+	msgbuf *message_send = allocate_message(DEFAULT, TEST_MSG_1);
 	msgbuf *message_receive;
 	msgbuf *message_receive_delay;
 	int *sender = (int *)request_memory_block();
 	int *sender2 = (int *)request_memory_block();
 
-	
 	set_process_priority(6,MEDIUM);
 	
 	//Preempt and switch to A
 	set_process_priority(7,MEDIUM);
 	release_processor();
 	send_message(7, message_send);
+	release_processor();
 
 	
 	//Receive message sent from A
@@ -471,9 +478,6 @@ void test5(void){
 	release_memory_block(sender);
 	release_memory_block(sender2);
 
-	if(failed != 0) {
-		printf("a");
-	}*/
 	endTest(failed + test5_count, 5);
 	set_process_priority(1, HIGH);	
 	

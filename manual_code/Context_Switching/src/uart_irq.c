@@ -197,7 +197,7 @@ void c_UART0_IRQHandler(void)
 		/* read UART. Read RBR will clear the interrupt */
 		__disable_irq();
 		g_char_in = pUart->RBR;
-		message = k_allocate_message(DEFAULT, " ");
+		message = k_allocate_message(DEFAULT, "");
 		message->mtext[0] = g_char_in;
 		k_send_message(NUM_PROCS - 1, message); //send a message to UART.
 		__enable_irq();

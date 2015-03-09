@@ -14,23 +14,19 @@
 #include "printf.h"
 
 
-void setMessageText(msgbuf* message, char text[], int textLength) {
+void setMessageText(msgbuf* message, char *text) {
 	int i = 0;
-	int j = 0;
-	//n8ll th8s8 ch8r8ct8rs 
-	for (i = 0; i < 124; i++) {
-		message->mtext[i] = NULL ;
-	}
-	
-	while (i < (BLOCK_SIZE - sizeof(int))/sizeof(char) && j < textLength) {
-		if (j < textLength) {
-			message->mtext[i] = text[j];
-		} else {
-			message->mtext[i] = NULL;
-		}
+
+	while (i < 120) {
+		message->mtext[i] = NULL;
 		i++;
-		j++;
 	}
+	i = 0;
+	while(*(text+i)) {
+		message->mtext[i] = text[i];
+		i++;
+	} 
+	text = NULL;
 }
 
 int checkMessageText(msgbuf* message, char text[]) {
@@ -79,13 +75,19 @@ msgbuf *k_allocate_message(int type, char text[]){
 		msgbuf *message = k_request_memory_block();
 		message->mtype = type;
 
-		setMessageText(message, text, sizeof(text));	
-
+		setMessageText(message, text);	
 		return message;
 }
 
 //Frees the memory associated with a message
 int k_deallocate_message(msgbuf *message){
+		int i = 0;
+		Block *block = (Block *)message;
+		block->pid = gp_current_process->m_pid;
+		while (i < sizeof(message->mtext)/sizeof(char)) {
+			message->mtext[i] = NULL;
+			i++;
+		}
 		return k_release_memory_block(message);
 };
 
@@ -95,12 +97,15 @@ msgbuf *allocate_message(int type, char text[]){
 		msgbuf *message = request_memory_block();
 		message->mtype = type;
 
-		setMessageText(message, text, sizeof(text));	
+		setMessageText(message, text);	
 		return message;
 }
 
 //Frees the memory associated with a message
 int deallocate_message(msgbuf *message){
+		Block *block = (Block *)message;
+		block->pid = gp_current_process->m_pid;
+		
 		return release_memory_block(message);
 };
 
@@ -180,7 +185,8 @@ int k_send_message(int process_id, void *message_envelope) {
 }
 
 //returns a pointer to the message, 
-void *receive_message(int *sender_id) {
+
+void *k_receive_message(int *sender_id) {	
 	PCB *process = gp_current_process;
 	Queue *mailbox = gp_current_process->mailbox;
 	Envelope *received;
@@ -199,11 +205,12 @@ void *receive_message(int *sender_id) {
 		element = k_request_element();
 		element->data = gp_current_process;
 		push(getBlockedReceiveQ(priority), element);
-		release_processor();
+		k_release_processor();
 	}
 	
 	__disable_irq();
 	process = gp_current_process;
+
 	received = pop_mailbox(process->m_pid);
 
 	message = received->message;

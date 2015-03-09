@@ -19,12 +19,7 @@ int free_blocks;
 /* The first stack starts at the RAM high address */
 /* stack grows down. Fully decremental stack */
 
-/* ----- Type Definitions Variables ----- */
-typedef struct Block Block;
-struct Block { //fixed size, defined above
-	Block* next;
-	int pid;
-} ;
+
 
 Block* MSP;
 Block* ElementBlock;
@@ -313,20 +308,20 @@ void *k_request_memory_block(void) {
  */
 int k_release_memory_block(void *p_mem_blk) {
 	Block* released = (Block*)p_mem_blk;
-	msgbuf * msg = (msgbuf *)p_mem_blk;
 	Element *element;
 	int i;
 
 	if (released == NULL) {
 		return RTX_ERR;
 	}
-	else if (msg != NULL) {
-	} else if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
+	
+	if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
 			return RTX_ERR;
 	}
 		__disable_irq();
 
-	released -> next = (Block *)(MSP );
+
+	released -> next = MSP;
 	released -> pid = NULL;
 	MSP = released;
 	free_blocks++;
