@@ -15,7 +15,7 @@
 
 
 void setMessageText(msgbuf* message, char *text) {
-	int i = 0;
+	int i = sizeof(int);
 
 	while (i < 120) {
 		message->mtext[i] = NULL;
@@ -30,7 +30,7 @@ void setMessageText(msgbuf* message, char *text) {
 }
 
 int checkMessageText(msgbuf* message, char text[]) {
-	int i = 0;
+	int i = sizeof(int);
 	int j = 0;
 	
 	while (i < sizeof(message->mtext)/sizeof(char) && j < sizeof(text)/sizeof(char)) {
@@ -81,7 +81,7 @@ msgbuf *k_allocate_message(int type, char text[]){
 
 //Frees the memory associated with a message
 int k_deallocate_message(msgbuf *message){
-		int i = 0;
+		int i = sizeof(int);
 		Block *block = (Block *)message;
 		block->pid = gp_current_process->m_pid;
 		while (i < sizeof(message->mtext)/sizeof(char)) {
@@ -123,13 +123,11 @@ int push_mailbox(Envelope *envelope) {
 	element = k_request_element();
 	process = gp_pcbs[envelope->destination_id];
 	mailbox = process->mailbox;
-	
-	
 	element->data = envelope;
 
 	push(mailbox, element);
-	
-	
+
+
 		//check if destination process is blocked on received for message type
 	if( process->m_state == BLOCKED_ON_RECEIVE) {
 		process->m_state = RDY;
@@ -145,7 +143,7 @@ int push_mailbox(Envelope *envelope) {
 		}
 	}
 	__enable_irq();
-	
+
 	return RTX_OK;
 }
 
