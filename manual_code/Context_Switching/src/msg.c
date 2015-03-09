@@ -15,7 +15,7 @@
 #include "printf.h"
 
 
-void setMessageText(msgbuf* message, char *text) {
+void setMessageText(msgbuf* message, char *text, int length) {
 	int i = 0;
 
 	
@@ -24,14 +24,14 @@ void setMessageText(msgbuf* message, char *text) {
 		i++;
 	}
 	i = 0;
-	while(*(text+i)) {
+	while(i < length) {
 		message->mtext[i] = text[i];
 		i++;
 	} 
 	text = NULL;
 }
 
-int checkMessageText(msgbuf* message, char text[]) {
+int checkMessageText(msgbuf* message, char *text) {
 	int i = 0;
 	int j = 0;
 	
@@ -73,11 +73,11 @@ int destroy_envelope(Envelope *envelope){
 };
 
 //Creates an message to be passed into send message
-msgbuf *k_allocate_message(int type, char text[]){
+msgbuf *k_allocate_message(int type, char *text, int length){
 		msgbuf *message = k_request_memory_block();
 		message->mtype = type;
 
-		setMessageText(message, text);	
+		setMessageText(message, text, length);	
 		return message;
 }
 
@@ -95,11 +95,11 @@ int k_deallocate_message(msgbuf *message){
 
 
 //Creates an message to be passed into send message
-msgbuf *allocate_message(int type, char text[]){
+msgbuf *allocate_message(int type, char *text, int length){
 		msgbuf *message = request_memory_block();
 		message->mtype = type;
 
-		setMessageText(message, text);	
+		setMessageText(message, text, length);	
 		return message;
 }
 
@@ -133,12 +133,8 @@ int push_mailbox(Envelope *envelope) {
 		//check if destination process is blocked on received for message type
 	if( process->m_state == BLOCKED_ON_RECEIVE) {
 		process->m_state = RDY;
-		pcb = k_request_element();
-		pcb->data = process;
-		pushToReadyQ(process->m_priority, pcb);
-		popped = removeFromQ(getBlockedReceiveQ(process->m_priority), process->m_pid);  
-		popped->data = NULL;
-		k_release_element_block(popped);
+		popped = removeFromQ(getBlockedReceiveQ(process->m_priority), process->m_pid);  		
+		pushToReadyQ(process->m_priority, popped);
 		if(process->m_priority < gp_current_process->m_priority){
 			__enable_irq();
 			k_release_processor();

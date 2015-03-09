@@ -117,7 +117,7 @@ void CRT_print(void){
 
 void send_wall_clock_message(msgbuf *msg){
 		k_deallocate_message(msg);
-		msg = k_allocate_message(DEFAULT, " ");
+		msg = k_allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = ' ';
 		k_delayed_send(NUM_PROCS - 3, msg,1); 
 }
@@ -175,23 +175,23 @@ void KCD(void) {
 					if (g_buffer[0] == 'W'){ //all clock functions.
 						if(char_count ==1){
 							if (!clock_on) clock_on = true;
-							msg_send = k_allocate_message(DEFAULT, "");
+							msg_send = k_allocate_message(DEFAULT, "", 0);
 							msg_send->mtext[0] = 'W';
 							caught = true;
 						}
 						if(clock_on){ //starting clock_on 
 							if(char_count==11 && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
-								msg_send = k_allocate_message(DEFAULT, "");
+								msg_send = k_allocate_message(DEFAULT, "", 0);
 								for (i = 1; i < char_count; i++) {
 									msg_send->mtext[i-1] = g_buffer[i];
 								}
 								caught = true;
 							}else if(char_count == 2 && g_buffer[1] == 'R'){
-								msg_send = k_allocate_message(DEFAULT, "");
+								msg_send = k_allocate_message(DEFAULT, "", 0);
 								msg_send->mtext[0] = g_buffer[1];
 								caught = true;
 							}else if(char_count ==2 && g_buffer[1] == 'T'){
-								msg_send = k_allocate_message(DEFAULT, "");
+								msg_send = k_allocate_message(DEFAULT, "", 0);
 								msg_send->mtext[0] = g_buffer[1];
 								clock_on = false;
 								caught = true;
@@ -201,7 +201,7 @@ void KCD(void) {
 							k_send_message(PID_Clock, msg_send);
 						}
 					}if(!caught){ //all KCD processes.
-						msg_send = k_allocate_message(DEFAULT, "");
+						msg_send = k_allocate_message(DEFAULT, "", 0);
 						for (i = 0; i < char_count; i++) {
 							msg_send->mtext[i] = g_buffer[i];
 						}
@@ -227,7 +227,7 @@ void UART_iprocess(void){
 
 			_g_char_in = _msg->mtext[0];
 			k_deallocate_message(_msg);
-			_msg_send = k_allocate_message(DEFAULT, "");
+			_msg_send = k_allocate_message(DEFAULT, "", 0);
 			_msg_send->mtext[0] = _g_char_in;
 			k_send_message(NUM_PROCS - 4, _msg_send);
 	}

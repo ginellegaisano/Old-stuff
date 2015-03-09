@@ -116,12 +116,22 @@ void A(void) //pid = 7
 	int *sender;
 	int i;
 	msgbuf *message;
-	msgbuf *message2 = allocate_message(DEFAULT, TEST_MSG_2);
-	msgbuf *message_delay = allocate_message(DEFAULT, TEST_MSG_3);
+	msgbuf *message2 = allocate_message(DEFAULT, TEST_MSG_2, 5);
+	msgbuf *message_delay = allocate_message(DEFAULT, TEST_MSG_3, 5);
 
 		/** TEST1 code */
 	a_count ++;
 	set_process_priority(7,MEDIUM);
+	
+		/*TEST5 stress test code	*/
+	
+	for (i = 0; i < NUM_TEST_MESSAGES; i++) {
+		message = allocate_message(DEFAULT, TEST_MSG_1, 7);
+		send_message(6, message);
+		messages_sent = messages_sent + 1;
+		release_processor();
+	}
+	
 	
 	/*TEST5 code*/		
 	//test blocking receive(receive before send in test
@@ -135,14 +145,7 @@ void A(void) //pid = 7
 		
 	release_processor();
 
-	/*TEST5 stress test code	*/
-	
-	for (i = 0; i < NUM_TEST_MESSAGES; i++) {
-		message = allocate_message(DEFAULT, TEST_MSG_1);
-		send_message(6, message);
-		messages_sent = messages_sent + 1;
-		release_processor();
-	}
+
 	
 	while (1) {
 			release_processor();
@@ -426,7 +429,7 @@ void test5(void){
 
 	
 	
-	msgbuf *message_send = allocate_message(DEFAULT, TEST_MSG_1);
+	msgbuf *message_send = allocate_message(DEFAULT, TEST_MSG_1, 7);
 	msgbuf *message;
 	msgbuf *message_receive;
 	msgbuf *message_receive_delay;
@@ -434,6 +437,32 @@ void test5(void){
 	int *sender2 = (int *)request_memory_block();
 
 	set_process_priority(6,MEDIUM);
+	set_process_priority(7,MEDIUM);
+
+		//Stress test
+	initial = getTotalFreeMemory();
+	release_processor();
+	
+	for (i = 0; i < NUM_TEST_MESSAGES; i++) {
+		message = receive_message(sender);
+		deallocate_message(message);
+		messages_received ++;
+		release_processor();
+	}
+	
+		final = getTotalFreeMemory();
+
+	
+	if(messages_received != messages_sent){
+		printf("messages : %d != %d\n\r", messages_received, messages_sent);
+		failed ++;
+	}
+	
+	if(initial > final) {
+		printf("memeory : %d != %d\n\r", initial, final);
+		failed ++;	
+	}
+	
 	
 	//Preempt and switch to A
 	set_process_priority(7,HIGH);
@@ -463,29 +492,7 @@ void test5(void){
 	release_memory_block(sender2);
 	
 	
-	//Stress test
-	initial = getTotalFreeMemory();
-	release_processor();
-	
-	for (i = 0; i < NUM_TEST_MESSAGES; i++) {
-		message = receive_message(sender);
-		deallocate_message(message);
-		messages_received ++;
-		release_processor();
-	}
-	
-		final = getTotalFreeMemory();
 
-	
-	if(messages_received != messages_sent){
-		printf("messages : %d != %d\n\r", messages_received, messages_sent);
-		failed ++;
-	}
-	
-	if(initial > final) {
-		printf("memeory : %d != %d\n\r", initial, final);
-		failed ++;	
-	}
 
 	endTest(failed + test5_count, 5);
 	set_process_priority(1, HIGH);	
