@@ -25,7 +25,7 @@ void null_process(void) {
 
 
 void wall_clock(void){
-	int * output; // the output parameter
+	int * output = (int *)request_memory_block(); // the output parameter
 	int hour=0;
 	int minute=0;
 	int second=0;
@@ -37,7 +37,7 @@ void wall_clock(void){
 	//blocked on send!
 	while(1){
 		 msg = receive_message(output);
-		printf("%d", sizeof(char));
+		//printf("%d", sizeof(char));
 
 		 if (msg != NULL) { //checks if msg got deallocated?
 			 if (msg->mtext[0] == ' ') {
@@ -94,13 +94,14 @@ void wall_clock(void){
 }
 void CRT_print(void){
 	char * str;
-	int * output; // the output parameter
+	int * output = (int *)request_memory_block(); // the output parameter
 	while(1){
 		msgbuf *msg = receive_message(output);
 		__disable_irq();
 		str = msg->mtext;
 		printf("\n\r");
 		printf("%s\n\r",str);
+		str = NULL;
 		__enable_irq();
 		//release the memory block . to be implemented. 
 		k_deallocate_message(msg);
@@ -110,11 +111,13 @@ void CRT_print(void){
 void send_wall_clock_message(msgbuf *msg){
 		k_deallocate_message(msg);
 		msg = k_allocate_message(DEFAULT, " ");
-		k_delayed_send(NUM_PROCS - 3, msg, 1); 
+		msg->mtext[0] = ' ';
+		k_delayed_send(NUM_PROCS - 3, msg,1); 
 }
 
 void KCD(void) {
 	msgbuf * msg = NULL;
+	msgbuf * msg_send = NULL;
 	//house keeping.
 	char g_buffer[128];
 	int PID_Clock = NUM_PROCS - 3;
@@ -124,7 +127,7 @@ void KCD(void) {
 	char command = '%';
 	
 	char g_char_in;
-	int * output;
+	int * output = (int *)request_memory_block();
 	int char_count =0;
 	bool clock_on = false;
 	bool waiting_for_command = false;
@@ -137,8 +140,8 @@ void KCD(void) {
 		g_char_in = msg->mtext[0];
 		//releasing the message here!!
 		printf("%c", g_char_in);
+		k_deallocate_message(msg);
 		if (!waiting_for_command) {
-			k_deallocate_message(msg);
 				if(g_char_in == 'r') {
 					printReadyQ(" ");
 			}
@@ -154,47 +157,48 @@ void KCD(void) {
 		} else {
 			if (g_char_in == backspace){ //backspace
 				if(char_count > 0){
-					k_deallocate_message(msg);
 					char_count--;
 				}
 			}else if (char_count < 16 && g_char_in != enter) { //not enter
 				g_buffer[char_count] = g_char_in;
 				char_count++;
-				k_deallocate_message(msg);
 			}
 			else { //enter pressed or char_count exceeded.
-				k_deallocate_message(msg);
-				msg = k_allocate_message(DEFAULT, "");
 				if (char_count > 0){ //check if they pressed anything??
 					if (g_buffer[0] == 'W'){ //all clock functions.
 						if(char_count ==1){
 							if (!clock_on) clock_on = true;
-							msg->mtext[0] = ' ';
+							msg_send = k_allocate_message(DEFAULT, "");
+							msg_send->mtext[0] = ' ';
 							caught = true;
 						}
 						if(clock_on){ //starting clock_on 
 							if(char_count==11 && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
+								msg_send = k_allocate_message(DEFAULT, "");
 								for (i = 1; i < char_count; i++) {
-									msg->mtext[i-1] = g_buffer[i];
+									msg_send->mtext[i-1] = g_buffer[i];
 								}
 								caught = true;
 							}else if(char_count == 2 && g_buffer[1] == 'R'){
-								msg->mtext[0] = g_buffer[1];
+								msg_send = k_allocate_message(DEFAULT, "");
+								msg_send->mtext[0] = g_buffer[1];
 								caught = true;
 							}else if(char_count ==2 && g_buffer[1] == 'T'){
-								msg->mtext[0] = g_buffer[1];
+								msg_send = k_allocate_message(DEFAULT, "");
+								msg_send->mtext[0] = g_buffer[1];
 								clock_on = false;
 								caught = true;
 							}
 						}
 						if(caught){
-							k_send_message(PID_Clock, msg);
+							k_send_message(PID_Clock, msg_send);
 						}
 					}if(!caught){ //all KCD processes.
+						msg_send = k_allocate_message(DEFAULT, "");
 						for (i = 0; i < char_count; i++) {
-							msg->mtext[i] = g_buffer[i];
+							msg_send->mtext[i] = g_buffer[i];
 						}
-						k_send_message(PID_CRT, msg);
+						k_send_message(PID_CRT, msg_send);
 					}
 				}
 				waiting_for_command = false;
@@ -207,22 +211,18 @@ void KCD(void) {
 void UART_iprocess(void){
 	//this is actually KCD 
 	msgbuf * _msg = NULL;
+	msgbuf * _msg_send = NULL;
 	char _g_char_in;
 
-	int * output;
+	int * output = (int *)request_memory_block();
 	while(1){
    		_msg = receive_message(output);
+
 			_g_char_in = _msg->mtext[0];
 			k_deallocate_message(_msg);
-			_msg = k_allocate_message(DEFAULT, "");
-			_msg->mtext[0] = _g_char_in;
-		_msg->mtext[1] = _g_char_in;
-		_msg->mtext[2] = _g_char_in;
-		_msg->mtext[3] = _g_char_in;
-		_msg->mtext[4] = _g_char_in;
-		_msg->mtext[5] = _g_char_in;
-		_msg->mtext[6] = _g_char_in;
-			k_send_message(NUM_PROCS - 4, _msg);
+			_msg_send = k_allocate_message(DEFAULT, "");
+			_msg_send->mtext[0] = _g_char_in;
+			k_send_message(NUM_PROCS - 4, _msg_send);
 	}
 	
 	

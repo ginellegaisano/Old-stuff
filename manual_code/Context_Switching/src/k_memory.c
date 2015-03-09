@@ -28,7 +28,7 @@ struct Block { //fixed size, defined above
 
 Block* MSP;
 Block* ElementBlock;
-Element* currElement;
+
 
 /**
  * @brief: Initialize RAM as follows:
@@ -90,6 +90,7 @@ void memory_init(void)
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	int i;
 	Queue* q4;
+	Element* currElement;
 	
 	/* 4 bytes padding */
 	p_end += 4;
@@ -210,7 +211,12 @@ U32 *alloc_stack(U32 size_b)
 void *k_request_element(void) {
 		Block* currBlock;
 		int i;
+  	Element* currElement;
 		currBlock = ElementBlock;
+	  
+		__disable_irq();
+	
+	  currElement = (Element*)((int) currBlock + sizeof(int));;
 		
 		while (currElement->data != NULL) {
 			if ((int)currElement + sizeof(Element) > (int)currElement->block + BLOCK_SIZE - sizeof(Element)) {
@@ -232,7 +238,7 @@ void *k_request_element(void) {
 				currElement = (Element*)((int)currElement + 3*sizeof(int));
 			}
 		}
-		
+		__enable_irq();
 		return currElement;
 }
 int k_release_element_block(void * released){
@@ -242,18 +248,19 @@ int k_release_element_block(void * released){
 	bool empty = true;
 	element->next = NULL;
 	element->data = NULL;
+	__disable_irq();
 	for (i = (int)elementBlock  + sizeof(int); i < (int)elementBlock + BLOCK_SIZE + sizeof(int); i += 3*sizeof(int*)){
 		if (((Element*)(i))->data != NULL) empty = false;
 	}
 	if(empty){
 
-		__disable_irq();
-		elementBlock -> next = MSP -> next;
+		elementBlock -> next = MSP;
 		elementBlock -> pid = NULL;
 		MSP = elementBlock;
 		total_mem_blocks++;
-		 __enable_irq(); //released the memory block.
 	}
+	__enable_irq(); //released the memory block.
+
 	return RTX_OK; //something to say that i didnt release the memory block because it had something in it.
 }
 /**
@@ -277,12 +284,14 @@ void *k_request_memory_block(void) {
 		push(getBlockedResourceQ(priority), element);
 		//update PCB of current process' state
 		gp_current_process->m_state = BLOCKED_ON_RESOURCE;
+		__enable_irq();
 		k_release_processor(); 
 	}
 
 	__disable_irq();
 	a = (Block *)MSP;
 	// increment MSP
+
 	MSP = MSP->next;
 	//assign process 1 mem block (need to make process table and memory table to assign shit too
 	a->next = NULL;

@@ -11,12 +11,18 @@
 #include "queue.h"
 #include "k_rtx.h"
 #include "k_memory.h"
+#include "printf.h"
+
 
 void setMessageText(msgbuf* message, char text[], int textLength) {
 	int i = 0;
 	int j = 0;
+	//n8ll th8s8 ch8r8ct8rs 
+	for (i = 0; i < 124; i++) {
+		message->mtext[i] = NULL ;
+	}
 	
-	while (i < sizeof(message->mtext) && j < textLength) {
+	while (i < (BLOCK_SIZE - sizeof(int))/sizeof(char) && j < textLength) {
 		if (j < textLength) {
 			message->mtext[i] = text[j];
 		} else {
@@ -59,7 +65,9 @@ Envelope *build_envelope(int process_id, msgbuf *message_envelope, int delay) {
 
 //Releases memory associated with evelope
 int destroy_envelope(Envelope *envelope){
+
 		if(gp_current_process->m_pid != envelope->destination_id){
+
 			return RTX_ERR;
 		}
 		
@@ -69,9 +77,10 @@ int destroy_envelope(Envelope *envelope){
 //Creates an message to be passed into send message
 msgbuf *k_allocate_message(int type, char text[]){
 		msgbuf *message = k_request_memory_block();
-	
 		message->mtype = type;
+
 		setMessageText(message, text, sizeof(text));	
+
 		return message;
 }
 
@@ -84,8 +93,8 @@ int k_deallocate_message(msgbuf *message){
 //Creates an message to be passed into send message
 msgbuf *allocate_message(int type, char text[]){
 		msgbuf *message = request_memory_block();
-	
 		message->mtype = type;
+
 		setMessageText(message, text, sizeof(text));	
 		return message;
 }
@@ -99,18 +108,22 @@ int deallocate_message(msgbuf *message){
 
 //pushes an evelope onto a mailbox
 int push_mailbox(Envelope *envelope) {
-	Element *element = k_request_element();
+	Element *element;
 	Element *popped;
-	
-	PCB *process = gp_pcbs[envelope->destination_id];
-	Queue *mailbox = process->mailbox;
-	
+	PCB *process;
+	Queue *mailbox;
 	Element *pcb;
+
+	__disable_irq();
+	element = k_request_element();
+	process = gp_pcbs[envelope->destination_id];
+	mailbox = process->mailbox;
+	
 	
 	element->data = envelope;
+
 	push(mailbox, element);
 	
-	__disable_irq();
 	
 		//check if destination process is blocked on received for message type
 	if( process->m_state == BLOCKED_ON_RECEIVE) {
@@ -133,13 +146,17 @@ int push_mailbox(Envelope *envelope) {
 
 //Pops the first envelope from the mailbox and frees memory for associated element
 Envelope *pop_mailbox(int process_id){
+	Envelope *envelope;
+	Element *element;
 	PCB *process = gp_pcbs[process_id];
 	Queue *mailbox = process->mailbox;
-	Element *element = pop(mailbox);
-	Envelope *envelope = (Envelope *)element->data;
+
+	__disable_irq();
+	element = pop(mailbox);
+	envelope = (Envelope *)element->data;
 	element->data = NULL;
 	k_release_element_block(element);
-
+	__enable_irq();
 	return envelope;
 }
 
@@ -163,7 +180,7 @@ int k_send_message(int process_id, void *message_envelope) {
 }
 
 //returns a pointer to the message, 
-void *receive_message(int *sender_id) {	
+void *receive_message(int *sender_id) {
 	PCB *process = gp_current_process;
 	Queue *mailbox = gp_current_process->mailbox;
 	Envelope *received;
@@ -186,12 +203,15 @@ void *receive_message(int *sender_id) {
 	}
 	
 	__disable_irq();
-
+	process = gp_current_process;
 	received = pop_mailbox(process->m_pid);
+
 	message = received->message;
+
 	*sender_id =  received->sender_id;
-	
-	destroy_envelope(received);
+
+	priority = destroy_envelope(received);
+
 	__enable_irq();
 		
 	return (void *)message;

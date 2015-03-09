@@ -151,7 +151,6 @@ int process_switch(Element *element)
 		__set_MSP((U32) gp_current_process->mp_sp);
 		__rte();  // pop exception stack frame from the stack for a new processes
 	}
-
 	/* The following will only execute if the if block above is FALSE */
 	if (state == RDY){
 		p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
