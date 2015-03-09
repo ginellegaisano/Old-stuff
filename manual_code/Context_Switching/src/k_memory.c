@@ -207,12 +207,11 @@ void *k_request_element(void) {
 		Block* currBlock;
 		int i;
   	Element* currElement;
-		currBlock = ElementBlock;
-	  
+
 		__disable_irq();
-	
+		currBlock = ElementBlock;
 	  currElement = (Element*)((int) currBlock + sizeof(int));;
-		
+
 		while (currElement->data != NULL) {
 			if ((int)currElement + sizeof(Element) > (int)currElement->block + BLOCK_SIZE - sizeof(Element)) {
 				if (currBlock->next == NULL) {
@@ -223,7 +222,7 @@ void *k_request_element(void) {
 					  ((Element*)(i))->data = NULL;
 						((Element*)(i))->block = currBlock->next;
 					}
-					
+
 					currBlock->next->next = NULL;
 				}
 				currBlock = currBlock->next;
@@ -253,6 +252,7 @@ int k_release_element_block(void * released){
 		elementBlock -> pid = NULL;
 		MSP = elementBlock;
 		total_mem_blocks++;
+		free_blocks++;
 	}
 	__enable_irq(); //released the memory block.
 

@@ -32,21 +32,26 @@ void wall_clock(void){
 
 	int temp = 0;
 	int i=0;
+	bool clock_on = false;
 	msgbuf* msg;
 	
 	//blocked on send!
 	while(1){
 		 msg = receive_message(output);
 		//printf("%d", sizeof(char));
+		if (msg->mtext[0] == 'W') {
+			clock_on = true;
+			msg->mtext[0] = ' ';
+		}
 
-		 if (msg != NULL) { //checks if msg got deallocated?
+		 if (msg != NULL && clock_on) { //checks if msg got deallocated?
 			 if (msg->mtext[0] == ' ') {
 				 second++;
-				 if (second > 60){
+				 if (second >= 60){
 					 minute ++;
 					 second = second % 60;
 				 }
-				 if (minute > 60){
+				 if (minute >= 60){
 					 hour = (hour + 1) % 24;
 					 minute = minute % 60;
 				 }
@@ -63,8 +68,9 @@ void wall_clock(void){
 						hour = 0;
 						minute = 0;
 						second = 0;
+						clock_on = false;
 				} else if (msg->mtext[0] == 'S') {
-					for(i = 3; i < 10; i = i + 3) {
+					for(i = 2; i < 10; i = i + 3) {
 						temp = (msg->mtext[i] - '0') * 10 + msg->mtext[i + 1] - '0';
 						switch(i) {
 							case 2:
@@ -78,11 +84,11 @@ void wall_clock(void){
 								break;
 						}
 					}
-					if (second > 60) {
+					if (second >= 60) {
 						 minute ++;
 						 second = second % 60;
 					}
-					if (minute > 60){
+					if (minute >= 60){
 								hour = (hour +1 ) % 24;
 								minute = minute % 60;
 					}
@@ -169,7 +175,7 @@ void KCD(void) {
 						if(char_count ==1){
 							if (!clock_on) clock_on = true;
 							msg_send = k_allocate_message(DEFAULT, "");
-							msg_send->mtext[0] = ' ';
+							msg_send->mtext[0] = 'W';
 							caught = true;
 						}
 						if(clock_on){ //starting clock_on 
