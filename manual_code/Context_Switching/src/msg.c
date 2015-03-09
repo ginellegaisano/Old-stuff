@@ -15,7 +15,7 @@
 
 
 void setMessageText(msgbuf* message, char *text) {
-	int i = sizeof(int);
+	int i = 0;
 
 	while (i < 120) {
 		message->mtext[i] = NULL;
@@ -30,7 +30,7 @@ void setMessageText(msgbuf* message, char *text) {
 }
 
 int checkMessageText(msgbuf* message, char text[]) {
-	int i = sizeof(int);
+	int i = 0;
 	int j = 0;
 	
 	while (i < sizeof(message->mtext)/sizeof(char) && j < sizeof(text)/sizeof(char)) {
