@@ -42,7 +42,7 @@ void process_init()
   /* fill out the initialization table */
 	set_test_procs();
 
-	for ( i = 1; i < NUM_PROCS - 3; i++ ) {
+	for ( i = 1; i < NUM_PROCS - 4; i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i-1].m_pid;
 		g_proc_table[i].m_priority = g_test_procs[i-1].m_priority;
 		g_proc_table[i].m_stack_size = g_test_procs[i-1].m_stack_size;

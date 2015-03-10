@@ -115,29 +115,38 @@ void c_TIMER0_IRQHandler(void)
 {
 	Queue *q;
 	Element *i;
-	Element *popped;
+	Element *previous;
 	Envelope *envelope;
 	/* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
 	LPC_TIM0->IR = BIT(0);  
 	
 	g_timer_count++ ;
 	
-	if (g_timer_count % 28 == 0) {
+	if (g_timer_count % 200 == 0) {
 			g_timer_count = 0;
 
 			q = getTimedQ();
 			i = q->first;
+			previous = q->first;
 			while(i != NULL) {
 				envelope = (Envelope *)i->data;
 				envelope->delay -= 1;
 				if(envelope->delay <= 0 ){
 					__disable_irq();
-					popped = pop(q);
-					popped->data = NULL;
-					k_release_element_block(q);
+					if (previous == q->first) {
+						pop(q);
+					} else {
+						previous->next = i->next;
+						i->data = NULL;
+					}
+					if (i == q->last) {
+							q->last = previous;
+					}
+					k_release_element_block(i);
 					push_mailbox(envelope);
 					__enable_irq();
 				}
+				previous = i;
 				i = i->next;
 			}		
 		}  

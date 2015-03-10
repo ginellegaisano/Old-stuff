@@ -81,7 +81,7 @@ void endTest(int failed, int test) {
  * @brief: a process that tests the allocation and deallocation of a memory block
  */
 void testHandler(void){
-	int *sender;
+	int *sender = (int *)request_memory_block();
 	printTest();
 	printf("START\n\r");
 	printTest();
@@ -100,7 +100,8 @@ void testHandler(void){
 	printf("%d/%d tests FAIL\n\r", FAILED, NUM_TESTS);
 	printTest();
 	printf("END\n\r");
-		
+
+	release_memory_block(sender);
 	while(1) {
 		release_processor();
 	}
@@ -114,12 +115,12 @@ void set_test_procs() {
 		g_test_procs[i].m_priority=LOW;
 		g_test_procs[i].m_stack_size=USR_SZ_STACK;
 	}
-	
+
 	g_test_procs[6].m_priority=LOWEST;
 	g_test_procs[7].m_priority=LOWEST;
 	g_test_procs[8].m_priority=LOWEST;
-	
-	
+
+
 	g_test_procs[0].mpf_start_pc = &testHandler;
 	g_test_procs[1].mpf_start_pc = &test1;
 	g_test_procs[2].mpf_start_pc = &test2;
