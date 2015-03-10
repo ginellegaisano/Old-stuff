@@ -213,11 +213,11 @@ void *k_request_element(void) {
 	  currElement = (Element*)((int) currBlock + sizeof(int));;
 
 		while (currElement->data != NULL) {
-			if ((int)currElement + sizeof(Element) > (int)currElement->block + BLOCK_SIZE - sizeof(Element)) {
+			if ((int)currElement + 3*sizeof(int*) > (int)currBlock + BLOCK_SIZE - 3*sizeof(int*)) {
 				if (currBlock->next == NULL) {
 					currBlock->next = k_request_memory_block();
 					total_mem_blocks --;
-					for (i = (int)currBlock->next + sizeof(int); i < (int)currBlock->next + BLOCK_SIZE - sizeof(Element); i+= 3*sizeof(int*)) {
+					for (i = (int)currBlock->next + sizeof(int); i <= (int)currBlock->next + BLOCK_SIZE - 3*sizeof(int*); i+= 3*sizeof(int*)) {
 						((Element*)(i))->next = NULL;
 					  ((Element*)(i))->data = NULL;
 						((Element*)(i))->block = currBlock->next;
@@ -226,10 +226,9 @@ void *k_request_element(void) {
 					currBlock->next->next = NULL;
 				}
 				currBlock = currBlock->next;
-				ElementBlock = currBlock;
 				currElement = (Element*)((int) currBlock + sizeof(int));
 			} else {
-				currElement = (Element*)((int)currElement + 3*sizeof(int));
+				currElement = (Element*)((int)currElement + 3*sizeof(int*));
 			}
 		}
 		__enable_irq();
@@ -238,21 +237,27 @@ void *k_request_element(void) {
 int k_release_element_block(void * released){
 	Element *element = (Element *)released;
 	Block * elementBlock = element->block;
+	Block* iterator = ElementBlock;
 	int i;
 	bool empty = true;
 	element->next = NULL;
 	element->data = NULL;
 	__disable_irq();
-	for (i = (int)elementBlock  + sizeof(int); i < (int)elementBlock + BLOCK_SIZE + sizeof(int); i += 3*sizeof(int*)){
+	for (i = (int)elementBlock  + sizeof(int); i <= (int)elementBlock + BLOCK_SIZE - 3*sizeof(int*); i += 3*sizeof(int*)){
 		if (((Element*)(i))->data != NULL) empty = false;
 	}
 	if(empty){
-
-		elementBlock -> next = MSP;
-		elementBlock -> pid = NULL;
-		MSP = elementBlock;
-		total_mem_blocks++;
-		free_blocks++;
+		while (iterator->next != NULL && iterator->next != elementBlock) {
+			iterator = iterator->next;
+		}
+		if (iterator->next == elementBlock) {
+			iterator->next = elementBlock->next;
+			elementBlock -> next = MSP;
+			elementBlock -> pid = NULL;
+			MSP = elementBlock;
+			total_mem_blocks++;
+			free_blocks++;
+		}
 	}
 	__enable_irq(); //released the memory block.
 	//printf("+1 memory block released\n\r");

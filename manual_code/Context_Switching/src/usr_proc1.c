@@ -294,6 +294,10 @@ void test4(void){
  */
 void test5(void){	
 	int failed = 0;
+	int initial_total = 0;
+	int final_total;
+	Block* initial_elementBlock;
+	Block* final_elementBlock;
 	
 	endTest(failed + test5_count, 5);
 	set_process_priority(6, LOWEST);
