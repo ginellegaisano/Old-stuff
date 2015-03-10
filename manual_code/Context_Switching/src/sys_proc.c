@@ -182,7 +182,7 @@ void KCD(void) {
 				__enable_irq();
 			}
 			else if(g_char_in == 'm'){
-				__disable_irq();
+				__disable_irq(); 
 				printBlockedReceiveQ(" ");
 				__enable_irq();
 			}
@@ -199,8 +199,8 @@ void KCD(void) {
 				char_count++;
 			}
 			else { //enter pressed or char_count exceeded.
-				if (char_count > 0){ //check if they pressed anything??
-					if (g_buffer[0] == 'W'){ //all clock functions.
+				if (char_count > 0){ //check if they pressed anything
+					if (g_buffer[0] == 'W'){ //all clock functions start
 						if(char_count ==1){
 							if (!clock_on) clock_on = true;
 							msg_send = k_allocate_message(DEFAULT, "", 0);
@@ -208,24 +208,24 @@ void KCD(void) {
 							caught = true;
 						}
 						if(clock_on){ //starting clock_on 
-							if(char_count==11 && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
+							if(char_count==11 && g_buffer[1] == 'S' && check_format((char *)g_buffer)) { //setting clock
 								msg_send = k_allocate_message(DEFAULT, "", 0);
 								for (i = 1; i < char_count; i++) {
 									msg_send->mtext[i-1] = g_buffer[i];
 								}
 								caught = true;
-							}else if(char_count == 2 && g_buffer[1] == 'R'){
+							}else if(char_count == 2 && g_buffer[1] == 'R'){ //reset clock
 								msg_send = k_allocate_message(DEFAULT, "", 0);
 								msg_send->mtext[0] = g_buffer[1];
 								caught = true;
-							}else if(char_count ==2 && g_buffer[1] == 'T'){
+							}else if(char_count ==2 && g_buffer[1] == 'T'){ //terminate clock
 								msg_send = k_allocate_message(DEFAULT, "", 0);
 								msg_send->mtext[0] = g_buffer[1];
 								clock_on = false;
 								caught = true;
 							}
 						}
-						if(caught){
+						if(caught){ //if clock function was called.
 							k_send_message(PID_Clock, msg_send);
 						}
 					}if(!caught){ //all KCD processes.

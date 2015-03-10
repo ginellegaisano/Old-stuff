@@ -121,7 +121,7 @@ int push_mailbox(Envelope *envelope) {
 	Queue *mailbox;
 
 	__disable_irq();
-	element = k_request_element();
+ 	element = k_request_element();
 	process = gp_pcbs[envelope->destination_id];
 	mailbox = process->mailbox;
 	element->data = envelope;

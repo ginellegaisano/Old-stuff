@@ -81,7 +81,7 @@ int push(Queue* self, Element* element) {
 void printReadyQ(char* tag) {
 	Element* iterator = NULL;
 	int i;
-	
+	__disable_irq();
 	printf("\n\rReady Queue: %s\n\r", tag);
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getReadyQ(i)->first;
@@ -94,12 +94,13 @@ void printReadyQ(char* tag) {
 		printf("\n\r");
 	}
 	printf("\n\r\n\r");
+	__enable_irq();
 }
 
 void printBlockedQ(char* tag) {
 	Element* iterator = NULL;
 	int i;
-	
+	__disable_irq();
 	printf("Blocked Queue: %s\n\r", tag);
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getBlockedResourceQ(i)->first;
@@ -112,12 +113,13 @@ void printBlockedQ(char* tag) {
 		printf("\n\r");
 	}
 	printf("\n\r\n\r");
+	__enable_irq();
 }
 
 void printBlockedReceiveQ(char* tag) {
 	Element* iterator = NULL;
 	int i;
-	
+	__disable_irq();
 	printf("Blocked Receive Queue: %s\n\r", tag);
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getBlockedReceiveQ(i)->first;
@@ -130,6 +132,7 @@ void printBlockedReceiveQ(char* tag) {
 		printf("\n\r");
 	}
 	printf("\n\r\n\r");
+	__enable_irq();
 }
 
 
