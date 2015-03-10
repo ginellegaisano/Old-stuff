@@ -26,7 +26,8 @@ extern int test3_count;
 extern int test4_count;
 extern int test5_count;
 
-
+extern int total_mem_blocks;
+extern Block* ElementBlock;
 
 /* initialization table item */
 void * test3_mem = NULL;
@@ -294,10 +295,63 @@ void test4(void){
  */
 void test5(void){	
 	int failed = 0;
-	int initial_total = 0;
+	int initial_total = total_mem_blocks;
+	int i;
 	int final_total;
-	Block* initial_elementBlock;
-	Block* final_elementBlock;
+	Block* iterator = ElementBlock;
+	int initial_blocks = 0;
+	int final_blocks = 0;
+	int* dummy = request_memory_block();
+	int elements_per_block = (int)((BLOCK_SIZE - sizeof(int))/(3*sizeof(int*)));
+	Element* elements[(int)((BLOCK_SIZE - sizeof(int))/(3*sizeof(int*)))];
+
+	
+	while (iterator != NULL) {
+		iterator = iterator->next;
+		initial_blocks ++;
+	}
+	
+	for(i = 0; i < elements_per_block; i++) {
+		elements[i] = k_request_element();
+		elements[i]->data = dummy;
+	}
+	
+	final_total = total_mem_blocks;
+	if (initial_total - final_total != 1) {
+		failed ++;
+	}
+	
+	
+	iterator = ElementBlock;
+	while (iterator != NULL) {
+		iterator = iterator->next;
+		final_blocks ++;
+	}
+	
+	if (final_blocks - initial_blocks != 1) {
+		failed ++;
+	}
+	
+	
+	for(i = 0; i < elements_per_block; i++) {
+		k_release_element_block(elements[i]);
+	}
+	
+	final_total = total_mem_blocks;
+	if (initial_total != final_total) {
+		failed ++;
+	}
+	
+	iterator = ElementBlock;
+	final_blocks = 0;
+	while (iterator != NULL) {
+		iterator = iterator->next;
+		final_blocks ++;
+	}
+	
+	if (final_blocks != initial_blocks) {
+		failed ++;
+	}
 	
 	endTest(failed + test5_count, 5);
 	set_process_priority(6, LOWEST);
