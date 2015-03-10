@@ -9,6 +9,7 @@
 #define K_MEM_H_
 
 #include "k_rtx.h"
+#include "rtx.h"
 #include "queue.h"
 
 /* ----- Definitions ----- */

@@ -149,8 +149,9 @@ void KCD(void) {
 	msgbuf * msg_send = NULL;
 	//house keeping.
 	char g_buffer[128];
-	int PID_Clock = NUM_PROCS - 3;
-	int PID_CRT = NUM_PROCS - 2;
+	// Also defined in rtx.h... but we are redefining here for a reason unknown to me
+	int pid_clock = NUM_PROCS - 3;
+	int pid_crt = NUM_PROCS - 2;
 	char enter = '\x0D';
 	char backspace = '\x08';
 	char command = '%';
@@ -226,14 +227,14 @@ void KCD(void) {
 							}
 						}
 						if(caught){ //if clock function was called.
-							k_send_message(PID_Clock, msg_send);
+							k_send_message(pid_clock, msg_send);
 						}
 					}if(!caught){ //all KCD processes.
 						msg_send = k_allocate_message(DEFAULT, "", 0);
 						for (i = 0; i < char_count; i++) {
 							msg_send->mtext[i] = g_buffer[i];
 						}
-						k_send_message(PID_CRT, msg_send);
+						k_send_message(pid_crt, msg_send);
 					}
 				}
 				waiting_for_command = false;

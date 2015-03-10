@@ -8,16 +8,11 @@
 #ifndef K_RTX_H_
 #define K_RTX_H_
 
-/*----- Definitations -----*/
-
-#define RTX_ERR -1
-#define RTX_OK  0
-
-#define NULL 0
 #define NUM_PRIORITIES 5
 #define NUM_TEST_PROCS 6
 #define NUM_TESTS 5
 #define NUM_PROCS 14
+#include "rtx.h"
 
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x180         /* user proc stack size 512B   */
@@ -66,15 +61,6 @@ struct PCB
 	Queue *mailbox;
 	
 };
-
-/* initialization table item */
-typedef struct proc_init
-{	
-	int m_pid;	        /* process id */ 
-	int m_priority;         /* initial priority, not used in this example. */ 
-	int m_stack_size;       /* size of stack in words */
-	void (*mpf_start_pc) ();/* entry point of the process */    
-} PROC_INIT;
 
 //typedef struct BlockedElement BlockedElement;
 

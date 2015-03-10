@@ -6,6 +6,7 @@
  */
 
 #include "queue.h"
+#include "rtx.h"
 
 #ifdef DEBUG_0
 #include "printf.h"
