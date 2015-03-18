@@ -51,9 +51,9 @@ Envelope *build_envelope(int process_id, msgbuf *message_envelope, int delay) {
 		
 	//building envelope data
 	envelope->sender_id = gp_current_process->m_pid;
-	if(message_envelope->mtype == KCD_REG) {
+	/*if(message_envelope->mtype == KCD_REG) {
 			envelope->sender_id = KCD_INTERRUPT_ID;
-	}
+	}*/
 	envelope->destination_id = process_id;
 	envelope->message = message_envelope;
 	envelope->time = get_time();
