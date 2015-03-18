@@ -17,7 +17,8 @@ void k_rtx_init(void)
         __disable_irq();
 				uart0_irq_init(); // uart0 interrupt driven, for RTX console
 				timer_init(0);
-        uart0_init();  	
+        uart0_init();
+				uart1_init(); 
         memory_init();
         process_init();
         __enable_irq();

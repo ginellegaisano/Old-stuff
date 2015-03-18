@@ -7,6 +7,7 @@
 
 #include "queue.h"
 #include "rtx.h"
+#include "uart_polling.h"
 
 #ifdef DEBUG_0
 #include "printf.h"
@@ -83,18 +84,32 @@ void printReadyQ(char* tag) {
 	Element* iterator = NULL;
 	int i;
 	__disable_irq();
-	printf("\n\rReady Queue: %s\n\r", tag);
+	uart1_put_string("\n\rReady Queue: ");
+	uart1_put_string(tag);
+	uart1_put_string("\n\r");
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getReadyQ(i)->first;
-		printf("Queue: %d\n\r", i);
+		uart1_put_string("Queue: ");
+		if (i > 10) {
+			uart1_put_char('1');
+		}
+		uart1_put_char(i%10 + '0');
+			uart1_put_string("\n\r");
+
 		while (iterator != NULL) {
 			PCB* pcb = iterator->data;
-			printf("PID: %d\n\r", pcb->m_pid);
+			uart1_put_string("PID: ");
+			if ( pcb->m_pid > 10) {
+				uart1_put_char('1');
+			}
+			uart1_put_char( pcb->m_pid%10 + '0');
+			uart1_put_string("\n\r");
+
 			iterator = iterator->next;
 		}
-		printf("\n\r");
+		uart1_put_string("\n\r");
 	}
-	printf("\n\r\n\r");
+	uart1_put_string("\n\r\n\r");
 	__enable_irq();
 }
 
@@ -102,18 +117,30 @@ void printBlockedQ(char* tag) {
 	Element* iterator = NULL;
 	int i;
 	__disable_irq();
-	printf("Blocked Queue: %s\n\r", tag);
+	uart1_put_string("\n\rBlocked Queue: ");
+	uart1_put_string(tag);
+	uart1_put_string("\n\r");
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getBlockedResourceQ(i)->first;
-		printf("Queue: %d\n\r", i);
+		uart1_put_string("Queue: ");
+		if (i > 10) {
+			uart1_put_char('1');
+		}
+		uart1_put_char(i%10 + '0');
+			uart1_put_string("\n\r");
 		while (iterator != NULL) {
 			PCB* pcb = iterator->data;
-			printf("PID: %d\n\r", pcb->m_pid);
+			uart1_put_string("PID: ");
+			if ( pcb->m_pid > 10) {
+				uart1_put_char('1');
+			}
+			uart1_put_char( pcb->m_pid%10 + '0');
+			uart1_put_string("\n\r");
 			iterator = iterator->next;
 		}
-		printf("\n\r");
+		uart1_put_string("\n\r");
 	}
-	printf("\n\r\n\r");
+	uart1_put_string("\n\r\n\r");
 	__enable_irq();
 }
 
@@ -121,18 +148,30 @@ void printBlockedReceiveQ(char* tag) {
 	Element* iterator = NULL;
 	int i;
 	__disable_irq();
-	printf("Blocked Receive Queue: %s\n\r", tag);
+	uart1_put_string("\n\rBlocked Received Queue: ");
+	uart1_put_string(tag);
+	uart1_put_string("\n\r");
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getBlockedReceiveQ(i)->first;
-		printf("Queue: %d\n\r", i);
+		uart1_put_string("Queue: ");
+		if (i > 10) {
+			uart1_put_char('1');
+		}
+		uart1_put_char(i%10 + '0');
+			uart1_put_string("\n\r");
 		while (iterator != NULL) {
 			PCB* pcb = iterator->data;
-			printf("PID: %d\n\r", pcb->m_pid);
+			uart1_put_string("PID: ");
+			if ( pcb->m_pid > 10) {
+				uart1_put_char('1');
+			}
+			uart1_put_char( pcb->m_pid%10 + '0');
+			uart1_put_string("\n\r");
 			iterator = iterator->next;
 		}
-		printf("\n\r");
+		uart1_put_string("\n\r");
 	}
-	printf("\n\r\n\r");
+	uart1_put_string("\n\r\n\r");
 	__enable_irq();
 }
 
