@@ -11,7 +11,7 @@
 #define NUM_PRIORITIES 5
 #define NUM_TEST_PROCS 6
 #define NUM_TESTS 5
-#define NUM_PROCS 14
+#define NUM_PROCS 15
 #include "rtx.h"
 
 #ifdef DEBUG_0

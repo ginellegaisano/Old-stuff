@@ -57,7 +57,7 @@ Envelope *build_envelope(int process_id, msgbuf *message_envelope, int delay) {
 	envelope->destination_id = process_id;
 	envelope->message = message_envelope;
 	envelope->time = get_time();
-	envelope->delay = delay;	
+	envelope->delay = delay;
 	return envelope;
 }
 

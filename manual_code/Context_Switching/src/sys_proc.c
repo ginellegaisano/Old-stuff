@@ -394,3 +394,63 @@ void UART_iprocess(void){
 	
 	
 }
+
+void set_priority_process(void) {
+	int * output = (int *)request_memory_block(); // the output parameter
+	char current_char;
+	int temp = 0;
+	int i=2;
+	int process_id;
+	int priority;
+	int status = RTX_OK;
+	bool isError = false;
+	msgbuf* msg;
+	
+	msg = k_allocate_message(DEFAULT, " ", 1);
+	msg->mtext[0] = 'C';
+	msg->mtype = KCD_REG;
+	k_send_message(NUM_PROCS - 4, msg);
+	
+	while(1){
+		msg = receive_message(output);
+		printReadyQ("");
+		
+		if (msg->mtext[i] >= '0' && msg->mtext[i] <= '9') { //look for first param
+			if (msg->mtext[i+1] >= '0' && msg->mtext[i+1] <= '9') {
+				process_id = (msg->mtext[i] - '0') * 10 + msg->mtext[i+1] - '0'; //2 digit id
+				i += 2;
+			} else {
+				process_id = (msg->mtext[i] - '0'); //1 digit id
+				i += 1;
+			}
+		} else {
+			isError = true;
+		}
+		
+		if (!isError && msg->mtext[i] == ' ' && msg->mtext[i+1] >= '0' && msg->mtext[i+1] <= '9'&& msg->mtext[i+2] == NULL) {
+			priority = (msg->mtext[i+1] - '0');
+		} else {
+			isError = true;
+		}
+		
+		if (!isError) {
+			status = k_set_process_priority(process_id, priority);
+			if (status == RTX_ERR) {
+				isError = true;
+			}
+		}
+		
+		if (isError) {
+			printf("Invalid parameters for setting priority.\n\r");
+		}
+		
+		//resetting vars
+		isError = false;
+		i = 2;
+		status = RTX_OK;
+		k_deallocate_message(msg);
+		printReadyQ("");
+	}
+
+}
+	

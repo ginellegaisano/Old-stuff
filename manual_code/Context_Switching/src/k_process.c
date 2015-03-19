@@ -54,6 +54,10 @@ void process_init()
 		g_proc_table[0].m_stack_size = USR_SZ_STACK;
 		g_proc_table[0].mpf_start_pc = &null_process;
 	
+		g_proc_table[NUM_PROCS - 5].m_pid = NUM_PROCS - 5;
+		g_proc_table[NUM_PROCS - 5].m_priority = 0;
+		g_proc_table[NUM_PROCS - 5].m_stack_size = USR_SZ_STACK;
+		g_proc_table[NUM_PROCS - 5].mpf_start_pc = &set_priority_process;
 
 		g_proc_table[NUM_PROCS - 4].m_pid = NUM_PROCS - 4;
 		g_proc_table[NUM_PROCS - 4].m_priority = 0;

@@ -14,8 +14,8 @@
 #endif /* ! DEBUG_0 */
 
 //array of queues, organized by priority
-Queue* blocked_resource_qs[NUM_PRIORITIES]; 
-Queue* blocked_receive_qs[NUM_PRIORITIES]; 
+Queue* blocked_resource_qs[NUM_PRIORITIES];
+Queue* blocked_receive_qs[NUM_PRIORITIES];
 Queue* ready_qs[NUM_PRIORITIES];
 Queue* timed_q[1];
 
