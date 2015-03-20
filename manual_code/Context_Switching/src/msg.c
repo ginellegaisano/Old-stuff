@@ -13,6 +13,7 @@
 #include "k_rtx.h"
 #include "k_memory.h"
 #include "printf.h"
+#include "k_process.h"
 
 
 void setMessageText(msgbuf* message, char *text, int length) {
@@ -197,9 +198,9 @@ void *k_receive_message(int *sender_id) {
 		priority = g_proc_table[gp_current_process->m_pid].m_priority;
 		
 		//push PCB of current process on blocked_resource_qs; 
-		element = k_request_element();
-		element->data = gp_current_process;
-		push(getBlockedReceiveQ(priority), element);
+		//element = k_request_element();
+		//element->data = gp_current_process;
+		push(getBlockedReceiveQ(priority), gp_current_element);
 		k_release_processor();
 	}
 	

@@ -32,6 +32,7 @@ struct Envelope{
 	msgbuf *message;
 };
 
+extern Element *gp_current_element;
 
 void setMessageText(msgbuf*, char *text, int length);
 int checkMessageText(msgbuf*, char *text);

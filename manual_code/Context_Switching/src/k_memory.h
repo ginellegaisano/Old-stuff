@@ -33,6 +33,7 @@ extern PCB *gp_current_process;
 extern PROC_INIT g_proc_table[NUM_PROCS];
 extern Queue **ready_qs;								/* ready queue*/
 extern Queue **blocked_resource_qs;			/* blocked resources queue*/
+extern Element *gp_current_element;
 
 
 /* ----- Functions ------ */

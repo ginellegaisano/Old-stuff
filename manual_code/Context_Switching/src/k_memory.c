@@ -280,9 +280,9 @@ void *k_request_memory_block(void) {
 		//get the priority of the current process by looking up pid in process table
 		priority = g_proc_table[gp_current_process->m_pid].m_priority;
 		//push PCB of current process on blocked_resource_qs; << here we are pushing a PCB. <<
-		element = k_request_element();
-		element->data = gp_current_process;
-		push(getBlockedResourceQ(priority), element);
+		//element = k_request_element();
+		//element->data = gp_current_process;
+		push(getBlockedResourceQ(priority), gp_current_element);
 		//update PCB of current process' state
 		gp_current_process->m_state = BLOCKED_ON_RESOURCE;
 		__enable_irq();
