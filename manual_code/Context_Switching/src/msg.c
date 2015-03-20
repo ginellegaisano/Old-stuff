@@ -106,9 +106,13 @@ msgbuf *allocate_message(int type, char *text, int length){
 
 //Frees the memory associated with a message
 int deallocate_message(msgbuf *message){
+		int i = sizeof(int);
 		Block *block = (Block *)message;
 		block->pid = gp_current_process->m_pid;
-		
+		while (i < sizeof(message->mtext)/sizeof(char)) {
+			message->mtext[i] = NULL;
+			i++;
+		}
 		return release_memory_block(message);
 };
 

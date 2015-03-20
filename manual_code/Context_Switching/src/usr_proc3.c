@@ -38,6 +38,10 @@ void A(void) //pid = 7
 	int num = 0;
 	int* sender = request_memory_block();
 	
+	set_process_priority(7, MEDIUM);
+	set_process_priority(8, MEDIUM);
+	set_process_priority(9, MEDIUM);
+
 	msg = allocate_message(DEFAULT, " ", 1);
 	msg->mtext[0] = 'Z';
 	msg->mtype = KCD_REG;
@@ -46,7 +50,7 @@ void A(void) //pid = 7
 	while(1){
 		msg = receive_message(sender);
 		if(msg->mtext[0] == 'Z'){
-			deallocate_message(msg);
+			//deallocate_message(msg);
 			release_memory_block(sender);
 			break;
 		} else {
@@ -56,7 +60,7 @@ void A(void) //pid = 7
 	
 	while(1) {
 		msg = allocate_message(COUNT_REPORT, " ", 1);
-		msg->mtext[0] = num;
+		msg->mtext[0] = num + '0';
 		send_message(8, msg);
 		num = num + 1;
 		release_processor();
@@ -72,7 +76,8 @@ void B(void) //pid = 8
 {
 	msgbuf *msg;
 	int* sender = request_memory_block();
-	
+	set_process_priority(8, MEDIUM);
+
 	while(1){
 		msg = receive_message(sender);
 		release_memory_block(sender);
@@ -97,6 +102,8 @@ void C(void) //pid == 9
 	msgbuf *receive;
 	char print_msg[9] = {'P', 'r', 'o', 'c', 'e', 's', 's', ' ', 'C'};
 	Element *element = request_element();
+
+	set_process_priority(9, MEDIUM);
 
 	q->first = NULL;
 	q->last = NULL;

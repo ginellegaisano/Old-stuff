@@ -56,7 +56,7 @@ void print_wall_clock(int hour, int minute, int second){
 		msg->mtext[i] = str[i];
 	}
 	
-	k_send_message(pid_crt, msg);
+	send_message(pid_crt, msg);
 
 }
 
@@ -72,28 +72,28 @@ void wall_clock(void){
 	bool clock_on = false;
 	msgbuf* msg;
 	
-		msg = k_allocate_message(DEFAULT, " ", 1);
+		msg = allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtype = KCD_REG;
-		k_send_message(NUM_PROCS - 4, msg);
+		send_message(NUM_PROCS - 4, msg);
 	
-		msg = k_allocate_message(DEFAULT, " ", 1);
+		msg = allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtext[1] = 'R';
 		msg->mtype = KCD_REG;
-		k_send_message(NUM_PROCS - 4, msg);
+		send_message(NUM_PROCS - 4, msg);
 		
-		msg = k_allocate_message(DEFAULT, " ", 1);
+		msg = allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtext[1] = 'T';
 		msg->mtype = KCD_REG;
-		k_send_message(NUM_PROCS - 4, msg);
+		send_message(NUM_PROCS - 4, msg);
 		
-		msg = k_allocate_message(DEFAULT, " ", 1);
+		msg = allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtext[1] = 'S';
 		msg->mtype = KCD_REG;
-		k_send_message(NUM_PROCS - 4, msg);
+		send_message(NUM_PROCS - 4, msg);
 	//blocked on send!
 	while(1){
 		 msg = receive_message(output);
@@ -185,9 +185,9 @@ void CRT_print(void){
 }
 
 void send_wall_clock_message(msgbuf *msg){
-		msg = k_allocate_message(DEFAULT, " ", 1);
+		msg = allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = ' ';
-		k_delayed_send(NUM_PROCS - 3, msg,1); 
+		delayed_send(NUM_PROCS - 3, msg,1); 
 }
 
 void KCD(void) {
@@ -250,7 +250,7 @@ void KCD(void) {
 				commands[*output][count][i] = '\n';
 			}
 			num_commands[*output] = count + 1;
-			k_deallocate_message(msg);
+			deallocate_message(msg);
 
 			
 			//the problem is that I need to figure out where the end of this damn string is?
@@ -259,7 +259,7 @@ void KCD(void) {
 			
 		} else {
 			g_char_in = msg->mtext[0];
-			k_deallocate_message(msg);
+			deallocate_message(msg);
 			//releasing the message here!!
 			printf("%c", g_char_in);
 			if (!waiting_for_command) {
@@ -296,14 +296,14 @@ void KCD(void) {
 												count++;
 							}
 							if (isCommand && (g_buffer[count] == NULL || g_buffer[count] == ' ') && commands[i][j][count-1] == '\n'){ //reached end of blah
-								msg_send = k_allocate_message(DEFAULT, "", 0);
+								msg_send = allocate_message(DEFAULT, "", 0);
 								for (k = 1; k < char_count; k++) {
 									msg_send->mtext[k-1] = g_buffer[k];
 								}
 								char_count = 0;
 								isCommand = true;
 								caught=true;
-								k_send_message(i, msg_send);
+								send_message(i, msg_send);
 								break;
 							}
 						}
@@ -314,11 +314,11 @@ void KCD(void) {
 						}
 					}
 					if (!caught) {
-						msg_send = k_allocate_message(DEFAULT, "", 0);
+						msg_send = allocate_message(DEFAULT, "", 0);
 								for (k = 1; k < char_count; k++) {
 									msg_send->mtext[k-1] = g_buffer[k];
 								}
-								k_send_message(NUM_PROCS - 2, msg_send);
+								send_message(NUM_PROCS - 2, msg_send);
 					}
 					char_count = 0;
 					caught=false;
@@ -419,10 +419,10 @@ void UART_iprocess(void){
    		_msg = receive_message(output);
 
 			_g_char_in = _msg->mtext[0];
-			k_deallocate_message(_msg);
-			_msg_send = k_allocate_message(DEFAULT, "", 0);
+			deallocate_message(_msg);
+			_msg_send = allocate_message(DEFAULT, "", 0);
 			_msg_send->mtext[0] = _g_char_in;
-			k_send_message(NUM_PROCS - 4, _msg_send);
+			send_message(NUM_PROCS - 4, _msg_send);
 	}
 	
 	
@@ -439,10 +439,10 @@ void set_priority_process(void) {
 	bool isError = false;
 	msgbuf* msg;
 	
-	msg = k_allocate_message(DEFAULT, " ", 1);
+	msg = allocate_message(DEFAULT, " ", 1);
 	msg->mtext[0] = 'C';
 	msg->mtype = KCD_REG;
-	k_send_message(NUM_PROCS - 4, msg);
+	send_message(NUM_PROCS - 4, msg);
 	
 	while(1){
 		msg = receive_message(output);
@@ -467,7 +467,7 @@ void set_priority_process(void) {
 		}
 		
 		if (!isError) {
-			status = k_set_process_priority(process_id, priority);
+			status = set_process_priority(process_id, priority);
 			if (status == RTX_ERR) {
 				isError = true;
 			}
@@ -481,7 +481,7 @@ void set_priority_process(void) {
 		isError = false;
 		i = 2;
 		status = RTX_OK;
-		k_deallocate_message(msg);
+		deallocate_message(msg);
 		printReadyQ("");
 	}
 
