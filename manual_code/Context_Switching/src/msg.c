@@ -191,7 +191,7 @@ void *k_receive_message(int *sender_id) {
 	
 	int priority;
 	Element *element;
-		
+	//PCB* process;
 	//If current process has no messages block it
 	if(mailbox->first == NULL) {
 		gp_current_process->m_state = BLOCKED_ON_RECEIVE;
@@ -201,6 +201,7 @@ void *k_receive_message(int *sender_id) {
 		//element = k_request_element();
 		//element->data = gp_current_process;
 		push(getBlockedReceiveQ(priority), gp_current_element);
+
 		k_release_processor();
 	}
 	

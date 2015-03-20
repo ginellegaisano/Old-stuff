@@ -34,6 +34,32 @@ void null_process(void) {
 	}
 }
 
+void print_wall_clock(int hour, int minute, int second){
+	char str[9];
+	int i;
+	msgbuf* msg;
+	int pid_crt = NUM_PROCS - 2;
+
+	msg = k_allocate_message(DEFAULT, "", 1);
+
+	
+	str[0] = hour /10 + '0';
+	str[1] = hour %10 + '0';
+	str[2] = ':';
+	str[3] = minute /10 + '0';
+	str[4] = minute %10 + '0';
+	str[5] = ':';
+	str[6] = second /10 + '0';
+	str[7] = second %10 + '0';
+	
+	for (i = 0; i < 8; i ++){
+		msg->mtext[i] = str[i];
+	}
+	
+	k_send_message(pid_crt, msg);
+
+}
+
 
 void wall_clock(void){
 	int * output = (int *)request_memory_block(); // the output parameter
@@ -73,12 +99,12 @@ void wall_clock(void){
 		 msg = receive_message(output);
 		//printf("%d", sizeof(char));
 		if (msg->mtext[0] == 'W' && msg->mtext[1] == NULL) {
+			msg->mtext[0] == ' ';
 			clock_on = true;
-			msg->mtext[0] = ' ';
 		}
 
 		 if (msg != NULL && clock_on) { //checks if msg got deallocated?
-			 if (msg->mtext[0] == ' ') {
+			 if (msg->mtext[0] == ' ' || msg->mtext[1] == NULL) {
 				 second++;
 				 if (second >= 60){
 					 minute ++;
@@ -89,27 +115,26 @@ void wall_clock(void){
 					 minute = minute % 60;
 				 }
 				 		__disable_irq();
-
-					printf("\n\r%02d:%02d:%02d\n\r", hour, minute, second);
+					print_wall_clock(hour,minute,second);
 				 		__enable_irq();
-
+					k_deallocate_message(msg);
 					send_wall_clock_message(msg);
 				} else if (msg->mtext[1] == 'R') {
 						hour = 0;
 						minute = 0;
 						second = 0;
 							__disable_irq();
-
-						printf("\n\r%02d:%02d:%02d\n\r", hour, minute, second);
+						print_wall_clock(hour,minute,second);
 							__enable_irq();
 
 						//deallocate then create a new one.
-						send_wall_clock_message(msg);
+						k_deallocate_message(msg);
 				} else if (msg->mtext[1] == 'T') {
 						hour = 0;
 						minute = 0;
 						second = 0;
 						clock_on = false;
+						k_deallocate_message(msg);
 				} else if (msg->mtext[1] == 'S') {
 					for(i = 3; i < 10; i = i + 3) {
 						temp = (msg->mtext[i] - '0') * 10 + msg->mtext[i + 1] - '0';
@@ -134,12 +159,12 @@ void wall_clock(void){
 								minute = minute % 60;
 					}
 							__disable_irq();
-
-					printf("\n\r%02d:%02d:%02d\n\r", hour, minute, second);
+					print_wall_clock(hour,minute,second);
 							__enable_irq();
-
-					send_wall_clock_message(msg);
+					k_deallocate_message(msg);
 			}
+		} else {
+			k_deallocate_message(msg);
 		}
 	}
 }
@@ -160,7 +185,6 @@ void CRT_print(void){
 }
 
 void send_wall_clock_message(msgbuf *msg){
-		k_deallocate_message(msg);
 		msg = k_allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = ' ';
 		k_delayed_send(NUM_PROCS - 3, msg,1); 
@@ -278,6 +302,7 @@ void KCD(void) {
 								}
 								char_count = 0;
 								isCommand = true;
+								caught=true;
 								k_send_message(i, msg_send);
 								break;
 							}
@@ -288,7 +313,15 @@ void KCD(void) {
 							isCommand = true;
 						}
 					}
+					if (!caught) {
+						msg_send = k_allocate_message(DEFAULT, "", 0);
+								for (k = 1; k < char_count; k++) {
+									msg_send->mtext[k-1] = g_buffer[k];
+								}
+								k_send_message(NUM_PROCS - 2, msg_send);
+					}
 					char_count = 0;
+					caught=false;
 					for (i = 0; i < 128; i++)
 						g_buffer[i] = NULL;
 				}

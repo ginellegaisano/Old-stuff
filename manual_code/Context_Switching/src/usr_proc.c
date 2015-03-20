@@ -82,17 +82,23 @@ void endTest(int failed, int test) {
  */
 void testHandler(void){
 	int *sender = (int *)request_memory_block();
+	msgbuf* msg;
 	printTest();
 	printf("START\n\r");
 	printTest();
 	printf("total %d tests\n\r", NUM_TESTS );
 
 	release_processor();
-	receive_message(sender);
-	receive_message(sender);
-	receive_message(sender);
-	receive_message(sender);
-	receive_message(sender);
+	msg = receive_message(sender);
+	deallocate_message(msg);
+	msg = receive_message(sender);
+	deallocate_message(msg);
+	msg = receive_message(sender);
+	deallocate_message(msg);
+	msg = receive_message(sender);
+	deallocate_message(msg);
+	msg = receive_message(sender);
+	deallocate_message(msg);
 	
 	printTest();
 	printf("%d/%d tests OK\n\r", NUM_TESTS - FAILED, NUM_TESTS);

@@ -184,13 +184,28 @@ void c_UART0_IRQHandler(void)
 	/* Reading IIR automatically acknowledges the interrupt */
 	IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
 	if (IIR_IntId & IIR_RDA) { // Receive Data Avaialbe
-		/* read UART. Read RBR will clear the interrupt */
-		__disable_irq();
 		g_char_in = pUart->RBR;
-		message = k_allocate_message(DEFAULT, "", 0);
-		message->mtext[0] = g_char_in;
-		k_send_message(NUM_PROCS - 1, message); //send a message to UART.
-		__enable_irq();
+		/* read UART. Read RBR will clear the interrupt */
+		//if (!waiting_for_command) {
+			if(g_char_in == 'r') {
+					printReadyQ(" ");
+			}
+			else if (g_char_in == 'b') {
+					printBlockedQ(" ");
+			}
+			else if(g_char_in == 'm'){
+				printBlockedReceiveQ(" ");
+			//}
+		} else { 
+			__disable_irq();
+			if (g_char_in == '%') {
+				waiting_for_command = true;
+			}
+			message = k_allocate_message(DEFAULT, "", 0);
+			message->mtext[0] = g_char_in;
+			k_send_message(NUM_PROCS - 1, message); //send a message to UART.
+			__enable_irq();
+		}
 /*
 #ifdef DEBUG_0
 		//printf("Reading a char = ");
