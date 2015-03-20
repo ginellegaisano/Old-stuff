@@ -14,8 +14,6 @@
 #define DEFAULT 0
 #define KCD_REG 1
 
-#define KCD_INTERRUPT_ID 15
-
 
 typedef struct msgbuf msgbuf;
 struct msgbuf {
