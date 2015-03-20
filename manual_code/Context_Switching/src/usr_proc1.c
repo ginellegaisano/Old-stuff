@@ -176,12 +176,7 @@ void test2(void){
 	initial = getMSP();
 
 	requested = request_memory_block();
-
-	final = getMSP();
 	
-	if(initial - final != 128) {
-		failed = failed + 1;
-	}
 	release_memory_block(requested);
 	if(initial != getMSP()) {
 		failed = failed + 1;
