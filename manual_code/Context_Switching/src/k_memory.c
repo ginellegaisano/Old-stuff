@@ -317,14 +317,14 @@ int k_release_memory_block(void *p_mem_blk) {
 	Block* released = (Block*)p_mem_blk;
 	Element *element;
 	int i;
+	msgbuf *msg = (msgbuf *) p_mem_blk;
 
 	if (released == NULL) {
 		return RTX_ERR;
 	}
-	
-	if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
+	/*if (released->pid != gp_current_process->m_pid) { //check if current process own memory block
 			return RTX_ERR;
-	}
+	}*/
 		__disable_irq();
 
 

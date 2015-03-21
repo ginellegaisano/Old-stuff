@@ -204,6 +204,7 @@ void c_UART0_IRQHandler(void)
 				waiting_for_command = true;
 			}
 			message = k_allocate_message(DEFAULT, "", 0);
+			__disable_irq();
 			message->mtext[0] = g_char_in;
 			k_send_message(UART_PID, message); //send a message to UART.
 			__enable_irq();

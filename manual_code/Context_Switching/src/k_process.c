@@ -230,6 +230,9 @@ int k_set_process_priority(int process_id, int priority){
 	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RESOURCE) {
 		element = removeFromQ(getBlockedResourceQ(gp_pcbs[process_id]->m_priority), process_id);
 		push(getBlockedResourceQ(priority), element);
+	} else if (gp_pcbs[process_id]->m_state == BLOCKED_ON_RECEIVE) {
+		element = removeFromQ(getBlockedReceiveQ(gp_pcbs[process_id]->m_priority), process_id);
+		push(getBlockedReceiveQ(priority), element);
 	}
 
 	if ((gp_current_process->m_pid == process_id && priority > gp_current_process->m_priority) 

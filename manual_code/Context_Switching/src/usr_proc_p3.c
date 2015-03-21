@@ -45,71 +45,12 @@ void printTest() {
 }
 
 void endTest(int failed, int test) {
-	//Reset dummy process priorities
-	char msg[1] = {' '};
-	msgbuf *message = allocate_message(DEFAULT, msg, 1);
-
-
-	set_process_priority(7, LOWEST);
-	set_process_priority(8, LOWEST);
-	set_process_priority(9, LOWEST);
-	set_process_priority(1, LOWEST);
-
-	
-	a_count = 0;
-	b_count = 0;
-	c_count = 0;
-
-	test1_count = 0;
-	test2_count = 0;
-	test3_count = 0;
-	test4_count = 0;
-	test5_count = 0;
-
-	if(failed == 0){
-		printTest();
-		printf("test %d OK\n\r", test);
-	} else {
-		printTest();
-		printf("test %d FAIL\n\r", test);
-		FAILED ++;
-	}
-	send_message(1, message);
 }	
 
 /**
  * @brief: a process that tests the allocation and deallocation of a memory block
  */
 void testHandler(void){
-	/*
-	int *sender = (int *)request_memory_block();
-	msgbuf* msg;
-	printTest();
-	printf("START\n\r");
-	printTest();
-	printf("total %d tests\n\r", NUM_TESTS );
-
-	release_processor();
-	msg = receive_message(sender);
-	deallocate_message(msg);
-	msg = receive_message(sender);
-	deallocate_message(msg);
-	msg = receive_message(sender);
-	deallocate_message(msg);
-	msg = receive_message(sender);
-	deallocate_message(msg);
-	msg = receive_message(sender);
-	deallocate_message(msg);
-	
-	printTest();
-	printf("%d/%d tests OK\n\r", NUM_TESTS - FAILED, NUM_TESTS);
-	printTest();
-	printf("%d/%d tests FAIL\n\r", FAILED, NUM_TESTS);
-	printTest();
-	printf("END\n\r");
-
-	release_memory_block(sender);
-	*/
 	while(1) {
 		release_processor();
 	}
@@ -124,9 +65,9 @@ void set_test_procs() {
 		g_test_procs[i].m_stack_size=USR_SZ_STACK;
 	}
 
-	g_test_procs[6].m_priority=LOWEST;
-	g_test_procs[7].m_priority=LOWEST;
-	g_test_procs[8].m_priority=LOWEST;
+	g_test_procs[6].m_priority=MEDIUM;
+	g_test_procs[7].m_priority=MEDIUM;
+	g_test_procs[8].m_priority=MEDIUM;
 
 
 	g_test_procs[0].mpf_start_pc = &testHandler;
