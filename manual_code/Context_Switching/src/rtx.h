@@ -54,6 +54,10 @@ extern void *k_request_element(void);
 #define request_element() _request_element((U32)k_request_element)
 extern void *_request_element(U32 p_func) __SVC_0;
 
+extern int k_release_element_block(void *);
+#define release_element_block(released) _release_element_block((U32)k_release_element_block, released)
+extern int _release_element_block(U32 p_func, void *released) __SVC_0;
+
 extern void *k_request_memory_block(void);
 #define request_memory_block() _request_memory_block((U32)k_request_memory_block)
 extern void *_request_memory_block(U32 p_func) __SVC_0;

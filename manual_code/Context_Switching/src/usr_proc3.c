@@ -29,7 +29,7 @@ extern int test5_count;
 
 int COUNT_REPORT  = 2;
 int wakeup10 = 3;
-
+int LIMIT = 30;
 
 
 void A(void) //pid = 7
@@ -50,35 +50,35 @@ void A(void) //pid = 7
 	while(1){
 		msg = receive_message(sender);
 		if(msg->mtext[0] == 'Z'){
-			//deallocate_message(msg);
-			release_memory_block(sender);
 			break;
-		} else {
-			release_memory_block(sender);
 		}
+		release_memory_block(msg);
 	}
 	
-	while(1) {
+	release_memory_block(msg);
+	release_memory_block(sender);
+	
+	while(num < LIMIT) {
 		msg = allocate_message(COUNT_REPORT, " ", 1);
-		msg->mtext[0] = num + '0';
+		msg->mtext[0] = (char)num;
 		send_message(8, msg);
 		num = num + 1;
 		release_processor();
 	}
-	/*
+	
 	while (1) {
 			release_processor();
 	}
-	*/
+	
 }
 
 void B(void) //pid = 8
 {
 	msgbuf *msg;
-	int* sender = request_memory_block();
-	set_process_priority(8, MEDIUM);
+	int* sender;
 
 	while(1){
+		sender = request_memory_block();
 		msg = receive_message(sender);
 		release_memory_block(sender);
 		send_message(9, msg);
@@ -94,47 +94,51 @@ void B(void) //pid = 8
 
 void C(void) //pid == 9
 {
-	Queue *q;
+	Queue q;
 	int *sender = request_memory_block();
-	Envelope *env;
 	msgbuf *msg;
 	msgbuf *delay;
 	msgbuf *receive;
 	char print_msg[9] = {'P', 'r', 'o', 'c', 'e', 's', 's', ' ', 'C'};
-	Element *element = request_element();
+	Element *element;
 
-	set_process_priority(9, MEDIUM);
-
-	q->first = NULL;
-	q->last = NULL;
+	q.first = NULL;
+	q.last = NULL;
 	
 	while(1) {
-		if(q->first == NULL){
+		if(q.first == NULL){
 			msg = receive_message(sender);
 		} else {
-			env = (Envelope *)(pop(q)->data);
-			msg = env->message;
+			element = pop(&q);
+			msg = (msgbuf *)(element->data);
+			element->data = NULL;
+			release_element_block(element);
 		}
-		if(msg->mtype == COUNT_REPORT && msg->mtext[0] % 20 == 0){
+		if(msg->mtype == COUNT_REPORT && (int)(msg->mtext[0]) % 10 == 0){
+			printf("%d", (int)msg->mtext[0]);
 			setMessageText(msg, print_msg,9);
+			msg->mtype = DEFAULT;
 			send_message(NUM_PROCS-2, msg);
 			
 			delay = allocate_message(wakeup10, "", 0);
-			delayed_send(9, delay, 10);
+			delayed_send(9, delay, 1);
 			while(1) {
+				//sender = request_memory_block();
 				receive = receive_message(sender);
+				//release_memory_block(sender);
 				if(receive->mtype == wakeup10) {
-					deallocate_message(receive);
+					release_memory_block(receive);
 					break;
 				} else {
+						element = request_element();
 						element->data = receive;
-						push(q, element);
+						push(&q, element);
 				}
 			}
 			
 			
 		} else {
-			deallocate_message(msg);
+			release_memory_block(msg);
 		}
 	}
 	
@@ -150,13 +154,6 @@ void C(void) //pid == 9
  * @brief: 
  */
 void test1(void){
-	int failed = 0;
-
-	
-	
-	
-	endTest(failed + test1_count, 1);
-	set_process_priority(2, LOWEST);
 	while(1) {
 		release_processor();
 	}
@@ -167,12 +164,6 @@ void test1(void){
  * @brief: 
  */
 void test2(void){
-	int failed = 0;
-
-	
-	
-	endTest(failed + test2_count, 2);
-	set_process_priority(3, LOWEST);
 	while(1) {
 		release_processor();
 	}
@@ -182,10 +173,6 @@ void test2(void){
  * @brief: 
  */
 void test3(void){
-	int failed = 0;
-	
-	endTest(failed + test3_count, 3);
-	set_process_priority(4, LOWEST);
 	while(1) {
 		release_processor();
 	}
@@ -195,11 +182,6 @@ void test3(void){
  * @brief:
  */
 void test4(void){
-	int failed = 0;
-	
-	
-	endTest(failed + test4_count, 4);
-	set_process_priority(5, LOWEST);
 	while(1) {
 		release_processor();
 	}
@@ -210,12 +192,6 @@ void test4(void){
  * @brief:
  */
 void test5(void){
-	int failed = 0;
-
-	
-	endTest(failed + test5_count, 5);
-	set_process_priority(6, LOWEST);
-	
 	while(1) {
 		release_processor();
 	}

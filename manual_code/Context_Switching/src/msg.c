@@ -125,8 +125,8 @@ int push_mailbox(Envelope *envelope) {
 	PCB *process;
 	Queue *mailbox;
 
-	__disable_irq();
  	element = k_request_element();
+	__disable_irq();
 	process = gp_pcbs[envelope->destination_id];
 	mailbox = process->mailbox;
 	element->data = envelope;
@@ -191,7 +191,6 @@ void *k_receive_message(int *sender_id) {
 	Queue *mailbox = gp_current_process->mailbox;
 	Envelope *received;
 	msgbuf *message;
-
 	
 	int priority;
 	Element *element;

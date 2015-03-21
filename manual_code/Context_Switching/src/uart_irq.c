@@ -197,11 +197,11 @@ void c_UART0_IRQHandler(void)
 				printBlockedReceiveQ(" ");
 			//}
 		} else { 
-			__disable_irq();
 			if (g_char_in == '%') {
 				waiting_for_command = true;
 			}
 			message = k_allocate_message(DEFAULT, "", 0);
+			__disable_irq();
 			message->mtext[0] = g_char_in;
 			k_send_message(NUM_PROCS - 1, message); //send a message to UART.
 			__enable_irq();
