@@ -180,13 +180,13 @@ void c_UART0_IRQHandler(void)
 	uint8_t IIR_IntId;	    // Interrupt ID from IIR 		 
 	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
 	msgbuf *message;
-	  
+	bool waiting_for_command = false;  
 	/* Reading IIR automatically acknowledges the interrupt */
 	IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
 	if (IIR_IntId & IIR_RDA) { // Receive Data Avaialbe
 		g_char_in = pUart->RBR;
 		/* read UART. Read RBR will clear the interrupt */
-		//if (!waiting_for_command) {
+
 			if(g_char_in == 'r') {
 					printReadyQ(" ");
 			}
@@ -195,136 +195,20 @@ void c_UART0_IRQHandler(void)
 			}
 			else if(g_char_in == 'm'){
 				printBlockedReceiveQ(" ");
-			//}
-		} else { 
+			}else if(g_char_in == '%'){
+				waiting_for_command = true;
+			}
+			//else always prints. 
 			__disable_irq();
 			if (g_char_in == '%') {
 				waiting_for_command = true;
 			}
 			message = k_allocate_message(DEFAULT, "", 0);
 			message->mtext[0] = g_char_in;
-			k_send_message(NUM_PROCS - 1, message); //send a message to UART.
+			k_send_message(UART_PID, message); //send a message to UART.
 			__enable_irq();
-		}
-/*
-#ifdef DEBUG_0
-		//printf("Reading a char = ");
-		//printf("%d", g_char_in);
-		//printf("\n\r");
-		printf("Reading a char = %c \n\r", g_char_in);
-#endif // DEBUG_0
-*/
-// 		printf("%c", g_char_in);
-// 		if (!waiting_for_command) {
-// 				if(g_char_in == 'r') {
-// 					printReadyQ(" ");
-// 			}
-// 			else if (g_char_in == 'b') {
-// 					printBlockedQ(" ");
-// 			}
-// 			else if(g_char_in == 'm'){
-// 				printBlockedReceiveQ(" ");
-// 			}
-// 			else if (g_char_in == '%') {
-// 				waiting_for_command = true;
-// 			}
-// 		} else {
-// 			if (g_char_in == '\x08'){
-// 				if(char_count > 0){
-// 					char_count--;
-// 				}
-// 				//printf("\n\rbackspace is now allowed! \n\r press enter to continue.\n\r");
-// 			}else if (char_count < 16 && g_char_in != '\x0D') {
-// 				g_buffer[char_count] = g_char_in;
-// 				char_count++;
-// 			}
-// 			else {
-// 				if (char_count == 1 && g_buffer[0] == 'W') {
-// 					if (clock_on == false){
-// 						//request the memory to make the message block
-// 						//we made a message envelope. called envelope
-// 						
-// 						clock_on = true;
-// 					}
-// 						msg = (Message *) k_request_memory_block();
-// 						envelope = (msgbuf *) k_request_memory_block();
-// 						envelope->mtype = 0;
-// 						envelope->mtext[0] = ' ';
-// 						msg->message = envelope;
-// 						k_send_message(NUM_PROCS - 2, msg);
-// 				} else if (clock_on == true && char_count == 11 && g_buffer[0] == 'W' && g_buffer[1] == 'S' && check_format((char *)g_buffer)) {
-// 						msg = (Message *) k_request_memory_block();
-// 						envelope = (msgbuf *) k_request_memory_block();
-// 						envelope->mtype = 0;
-// 						for (i = 1; i < char_count; i++) {
-// 							envelope->mtext[i-1] = g_buffer[i];
-// 						}
-// 						msg->message = envelope;
-// 						k_send_message(NUM_PROCS - 2, msg);
-// 				}
-// 					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'R') {
-// 						msg = (Message *) k_request_memory_block();
-// 						envelope = (msgbuf *) k_request_memory_block();
-// 						envelope->mtype = 0;
-// 						envelope->mtext[0] = g_buffer[1];
-// 						msg->message = envelope;
-// 						k_send_message(NUM_PROCS - 2, msg); 
-// 					}
-// 					else if (clock_on == true && char_count == 2 && g_buffer[0] == 'W' && g_buffer[1] == 'T') {
-// 						msg = (Message *) k_request_memory_block();
-// 						envelope = (msgbuf *) k_request_memory_block();
-// 						envelope->mtype = 0;
-// 						envelope->mtext[0] = g_buffer[1];
-// 						msg->message = envelope;
-// 						k_send_message(NUM_PROCS - 2, msg);
-// 						clock_on = false;
-// 					}
-// 				else {
-// 					msg = (Message *) k_request_memory_block();
-// 					envelope = (msgbuf *) k_request_memory_block();
-// 					envelope->mtype = 0;
-// 					for (i = 0; i < char_count; i++) {
-// 							envelope->mtext[i] = g_buffer[i];
-// 					}
-// 					msg->message = envelope;
-// 					k_send_message(NUM_PROCS - 1, msg); 
-//  					
-// 					waiting_for_command = false;
-// 					char_count = 0;
-// 				}
-// 				waiting_for_command = false;
-// 				char_count = 0;
-// 			}
-// 		}
-		
-		//g_buffer[12] = g_char_in; // nasty hack		g_send_char = 1;
 	} else if (IIR_IntId & IIR_THRE) {
-	/* THRE Interrupt, transmit holding register becomes empty */
-/*
-		if (*gp_buffer != '\0' ) {
-			g_char_out = *gp_buffer;
-#ifdef DEBUG_0
-			//uart1_put_string("Writing a char = ");
-			//uart1_put_char(g_char_out);
-			//uart1_put_string("\n\r");
-			
-			// you could use the printf instead
-			printf("Writing a char = %c \n\r", g_char_out);
-#endif // DEBUG_0
-			pUart->THR = g_char_out;
-			gp_buffer++;
-		} else {
-
-#ifdef DEBUG_0
-			uart1_put_string("Finish writing. Turning off IER_THRE\n\r");
-#endif // DEBUG_0
-
-			pUart->IER ^= IER_THRE; // toggle the IER_THRE bit 
-			pUart->THR = '\0';
-			g_send_char = 0;
-			gp_buffer = g_buffer;		
-		}
-*/
+		//do nothing
 	} else {  /* not implemented yet */
 		
 		//TODO: figure out what goes here

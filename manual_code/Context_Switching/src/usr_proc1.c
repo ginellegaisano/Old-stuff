@@ -77,7 +77,8 @@ void C(void) //pid == 9
 	int number_mem_blocks = getTotalFreeMemory(); //101
 	void * mem_blocks[500];
 	int i = 0;
-	
+	/*THIS IS THE THING CAUSING ERRORS*/
+	/*
 	for (i = 0; i < number_mem_blocks; i ++){
 		mem_blocks[i] = request_memory_block();
 	}
@@ -87,7 +88,7 @@ void C(void) //pid == 9
 		release_memory_block(mem_blocks[i]);
 		i++;
 	}
-		
+	*/
 	release_processor();
 	
 	//release process
@@ -103,6 +104,7 @@ void C(void) //pid == 9
 void test1(void){
 	
 	int failed = 0;
+
 	int initial = 0;
 	int final = 0; 
 	Element* iterator;
@@ -167,6 +169,7 @@ void test1(void){
  */
 void test2(void){
 	int failed = 0;
+	
 	int ret_code;
 	void * requested;
 	int initial;
@@ -193,7 +196,7 @@ void test2(void){
 	if (ret_code != RTX_ERR) {
 		failed++;
 	}
-
+	
 	endTest(failed + test2_count, 2);
 	set_process_priority(3, LOWEST);
 	

@@ -12,6 +12,13 @@
 #define NUM_TEST_PROCS 6
 #define NUM_TESTS 5
 #define NUM_PROCS 15
+#define SET_PRIORITY_PID NUM_PROCS - 4
+#define CLOCK_PID        NUM_PROCS - 3
+#define KCD_PID          NUM_PROCS - 5
+#define CRT_PID          NUM_PROCS - 2
+//#define TIMER_PID  14
+#define UART_PID			   NUM_PROCS - 1
+
 #include "rtx.h"
 
 #ifdef DEBUG_0

@@ -19,7 +19,7 @@
 bool check_format(char *str) {
 	int i;
 	for (i = 3; i < 10; i = i + 3) {
-		if (str[i] < '0' && str[i] > '9' && str[i+1] < '0' && str[i+1] > '9')
+		if (str[i] == NULL || (str[i] < '0' || str[i] > '9' )||( str[i+1] < '0' || str[i+1] > '9') || str[i+2] != ':')
 			return false;
 	}
 	return true;
@@ -38,7 +38,7 @@ void print_wall_clock(int hour, int minute, int second){
 	char str[9];
 	int i;
 	msgbuf* msg;
-	int pid_crt = NUM_PROCS - 2;
+
 
 	msg = k_allocate_message(DEFAULT, "", 1);
 
@@ -56,7 +56,7 @@ void print_wall_clock(int hour, int minute, int second){
 		msg->mtext[i] = str[i];
 	}
 	
-	k_send_message(pid_crt, msg);
+	k_send_message(CRT_PID, msg);
 
 }
 
@@ -71,29 +71,31 @@ void wall_clock(void){
 	int i=0;
 	bool clock_on = false;
 	msgbuf* msg;
+	msgbuf* printmsg;
+	char *str;
 	
 		msg = k_allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtype = KCD_REG;
-		k_send_message(NUM_PROCS - 4, msg);
+		k_send_message(KCD_PID, msg);
 	
 		msg = k_allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtext[1] = 'R';
 		msg->mtype = KCD_REG;
-		k_send_message(NUM_PROCS - 4, msg);
+		k_send_message(KCD_PID, msg);
 		
 		msg = k_allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtext[1] = 'T';
 		msg->mtype = KCD_REG;
-		k_send_message(NUM_PROCS - 4, msg);
+		k_send_message(KCD_PID, msg);
 		
 		msg = k_allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtext[1] = 'S';
 		msg->mtype = KCD_REG;
-		k_send_message(NUM_PROCS - 4, msg);
+		k_send_message(KCD_PID, msg);
 	//blocked on send!
 	while(1){
 		 msg = receive_message(output);
@@ -135,7 +137,7 @@ void wall_clock(void){
 						second = 0;
 						clock_on = false;
 						k_deallocate_message(msg);
-				} else if (msg->mtext[1] == 'S') {
+				} else if (msg->mtext[1] == 'S' && check_format(msg->mtext)) {
 					for(i = 3; i < 10; i = i + 3) {
 						temp = (msg->mtext[i] - '0') * 10 + msg->mtext[i + 1] - '0';
 						switch(i) {
@@ -162,6 +164,8 @@ void wall_clock(void){
 					print_wall_clock(hour,minute,second);
 							__enable_irq();
 					k_deallocate_message(msg);
+			}else{
+				k_send_message(CRT_PID, msg);
 			}
 		} else {
 			k_deallocate_message(msg);
@@ -187,7 +191,7 @@ void CRT_print(void){
 void send_wall_clock_message(msgbuf *msg){
 		msg = k_allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = ' ';
-		k_delayed_send(NUM_PROCS - 3, msg,1); 
+		k_delayed_send(CLOCK_PID, msg,1); 
 }
 
 void KCD(void) {
@@ -196,8 +200,6 @@ void KCD(void) {
 	//house keeping.
 	char g_buffer[128];
 	// Also defined in rtx.h... but we are redefining here for a reason unknown to me
-	int pid_clock = NUM_PROCS - 3;
-	int pid_crt = NUM_PROCS - 2;
 	char enter = '\x0D';
 	char backspace = '\x08';
 	char command = '%';
@@ -318,7 +320,7 @@ void KCD(void) {
 								for (k = 1; k < char_count; k++) {
 									msg_send->mtext[k-1] = g_buffer[k];
 								}
-								k_send_message(NUM_PROCS - 2, msg_send);
+								k_send_message(CRT_PID, msg_send);
 					}
 					char_count = 0;
 					caught=false;
@@ -422,7 +424,7 @@ void UART_iprocess(void){
 			k_deallocate_message(_msg);
 			_msg_send = k_allocate_message(DEFAULT, "", 0);
 			_msg_send->mtext[0] = _g_char_in;
-			k_send_message(NUM_PROCS - 4, _msg_send);
+			k_send_message(KCD_PID , _msg_send);
 	}
 	
 	
@@ -442,7 +444,7 @@ void set_priority_process(void) {
 	msg = k_allocate_message(DEFAULT, " ", 1);
 	msg->mtext[0] = 'C';
 	msg->mtype = KCD_REG;
-	k_send_message(NUM_PROCS - 4, msg);
+	k_send_message(KCD_PID , msg);
 	
 	while(1){
 		msg = receive_message(output);
