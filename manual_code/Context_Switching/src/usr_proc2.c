@@ -37,7 +37,7 @@ char TEST_MSG_3[5] = {'d','e','l','a','y'};
 int messages_sent = 0;
 int messages_received = 0;
 int NUM_TEST_MESSAGES = 500;
-int NUM_TEST_MESSAGES_MAILBOX = 20; //Note this number should not be larger than 40
+int NUM_TEST_MESSAGES_MAILBOX = 15; //Note this number should not be larger than 40
 
 /**
  * @brief: Empty Procedure

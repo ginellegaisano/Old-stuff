@@ -19,8 +19,8 @@
 /* ----- Type Definitions Variables ----- */
 typedef struct Block Block;
 struct Block { //fixed size, defined above
-	Block* next;
 	int pid;
+	Block* next;
 } ;
 
 

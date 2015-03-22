@@ -49,6 +49,8 @@ int checkMessageText(msgbuf* message, char *text) {
 //Packages message into an envelope  to be put in a mailbox
 Envelope *build_envelope(int process_id, msgbuf *message_envelope, int delay) {
 	Envelope *envelope = (Envelope *)k_request_memory_block();
+	Block* blk = (Block *)((int)envelope - 4);
+	blk->pid = process_id;
 		
 	//building envelope data
 	envelope->sender_id = gp_current_process->m_pid;
@@ -107,7 +109,7 @@ msgbuf *allocate_message(int type, char *text, int length){
 //Frees the memory associated with a message
 int deallocate_message(msgbuf *message){
 		int i = sizeof(int);
-		Block *block = (Block *)message;
+		Block *block = (Block *)(&message-sizeof(int));
 		block->pid = gp_current_process->m_pid;
 		while (i < sizeof(message->mtext)/sizeof(char)) {
 			message->mtext[i] = NULL;
@@ -191,7 +193,7 @@ void *k_receive_message(int *sender_id) {
 	Queue *mailbox = gp_current_process->mailbox;
 	Envelope *received;
 	msgbuf *message;
-	
+	Block* blk;
 	int priority;
 	Element *element;
 	//PCB* process;
@@ -215,7 +217,9 @@ void *k_receive_message(int *sender_id) {
 	received = pop_mailbox(process->m_pid);
 
 	message = received->message;
-
+	blk = (Block *)((int)message - 4);
+	blk->pid = gp_current_process->m_pid;
+	
 	*sender_id =  received->sender_id;
 
 	priority = destroy_envelope(received);

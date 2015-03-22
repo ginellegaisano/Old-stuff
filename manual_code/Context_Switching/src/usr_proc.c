@@ -81,7 +81,7 @@ void endTest(int failed, int test) {
  * @brief: a process that tests the allocation and deallocation of a memory block
  */
 void testHandler(void){
-	/*
+	
 	int *sender = (int *)request_memory_block();
 	msgbuf* msg;
 	printTest();
@@ -109,7 +109,7 @@ void testHandler(void){
 	printf("END\n\r");
 
 	release_memory_block(sender);
-	*/
+	
 	while(1) {
 		release_processor();
 	}
