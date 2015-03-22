@@ -90,7 +90,7 @@ void printReadyQ(char* tag) {
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getReadyQ(i)->first;
 		uart1_put_string("Queue: ");
-		if (i > 10) {
+		if (i >= 10) {
 			uart1_put_char('1');
 		}
 		uart1_put_char(i%10 + '0');
@@ -99,7 +99,7 @@ void printReadyQ(char* tag) {
 		while (iterator != NULL) {
 			PCB* pcb = iterator->data;
 			uart1_put_string("PID: ");
-			if ( pcb->m_pid > 10) {
+			if ( pcb->m_pid >= 10) {
 				uart1_put_char('1');
 			}
 			uart1_put_char( pcb->m_pid%10 + '0');
@@ -123,7 +123,7 @@ void printBlockedQ(char* tag) {
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getBlockedResourceQ(i)->first;
 		uart1_put_string("Queue: ");
-		if (i > 10) {
+		if (i >= 10) {
 			uart1_put_char('1');
 		}
 		uart1_put_char(i%10 + '0');
@@ -131,7 +131,7 @@ void printBlockedQ(char* tag) {
 		while (iterator != NULL) {
 			PCB* pcb = iterator->data;
 			uart1_put_string("PID: ");
-			if ( pcb->m_pid > 10) {
+			if ( pcb->m_pid >= 10) {
 				uart1_put_char('1');
 			}
 			uart1_put_char( pcb->m_pid%10 + '0');
@@ -154,7 +154,7 @@ void printBlockedReceiveQ(char* tag) {
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		iterator = getBlockedReceiveQ(i)->first;
 		uart1_put_string("Queue: ");
-		if (i > 10) {
+		if (i >= 10) {
 			uart1_put_char('1');
 		}
 		uart1_put_char(i%10 + '0');
@@ -162,7 +162,7 @@ void printBlockedReceiveQ(char* tag) {
 		while (iterator != NULL) {
 			PCB* pcb = iterator->data;
 			uart1_put_string("PID: ");
-			if ( pcb->m_pid > 10) {
+			if ( pcb->m_pid >= 10) {
 				uart1_put_char('1');
 			}
 			uart1_put_char( pcb->m_pid%10 + '0');

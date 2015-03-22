@@ -16,24 +16,28 @@
 #endif /* DEBUG_0 */
 
 
-bool check_format(char *str) {
-	int i;
-	for (i = 3; i < 10; i = i + 3) {
-		if (str[i] == NULL || (str[i] < '0' || str[i] > '9' )||( str[i+1] < '0' || str[i+1] > '9') || str[i+2] != ':')
-			return false;
-	}
-	return true;
-} 
 
 void send_wall_clock_message(msgbuf *msg);
 void CRT_print(void);
 
+//null process
 void null_process(void) {
 	while (1) {
 		release_processor();
 	}
 }
 
+//checks if string is in WS hh:mm:ss format. 
+bool check_format(char *str) {
+	int i;
+	for (i = 3; i < 10; i = i + 3) {
+		if (str[i] == NULL || (str[i] < '0' || str[i] > '9' )||( str[i+1] < '0' || str[i+1] > '9') || (str[i+2] != ':' && i != 9))
+			return false;
+	}
+	return true;
+} 
+
+//sends message to CRT_PID with string in hh:mm:ss format
 void print_wall_clock(int hour, int minute, int second){
 	char str[9];
 	int i;
@@ -72,9 +76,7 @@ void wall_clock(void){
 	int i=0;
 	bool clock_on = false;
 	msgbuf* msg;
-	msgbuf* printmsg;
-	char *str;
-	
+		//registering to KCD
 		msg = allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = 'W';
 		msg->mtype = KCD_REG;
@@ -101,14 +103,15 @@ void wall_clock(void){
 	//blocked on send!
 	while(1){
 		 msg = receive_message(output);
-		//printf("%d", sizeof(char));
+		
+		//start the clock
 		if (msg->mtext[0] == 'W' && msg->mtext[1] == NULL) {
 			msg->mtext[0] == ' ';
 			clock_on = true;
 		}
 
-		 if (msg != NULL && clock_on) { //checks if msg got deallocated?
-			 if (msg->mtext[0] == ' ' || msg->mtext[1] == NULL) {
+		 if (msg != NULL && clock_on) { //checks if msg has text and clock is on
+			 if (msg->mtext[0] == ' ' || msg->mtext[1] == NULL ) {
 				 second++;
 				 if (second >= 60){
 					 minute ++;
@@ -122,8 +125,8 @@ void wall_clock(void){
 					print_wall_clock(hour,minute,second);
 				 		__enable_irq();
 					k_deallocate_message(msg);
-					send_wall_clock_message(msg);
-				} else if (msg->mtext[1] == 'R') {
+					send_wall_clock_message(msg); //sends delayed message
+				} else if (msg->mtext[1] == 'R') { //resets clock
 						hour = 0;
 						minute = 0;
 						second = 0;
@@ -140,7 +143,7 @@ void wall_clock(void){
 						clock_on = false;
 						k_deallocate_message(msg);
 				} else if (msg->mtext[1] == 'S' && check_format(msg->mtext)) {
-					for(i = 3; i < 10; i = i + 3) {
+					for(i = 3; i < 10; i = i + 3) { 
 						temp = (msg->mtext[i] - '0') * 10 + msg->mtext[i + 1] - '0';
 						switch(i) {
 							case 3:
@@ -166,14 +169,15 @@ void wall_clock(void){
 					print_wall_clock(hour,minute,second);
 							__enable_irq();
 					k_deallocate_message(msg);
-			}else{
+			}else{ //else prints out the message
 				k_send_message(CRT_PID, msg);
 			}
-		} else {
+		} else { //if message is null or clock is off, deallocates the message
 			k_deallocate_message(msg);
 		}
 	}
 }
+
 void CRT_print(void){
 	char * str;
 	int * output = (int *)request_memory_block(); // the output parameter
@@ -184,13 +188,13 @@ void CRT_print(void){
 		printf("\n\r");
 		printf("%s\n\r",str);
 		str = NULL;
-		//release the memory block . to be implemented. 
+	
 		k_deallocate_message(msg);
 		__enable_irq();
 	}
 }
 
-void send_wall_clock_message(msgbuf *msg){
+void send_wall_clock_message(msgbuf *msg){ //sends a delayed message to wall_clock
 		msg = allocate_message(DEFAULT, " ", 1);
 		msg->mtext[0] = ' ';
 		delayed_send(CLOCK_PID, msg,1); 
@@ -200,9 +204,9 @@ void send_wall_clock_message(msgbuf *msg){
 void KCD(void) {
 	msgbuf * msg = NULL;
 	msgbuf * msg_send = NULL;
+	
 	//house keeping.
 	char g_buffer[128];
-	// Also defined in rtx.h... but we are redefining here for a reason unknown to me
 	char enter = '\x0D';
 	char backspace = '\x08';
 	char command = '%';
@@ -210,7 +214,6 @@ void KCD(void) {
 	char g_char_in;
 	int * output = (int *)request_memory_block();
 	int char_count = 0;
-	bool clock_on = false;
 	bool waiting_for_command = false;
 	int i;
 	bool caught=false;
@@ -256,11 +259,6 @@ void KCD(void) {
 			}
 			num_commands[*output] = count + 1;
 			deallocate_message(msg);
-
-			
-			//the problem is that I need to figure out where the end of this damn string is?
-			//okay, so I'm going to put a termination character in our check
-			//but um can we assume that all OH can we, when creating the envelope, but a termination character at the end of the message?
 			
 		} else {
 			g_char_in = msg->mtext[0];
@@ -436,8 +434,6 @@ void UART_iprocess(void){
 
 void set_priority_process(void) {
 	int * output = (int *)request_memory_block(); // the output parameter
-	char current_char;
-	int temp = 0;
 	int i=2;
 	int process_id;
 	int priority;
@@ -463,11 +459,14 @@ void set_priority_process(void) {
 				process_id = (msg->mtext[i] - '0'); //1 digit id
 				i += 1;
 			}
+			if(process_id >=10){
+				isError = true;
+			}
 		} else {
 			isError = true;
 		}
 		
-		if (!isError && msg->mtext[i] == ' ' && msg->mtext[i+1] >= '0' && msg->mtext[i+1] <= '9'&& msg->mtext[i+2] == NULL) {
+		if (!isError && msg->mtext[i] == ' ' && msg->mtext[i+1] >= '0' && msg->mtext[i+1] < (NUM_PRIORITIES + '0')&& msg->mtext[i+2] == NULL) {
 			priority = (msg->mtext[i+1] - '0');
 		} else {
 			isError = true;
@@ -481,7 +480,7 @@ void set_priority_process(void) {
 		}
 		
 		if (isError) {
-			printf("Invalid parameters for setting priority.\n\r");
+			printf("\n\rInvalid parameters for setting priority.\n\r");
 		}
 		
 		//resetting vars
