@@ -165,7 +165,7 @@ void memory_init(void)
 		total_mem_blocks ++;
 	}
 	
-	ElementBlock = k_request_memory_block();
+	ElementBlock = (Block*)((int)k_request_memory_block()-4);
 	total_mem_blocks --;
 	free_blocks = total_mem_blocks;
 	currElement = (Element*)((int) ElementBlock + sizeof(int*));
@@ -210,14 +210,14 @@ void *k_request_element(void) {
 
 		__disable_irq();
 		currBlock = ElementBlock;
-	  currElement = (Element*)((int) currBlock + sizeof(int));;
+	  currElement = (Element*)((int) currBlock + sizeof(int) + sizeof(Block*));;
 
 		while (currElement->data != NULL) {
 			if ((int)currElement + 3*sizeof(int*) > (int)currBlock + BLOCK_SIZE - 3*sizeof(int*)) {
 				if (currBlock->next == NULL) {
-					currBlock->next = k_request_memory_block();
+					currBlock->next = (Block*)((int)k_request_memory_block()-4);
 					total_mem_blocks --;
-					for (i = (int)currBlock->next + sizeof(int); i <= (int)currBlock->next + BLOCK_SIZE - 3*sizeof(int*); i+= 3*sizeof(int*)) {
+					for (i = (int)currBlock->next + 4 + sizeof(Block*); i <= (int)currBlock->next + BLOCK_SIZE - 3*sizeof(int*); i+= 3*sizeof(int*)) {
 						((Element*)(i))->next = NULL;
 					  ((Element*)(i))->data = NULL;
 						((Element*)(i))->block = currBlock->next;
@@ -226,7 +226,7 @@ void *k_request_element(void) {
 					currBlock->next->next = NULL;
 				}
 				currBlock = currBlock->next;
-				currElement = (Element*)((int) currBlock + sizeof(int));
+				currElement = (Element*)((int) currBlock + 4 + sizeof(Block*));
 			} else {
 				currElement = (Element*)((int)currElement + 3*sizeof(int*));
 			}
@@ -243,7 +243,7 @@ int k_release_element_block(void * released){
 	element->next = NULL;
 	element->data = NULL;
 	__disable_irq();
-	for (i = (int)elementBlock  + sizeof(int); i <= (int)elementBlock + BLOCK_SIZE - 3*sizeof(int*); i += 3*sizeof(int*)){
+	for (i = (int)elementBlock  + 4 + sizeof(Block*); i <= (int)elementBlock + BLOCK_SIZE - 3*sizeof(int*); i += 3*sizeof(int*)){
 		if (((Element*)(i))->data != NULL) empty = false;
 	}
 	if(empty){

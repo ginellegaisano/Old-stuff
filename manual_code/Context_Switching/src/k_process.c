@@ -117,7 +117,10 @@ Element *scheduler(void)
 		element = popFromReadyQ(i);
 		if (element != NULL) {
 			pcb = (PCB*) element->data;
-			if (gp_current_process == NULL) {
+			if (pcb->mp_sp == NULL) {
+				return NULL;
+			}
+ 			if (gp_current_process == NULL) {
 				gp_current_process = pcb;
 			}
 			return element;
@@ -180,10 +183,14 @@ int k_release_processor(void)
 	Element *element;
 	Element *element_old = gp_current_element;
 	PCB *p_pcb_old = gp_current_process;
-
-	element = scheduler();
+	element = NULL;
+	
+	while(element == NULL) {
+		element = scheduler();
+	}
 	gp_current_process = (PCB *)element->data;
 	gp_current_element = element;
+
 	if ( gp_current_process == NULL  ) {
 		gp_current_process = p_pcb_old; // revert back to the old process
 		gp_current_element = element_old;

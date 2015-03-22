@@ -59,7 +59,8 @@ void A(void) //pid = 7
 	release_memory_block(sender);
 	
 	while(num <= LIMIT) {
-		msg = allocate_message(COUNT_REPORT, " ", 1);
+		msg = request_memory_block();
+		msg->mtype = COUNT_REPORT;
 		msg->mtext[0] = (char)num;
 		send_message(8, msg);
 		num = num + 1;
@@ -84,11 +85,10 @@ void B(void) //pid = 8
 		send_message(9, msg);
 	}
 	
-	/*
+	
 	while(1) {
 		release_processor();
 	}
-	*/
 }
 
 
@@ -120,7 +120,9 @@ void C(void) //pid == 9
 			msg->mtype = DEFAULT;
 			send_message(CRT_PID, msg);
 			
-			delay = allocate_message(wakeup10, "", 0);
+			delay = request_memory_block();
+			delay->mtype = wakeup10;
+			delay->mtext[0] = NULL;
 			delayed_send(9, delay, 1);
 			while(1) {
 				//sender = request_memory_block();
@@ -142,11 +144,9 @@ void C(void) //pid == 9
 		}
 	}
 	
-	/*
 	while(1) {
 		release_processor();
 	}
-	*/
 }
 
 
