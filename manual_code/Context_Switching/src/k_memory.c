@@ -301,7 +301,7 @@ void *k_request_memory_block(void) {
 	//atomic(off);
 	 __enable_irq();
 	//printf("-1 memory block requested\n\r");
-	return (void *) ((int)a+4);
+	return (void *) ((int)a);
 }
 
 
@@ -314,7 +314,7 @@ void *k_request_memory_block(void) {
  * POST:  updates free memory heap. updates MSP.
  */
 int k_release_memory_block(void *p_mem_blk) {
-	Block* released = (Block*)((int)p_mem_blk-4);
+	Block* released = (Block*)((int)p_mem_blk);
 	Element *element;
 	int i;
 	msgbuf *msg = (msgbuf *) p_mem_blk;
