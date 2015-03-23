@@ -101,7 +101,6 @@ void C(void) //pid == 9
 			release_element_block(element);
 		}
 		if(msg->mtype == COUNT_REPORT && (int)(msg->mtext[0]) % 20 == 0){
-			printf("%d", (int)msg->mtext[0]);
 			setMessageText(msg, print_msg,9);
 			msg->mtype = DEFAULT;
 			send_message(CRT_PID, msg);
