@@ -449,7 +449,6 @@ void set_priority_process(void) {
 	
 	while(1){
 		msg = receive_message(output);
-		printReadyQ("");
 		
 		if (msg->mtext[i] >= '0' && msg->mtext[i] <= '9') { //look for first param
 			if (msg->mtext[i+1] >= '0' && msg->mtext[i+1] <= '9') {
@@ -488,7 +487,6 @@ void set_priority_process(void) {
 		i = 2;
 		status = RTX_OK;
 		deallocate_message(msg);
-		printReadyQ("");
 	}
 
 }

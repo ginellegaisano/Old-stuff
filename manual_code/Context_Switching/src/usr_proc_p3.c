@@ -21,16 +21,6 @@ PROC_INIT g_test_procs[NUM_PROCS];
  
 int FAILED = 0;
 
-int a_count = 0;
-int b_count = 0;
-int c_count = 0;
-
-int test1_count = 0;
-int test2_count = 0;
-int test3_count = 0;
-int test4_count = 0;
-int test5_count = 0;
-
 typedef struct LinkedElement LinkedElement;
 
 struct LinkedElement {

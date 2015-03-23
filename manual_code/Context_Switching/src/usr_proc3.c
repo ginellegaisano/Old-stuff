@@ -17,16 +17,6 @@
 #endif /* DEBUG_0 */
 extern int FAILED;
 
-extern int a_count;
-extern int b_count;
-extern int c_count;
-
-extern int test1_count;
-extern int test2_count;
-extern int test3_count;
-extern int test4_count;
-extern int test5_count;
-
 int COUNT_REPORT  = 2;
 int wakeup10 = 3;
 int LIMIT = 30;
@@ -37,10 +27,6 @@ void A(void) //pid = 7
 	msgbuf* msg;
 	int num = 0;
 	int* sender = request_memory_block();
-	
-	set_process_priority(7, MEDIUM);
-	set_process_priority(8, MEDIUM);
-	set_process_priority(9, MEDIUM);
 
 	msg = allocate_message(DEFAULT, " ", 1);
 	msg->mtext[0] = 'Z';
@@ -114,7 +100,7 @@ void C(void) //pid == 9
 			element->data = NULL;
 			release_element_block(element);
 		}
-		if(msg->mtype == COUNT_REPORT && (int)(msg->mtext[0]) % 10 == 0){
+		if(msg->mtype == COUNT_REPORT && (int)(msg->mtext[0]) % 20 == 0){
 			printf("%d", (int)msg->mtext[0]);
 			setMessageText(msg, print_msg,9);
 			msg->mtype = DEFAULT;
@@ -123,7 +109,7 @@ void C(void) //pid == 9
 			delay = request_memory_block();
 			delay->mtype = wakeup10;
 			delay->mtext[0] = NULL;
-			delayed_send(9, delay, 1);
+			delayed_send(9, delay, 10);
 			while(1) {
 				//sender = request_memory_block();
 				receive = receive_message(sender);
