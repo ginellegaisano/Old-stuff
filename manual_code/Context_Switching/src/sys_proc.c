@@ -228,6 +228,9 @@ void KCD(void) {
 
 	for (i = 0; i < 128; i++)
 		g_buffer[i] = NULL;
+		
+	for (i = 0; i < NUM_PROCS; i++)
+		num_commands[i] = 0;
 
 	
 	while(1){
