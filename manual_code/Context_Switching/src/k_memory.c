@@ -276,7 +276,7 @@ void *k_request_memory_block(void) {
 	int priority;
 	Element* element;
 
-	while (MSP == NULL) {
+	while (MSP == NULL || (free_blocks == 2 && gp_current_process->m_pid < 10)) {
 		//get the priority of the current process by looking up pid in process table
 		priority = g_proc_table[gp_current_process->m_pid].m_priority;
 		//push PCB of current process on blocked_resource_qs; << here we are pushing a PCB. <<

@@ -181,6 +181,7 @@ void c_UART0_IRQHandler(void)
 	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
 	msgbuf *message;
 	bool waiting_for_command = false;  
+	int old_pid;
 	/* Reading IIR automatically acknowledges the interrupt */
 	IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
 	if (IIR_IntId & IIR_RDA) { // Receive Data Avaialbe
@@ -203,7 +204,10 @@ void c_UART0_IRQHandler(void)
 			if (g_char_in == '%') {
 				waiting_for_command = true;
 			}
+			old_pid = gp_current_process->m_pid;
+			gp_current_process->m_pid = 14;
 			message = k_allocate_message(DEFAULT, "", 0);
+			gp_current_process->m_pid = old_pid;
 			__disable_irq();
 			message->mtext[0] = g_char_in;
 			k_send_message(UART_PID, message); //send a message to UART.
