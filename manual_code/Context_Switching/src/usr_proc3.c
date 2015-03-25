@@ -19,7 +19,6 @@ extern int FAILED;
 
 int COUNT_REPORT  = 2;
 int wakeup10 = 3;
-int LIMIT = 30;
 
 
 void A(void) //pid = 7
@@ -44,7 +43,7 @@ void A(void) //pid = 7
 	release_memory_block(msg);
 	release_memory_block(sender);
 	
-	while(num <= LIMIT) {
+	while(1) {
 		msg = request_memory_block();
 		msg->mtype = COUNT_REPORT;
 		msg->mtext[0] = (char)num;
@@ -85,8 +84,9 @@ void C(void) //pid == 9
 	msgbuf *msg;
 	msgbuf *delay;
 	msgbuf *receive;
-	char print_msg[9] = {'P', 'r', 'o', 'c', 'e', 's', 's', ' ', 'C'};
+	char print_msg[10] = {'P', 'r', 'o', 'c', 'e', 's', 's', ' ', 'C'};
 	Element *element;
+	int i = 0;
 
 	q.first = NULL;
 	q.last = NULL;
@@ -101,14 +101,15 @@ void C(void) //pid == 9
 			release_element_block(element);
 		}
 		if(msg->mtype == COUNT_REPORT && (int)(msg->mtext[0]) % 20 == 0){
-			setMessageText(msg, print_msg,9);
+			print_msg[9] = i++ + '0';
+			setMessageText(msg, print_msg,10);
 			msg->mtype = DEFAULT;
 			send_message(CRT_PID, msg);
 			
 			delay = request_memory_block();
 			delay->mtype = wakeup10;
 			delay->mtext[0] = NULL;
-			delayed_send(9, delay, 10);
+			delayed_send(9, delay, 2);
 			while(1) {
 				//sender = request_memory_block();
 				receive = receive_message(sender);

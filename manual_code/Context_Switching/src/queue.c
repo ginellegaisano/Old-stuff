@@ -49,6 +49,7 @@ Element* removeFromQ(Queue* self, int id) {
 		element = pop(self);
 		return element;
 	}
+
 	
 	while (iterator->next != NULL && ((PCB*)(iterator->next->data))->m_pid != (id)) {
 		iterator = iterator->next;

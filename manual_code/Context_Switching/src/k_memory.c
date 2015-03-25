@@ -318,6 +318,7 @@ int k_release_memory_block(void *p_mem_blk) {
 	Element *element;
 	int i;
 	msgbuf *msg = (msgbuf *) p_mem_blk;
+	PCB * pcb;
 
 	if (released == NULL) {
 		return RTX_ERR;
@@ -338,7 +339,8 @@ int k_release_memory_block(void *p_mem_blk) {
 	for (i = 0; i < NUM_PRIORITIES; i++) {
 		element = pop(getBlockedResourceQ(i));
 		if (element != NULL) {
-			((PCB*)(element->data))->m_state = RDY;
+			pcb = ((PCB*)(element->data));
+			pcb->m_state = RDY;
 			pushToReadyQ(i,element);
 			if(((PCB*)(element->data))->m_priority < gp_current_process->m_priority) {
 				k_release_processor();

@@ -122,26 +122,29 @@ void c_TIMER0_IRQHandler(void)
 	
 	g_timer_count++ ;
 	
-	if (g_timer_count % 500 == 0) {
+	if (g_timer_count % 28 == 0) {
 			g_timer_count = 0;
 
 			q = getTimedQ();
 			i = q->first;
 			previous = q->first;
-			while(i != NULL) {
+			while(i != NULL && ((Envelope *)(i->data))->destination_id < NUM_PROCS) {
 				envelope = (Envelope *)i->data;
 				envelope->delay -= 1;
 				if(envelope->delay <= 0 ){
 					__disable_irq();
-					if (previous == q->first) {
-						pop(q);
-					} else {
-						previous->next = i->next;
-						i->data = NULL;
+					
+					if (i == q->first) {
+						i = pop(q);
 					}
-					if (i == q->last) {
+					else if (i->next != NULL) {
+						previous = i->next;
+						if (i == q->last) {
 							q->last = previous;
+						}
+						previous->next = i->next;
 					}
+					i->data = NULL;
 					k_release_element_block(i);
 					push_mailbox(envelope);
 					__enable_irq();
