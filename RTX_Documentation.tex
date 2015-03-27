@@ -1,9 +1,8 @@
-\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
-\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
-\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
-\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
-								% TeX will automatically convert eps --> pdf in pdflatex		
-\usepackage{amssymb}
+\documentclass[11pt, oneside]{article}
+\usepackage{geometry}
+\geometry{letterpaper}
+\usepackage{graphicx}
+\usepackage{amssymb,amsmath}
 
 \title{SE350 Operating Systems Documentation}
 \author{Gaisano, G., Janecka, L., Mak, R., Schneider, C.}
@@ -11,8 +10,102 @@
 
 \begin{document}
 \maketitle
-\section{RTX Part 1}
-Documentation will be completed at a later date.
 
+\section{Introduction}
+Clarisse
+\begin{itemize}
+\item What is this document about
+\item What is the purpose of the document?
+\item What does the document contain?
+\end{itemize}
+
+\section{Global Variable Documentation}
+Everyone
+\begin{itemize}
+\item What does each variable store?
+\item Why is there a variable to store this?
+\item What do your global data structures look like?
+\item What functions use it?
+\end{itemize}
+
+{\bf Global Variables}
+\begin{description}
+\item [VARIABLE\_NAME] Stores x for y purpose, used by:
+\begin{itemize}
+\item z
+\end{itemize}
+\end{description}
+
+{\bf Global Data Structures}
+\begin{description}
+\item [DATA\_STRUCTURE\_NAME] Stores x for y purpose, used by:
+\begin{itemize}
+\item z
+\end{itemize}
+\end{description}
+
+\section{Kernel API}
+Clarisse
+\begin{itemize}
+\item All kernel fuctions
+\item What does each function do?
+\item What does proper use of this function look like?
+\item What cleanup is necessary afterwards, if any?
+\item Does my documentation cover its behaviour in all scenarios?
+\item Is this described more efficiently through pseudo?
+\end{itemize}
+
+\section{Interrupts and their Handlers/Processes}
+Ginelle
+\begin{itemize}
+\item What interrupts are enabled by yoru OS?
+\item How does the OS handle those interrupts?
+\item What do your interrupt processes do?
+\item Does my documentation cover its behaviour in all scenarios?
+\item Is this described more efficiently through pseudo?
+\end{itemize}
+
+\section{System and User Processes}
+RayMak
+\begin{itemize}
+\item What system processes are in the OS?
+\item What is the purpose of each system process?
+\item Waht does each system process do?
+\item what services do each of the system processes depend on?
+\item What system processes does each user processes use?
+\end{itemize}
+
+\section{Initialization}
+Lara
+\begin{itemize}
+\item What steps does your OS take to boot?
+\item What parameters does your OS have?
+\item How are these parameters tuned?
+\end{itemize}
+
+\section{Testing}
+Lara
+\begin{itemize}
+\item How did you test your code?
+\item Did you do unit testing?
+\item What did your tests do?
+\item Did you use the debugger?
+\item Was your testing manual or automated?
+\end{itemize}
+
+\section{Major Design Changes}
+Everyone
+\begin{itemize}
+\item What design decisions ended up being a mistake?
+\item What were the major stumbling blocks?
+\item What would you do differently if you started over?
+\item What design issues did your OS have?
+\end{itemize}
+
+\section{Timing Analysis}
+Everyone
+
+\section{Conclusion}
+Clarisse
 
 \end{document}  
