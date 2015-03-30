@@ -3,6 +3,13 @@
 \geometry{letterpaper}
 \usepackage{graphicx}
 \usepackage{amssymb,amsmath}
+\usepackage{array}
+\usepackage{longtable}
+
+\newcommand{\tabitem}{~~\llap{\textbullet}~~}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
 \title{SE350 Operating Systems Documentation}
 \author{Gaisano, G., Janecka, L., Mak, R., Schneider, C.}
@@ -39,6 +46,38 @@ Everyone
 {\bf Global Data Structures}
 \begin{description}
 \item [DATA\_STRUCTURE\_NAME] Stores x for y purpose, used by:
+\newline
+\begin{longtable}{|L{2cm}|L{5cm}|L{5cm}|} \hline
+\textbf{Structure Name} & \textbf{Purpose} & \textbf{Properties} \\ \hline
+Queue& generic queue & 
+\tabitem \textbf{Element *first}: pointer to first element in the Queue. Is NULL if there are no elements.
+\newline
+\tabitem \textbf{Element *last}: pointer to last element in the Queue. Is NULL if there are no elements.\\ \hline
+Element & Generic queue element & 
+\tabitem \textbf{Element *next}: pointer to next element in queue. NULL if the last element
+\newline
+\tabitem \textbf{void *data}: pointer to element data 
+\newline
+\tabitem \textbf{void *block}: pointer to memory block element resides in \\ \hline
+PCB & \textbf{Process Control Block}. Used to store process identification data and status, such as running state and progress in process& \textbf{U32 *mp\_sp}: stack pointer of process \newline
+\tabitem \textbf{U32 m\_pid}: process id \newline
+\tabitem \textbf{PROC\_STATE\_E m\_state}: current running state of the process \newline
+\tabitem \textbf{int m\_priority}: process priority (low value = high priority) \newline
+\tabitem \textbf{Queue *mailbox}: pointer to the process' mailbox. Contains all messages passed to process. After initialization, remains unchanged, as only the first and last pointers change.\\ \hline
+Block & Represents a chunk of free memory. Is returned to the user on request\_memory\_block & 
+\tabitem \textbf{int pid}: the id of the process that currently owns the Block. Is NULL if Block is free. \newline
+\tabitem \textbf{Block *next}: pointer to the next Block in the free memory block list. Is NULL if block is in use/allocated to a user process. \\ \hline
+msgbuf&Stores the message's data& 
+\tabitem \textbf{int mtype}: the message type (types defined in CONSTANTS section) \newline 
+\tabitem \textbf{char mtext[size]}: char array containing the message data. Size is dependent on BLOCK\_SIZE\\ \hline
+Envelope&The header for a message. Contains necessary information for delivery. Is the structure that is passed around in the message-passing system.&
+\tabitem \textbf{int sender\_id}: pid of sending process \newline
+\tabitem \textbf{int destination\_id}: pid of destination process \newline
+\tabitem \textbf{int time}: message timestamp \newline
+\tabitem \textbf{int delay}: time delay to send message (seconds) \newline
+\tabitem \textbf{msgbuf *message}: pointer to message data \newline
+\\ \hline 
+\end{longtable}
 \begin{itemize}
 \item z
 \end{itemize}
@@ -57,9 +96,43 @@ Clarisse
 
 \section{Interrupts and their Handlers/Processes}
 Ginelle
+
+\paragraph{Global Variables:}
+timed\_q
+
+\paragraph{Major Design Changes}
 \begin{itemize}
-\item What interrupts are enabled by yoru OS?
-\item How does the OS handle those interrupts?
+\item
+Should made a special i-process queue instead of putting in them in the ready queue with other user processes
+\item
+Not have i-processes depend on message passing. Instead, have the i-process block itself on finishing with input and be unblocked by the interrupt handler. 
+\end{itemize}
+\paragraph{Questions}
+\begin{itemize}
+\item What interrupts are enabled by your OS?
+Interrupts:
+\newline
+\begin{tabular}{|L{2cm}|L{5cm}|L{5cm}|} \hline
+ \textbf{Interrupt Handlers} & \textbf{Description} & \textbf{Functionality} \\ \hline
+Timer & 
+Increments a counter after every clock tick. For each second passed, decrements all messages in the delayed timed queue.
+& 
+\tabitem pushes delayed messages to appropriate destination process mailbox when message delay has passed.
+
+\\ \hline
+Keyboard & captures keyboard input, composes and sends a message to the UART i-process & 
+
+\tabitem prints debugging hot keys to UART1 output. \newline
+\tabitem sends key press to KCD for command processing. \\ \hline
+\end{tabular}
+
+\begin{tabular}{|L{3cm}|L{4cm}|L{5cm}|} \hline
+\textbf{i-process}& Description & Active \\ \hline
+UART\_iprocess& blah & blah \\ \hline
+KCD& blah & blah \\ \hline
+\end{tabular}
+\item \textbf{How does the OS handle those interrupts?} For the Timer Handler, once a message's delay had expired, the interrupt pushed the message to the mailbox of the destination process. All the logic for the timer-related interrupts are in the Timer Handler. For the Keyboard Handler, it sends a message to the UART i-process, who then sends that message to the KCD i-process for command decoding. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes.
+
 \item What do your interrupt processes do?
 \item Does my documentation cover its behaviour in all scenarios?
 \item Is this described more efficiently through pseudo?
