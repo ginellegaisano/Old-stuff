@@ -135,7 +135,7 @@ KCD& blah & blah \\ \hline
 \item \textbf{How does the OS handle those interrupts?} For the Timer Handler, once a message's delay had expired, the interrupt pushed the message to the mailbox of the destination process. All the logic for the timer-related interrupts are in the Timer Handler. For the Keyboard Handler, it sends a message to the UART i-process, who then sends that message to the KCD i-process for command decoding. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes.
 
 \item What do your interrupt processes do?
-\item Does my documentation cover its behaviour in all scenarios?
+\item Does my documentation cover its behavior in all scenarios?
 \item Is this described more efficiently through pseudo?
 \end{itemize}
 
@@ -144,17 +144,23 @@ RayMak
 \begin{itemize}
 \item What system processes are in the OS?
 \item What is the purpose of each system process?
-\item Waht does each system process do?
+\item What does each system process do?
 \item what services do each of the system processes depend on?
 \item What system processes does each user processes use?
 \end{itemize}
 
 \section{Initialization}
-Lara
+The OS starts by initializing each of the interrupts (irq, timer, and uarts). Each of these are calls to given functions and were not implemented as part of this project and so will not be discussed in this report.
+
+The OS then initializes the memory. This is done by setting the creating a pointer to the end of the available memory, \textbf{p\_end}. For each of the processes we move that pointer up by the size of a PCB to prevent them from being overwritten. A similar procedure is done for the ready, blocked on resource, blocked on received, and timed queues. The heap is now defined as starting at p\_end + 4 bits of buffer. The head end is defined as the end of available memory minus the amount of memory used for the stack of each process (RAM\_END\_ADDR - NUM\_PROCS - USR\_SZ\_STACK). At the start of this range the MSP is initialized, and within this range we create a Block with a null ownership pid and a next value pointing to the MSP. For each iteration we shift the MSP by BLOCK\_SIZE. This results in a heap of the appropriate bounds initialized as a linked list of BLOCK\_SIZE sized blocks.For more details view the associated section of 3.1.2.
+
+Process initialization is done by building proc tables. The test processes are initialized using a \textbf{set\_test\_procs} function which builds a \textbf{g\_test\_procs} table with each of the test functions. Each function has default priority low and default stack size determined by a OS parameter \textbf{USR\_SZ\_STACK} We then set the starting values for A, B, and C to LOWEST. Finally each table entry is given a pointer to the corresponding function. When initializing all processes we call this set\_test\_procs function and iterate through the test table adding each entry to the \textbf{g\_proc\_table}. The rest of the functions are manually added since they have unique values. Most of these values are stored as global variables so that all functions have access to them. For more details view the associated section of 3.4.2
+
+Parameters:
 \begin{itemize}
-\item What steps does your OS take to boot?
-\item What parameters does your OS have?
-\item How are these parameters tuned?
+    \item USR\_SZ\_STACK: the size of the stack allocated to each user process, this can be used to configure how much stack memory each process has access to
+    \item RAM\_END\_ADDR: the ending address of available memory, this can be used to configure how much heap memory the OS has access (will be constrained by the hardware being used)
+    \item BLOCK\_SIZE: the fixed size of each memory block, this can be used to configure the amount of memory given when request memory is called (can also be used to configure how many memory blocks to have)
 \end{itemize}
 
 \section{Testing}
