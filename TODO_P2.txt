@@ -1,8 +1,0 @@
-TODO:
-     - blocked_on_receive print queue < anot check. its printing 0. 
-
-     - find out what CRT Display Process actually is?? (is this echo?)
-	> according to josh... an abstraction layer
-	> sending out prints to this process instead of blah..	
-     - set_time for clock (deal with 99:99:99, basically)
-

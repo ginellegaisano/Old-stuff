@@ -20,3 +20,9 @@
 *.lajaneck
 *.ggaisano
 *.rcmak
+*.aux
+*.log
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.pdf
