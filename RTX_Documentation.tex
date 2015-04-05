@@ -43,9 +43,39 @@ Everyone
 \item What functions use it?
 \end{itemize}
 
+Should I include constants? 
 {\bf Global Variables}
 \begin{description}
 \item [VARIABLE\_NAME] Stores x for y purpose, used by:
+\newline
+\begin{longtable}{|L{5cm}|L{8cm}|} \hline
+\textbf{Variable Name} & \textbf{Purpose} \\ \hline
+int total\_mem\_blocks & the number of memory blocks available in the operating system after memory initialization and process initialization \\ \hline
+int free\_blocks & the number of free blocks. This variable changes as more blocks are requested and released by processes. Used by our test cases for error checking and housekeeping. Also used by the interrupt handlers to ensure that there is always sufficient memory blocks for message passing. \\ \hline
+Block * MSP & the pointer to the next available memory block. NULL if there are no free memory blocks \\ \hline
+Block *ElementBlock & Pointer to the current element block. NULL if there is no available space in the system. \\ \hline
+Element *gp\_current\_element & The element that contains the current block. Used by scheduler(), k\_release\_processor(), set\_process\_priority() to move the PCB between ready, blocked and blocked\_on\_receive queues. \\ \hline
+PCB *gp\_current\_process & The PCB for the current running process. Used within k\_process. Also used in tests for housekeeping and error checking. \\ \hline
+int FAILED & counts the number of failed tests. Used later by the test handler to print out results \\ \hline
+Procedure count variables:
+\begin{itemize}
+\item int a\_count
+\item int b\_count
+\item int c\_count
+\item int test1\_count
+\item etc
+\end{itemize} & \tabitem Counts the number of times each procedure has been called. Used by our tests for housekeeping as well as error checking. \\ \hline
+
+Process Priorities 
+\begin{itemize}
+\item HIGH
+\item MEDIUM
+\item LOW
+\item LOWEST
+\end{itemize}
+& CONSTANTS (Found in rtx.h)- used throughout the operating system to signify process priorities\\ \hline
+
+\end{longtable}
 \begin{itemize}
 \item z
 \end{itemize}
@@ -55,7 +85,7 @@ Everyone
 \begin{description}
 \item [DATA\_STRUCTURE\_NAME] Stores x for y purpose, used by:
 \newline
-\begin{longtable}{|L{2cm}|L{5cm}|L{5cm}|} \hline
+\begin{longtable}{|L{2cm}|L{7cm}|L{7cm}|} \hline
 \textbf{Structure Name} & \textbf{Purpose} & \textbf{Properties} \\ \hline
 Queue& generic queue &
 \tabitem \textbf{Element *first}: pointer to first element in the Queue. Is NULL if there are no elements.
@@ -85,10 +115,9 @@ Envelope&The header for a message. Contains necessary information for delivery. 
 \tabitem \textbf{int delay}: time delay to send message (seconds) \newline
 \tabitem \textbf{msgbuf *message}: pointer to message data \newline
 \\ \hline
+
 \end{longtable}
-\begin{itemize}
-\item z
-\end{itemize}
+
 \end{description}
 
 \clearpage
@@ -551,6 +580,7 @@ an infinite loop that waits for messages from the UART i-process.
 
 For the Timer Handler, there are no relevant timer i-processes as all timer logic is located in the Timer Handler. 
 
+<<<<<<< Updated upstream
 For the Keyboard Handler, it sends a message to the UART i-process, who then forwards that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
 
 \begin{figure}[ht!]
@@ -558,6 +588,33 @@ For the Keyboard Handler, it sends a message to the UART i-process, who then for
 \includegraphics[width=150mm]{Keyboard_interrupt.jpg}
 \caption{A Keyboard interrupt flowchart \label{overflow}}
 \end{figure}
+=======
+\section{System and User Processes}
+RayMak
+\begin{itemize}
+\item System Processes \\ \newline
+\begin{tabular}{|L{2cm}|L{4cm}|L{4.5cm}|L{4cm}|}\hline
+\textbf{System Process} & \textbf{Purpose} & \textbf{What It Does} & \textbf{System Processes That It Depends On} \\ \hline
+NullProcess & The null process is the lowest priority process. It is a hidden process with PID 0 & The null process loops infinitely & Does not depend on any other process \\ \hline
+
+CRT Print & the CRT Function is responsible for printing all text to the board & given a message, the CRT print will extract the message data and display it. The CRT Print function does format or change the message data in any way. & In order to run, the CRT depends on other system process to send it messages. \\ \hline
+\end{tabular}
+\newline
+\item User Processes: \\ \newline 
+\begin{tabular}{|L{3cm}|L{7cm}|L{5cm}|}\hline
+\textbf{System Process} & \textbf{What It Does} & \textbf{System Processes That It Depends On} \\ \hline
+Wall\_Clock\_Process & The wallclock process is responsible for displaying different times onto the screen. Once started, The wall clock time starts at 00:00:00 and increments every second until terminated. The wallclock time can be manually changed using different commands. & \begin{itemize}
+\item \textbf{KCD} - depends on the KCD to register itself
+\item \textbf{timer i-process} - Depends on the timer i-process to receive messages every second.
+\end{itemize}\\ \hline
+Set\_Process\_Priority & Given two parameters, the set priority command process will set the PID (first parameter) to the specified priority (second parameter) &
+\begin{itemize}
+\item \textbf{KCD} - depends on the KCD to register itself
+\end{itemize} \\ \hline
+\end {tabular}
+
+\end{itemize}
+>>>>>>> Stashed changes
 
 \section{Initialization}
 The OS starts by initializing each of the interrupts (irq, timer, and uarts). Each of these are calls to given functions and were not implemented as part of this project and so will not be discussed in this report.
