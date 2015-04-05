@@ -514,27 +514,11 @@ After, it checks if the current process is the one being altered and the new pri
 This function can be called anywhere, and is specifically used for a hotkey mapping, the {\tt set\_priority\_process()} system process, and extensively in our user tests.
 
 \section{Interrupts and their Handlers/Processes}
-Ginelle
 
-\paragraph{Global Variables:}
-timed\_q
-
-\paragraph{Major Design Changes}
-\begin{itemize}
-\item
-Should made a special i-process queue instead of putting in them in the ready queue with other user processes
-\item
-Not have i-processes depend on message passing. Instead, have the i-process block itself on finishing with input and be unblocked by the interrupt handler.
-\end{itemize}
-\paragraph{Questions}
-\begin{itemize}
-\item What interrupts are enabled by your OS?
-Interrupts:
-\newline
 \begin{tabular}{|L{2cm}|L{5cm}|L{5cm}|} \hline
  \textbf{Interrupt Handlers} & \textbf{Description} & \textbf{Functionality} \\ \hline
 Timer &
-Increments a counter after every interrupt. For each second passed, resets counter and decrements all messages in the delayed timed queue.
+Increments a counter after every timer interrupt. For each second passed, resets counter and decrements all messages in the delayed timed queue.
 &
 \tabitem pushes delayed messages to appropriate destination process mailbox when message delay has passed.
 \\ \hline
@@ -565,18 +549,15 @@ an infinite loop that waits for messages from the UART i-process.
  & i-process of HIGH priority that is blocked-on-recieve \\ \hline
 \end{tabular}
 
-\item \textbf{How does the OS handle those interrupts?}
-Every time a timer interrupt is issued, the Timer Handler  once a message's delay has expired, the interrupt pushes the message to the mailbox of the destination process. There are no relevant timer i-processes as all timer logic is located in the Timer Handler. 
+For the Timer Handler, there are no relevant timer i-processes as all timer logic is located in the Timer Handler. 
 
-For the Keyboard Handler, it sends a message to the UART i-process, who then sends that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
+For the Keyboard Handler, it sends a message to the UART i-process, who then forwards that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
 
 \begin{figure}[ht!]
 \centering
 \includegraphics[width=150mm]{Keyboard_interrupt.jpg}
 \caption{A Keyboard interrupt flowchart \label{overflow}}
 \end{figure}
-
-\end{itemize}
 
 \section{Initialization}
 The OS starts by initializing each of the interrupts (irq, timer, and uarts). Each of these are calls to given functions and were not implemented as part of this project and so will not be discussed in this report.
@@ -667,7 +648,15 @@ Everyone
 \item What design decisions ended up being a mistake?
 \item What were the major stumbling blocks?
 \item What would you do differently if you started over?
+\begin{itemize}
+\item
+Should have made a special i-process queue instead of putting in them in the ready queue with user processes
+\item
+Should not have i-processes depend on message passing. Instead, have the i-process block itself on finishing with input and be unblocked by the interrupt handler.
+\end{itemize}
 \item What design issues did your OS have?
+
+
 \end{itemize}
 
 \section{Timing Analysis}
