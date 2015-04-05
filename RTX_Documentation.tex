@@ -534,37 +534,48 @@ Interrupts:
 \begin{tabular}{|L{2cm}|L{5cm}|L{5cm}|} \hline
  \textbf{Interrupt Handlers} & \textbf{Description} & \textbf{Functionality} \\ \hline
 Timer &
-Increments a counter after every clock tick. For each second passed, decrements all messages in the delayed timed queue.
+Increments a counter after every interrupt. For each second passed, resets counter and decrements all messages in the delayed timed queue.
 &
 \tabitem pushes delayed messages to appropriate destination process mailbox when message delay has passed.
-
 \\ \hline
-Keyboard & captures keyboard input, composes and sends a message to the UART i-process &
+Keyboard & For each keyboard interrupt, captures keyboard input composes and sends a message to the UART i-process &
 
 \tabitem prints debugging hot keys to UART1 output. \newline
 \tabitem sends key press to KCD for command processing. \\ \hline
 \end{tabular}
 
-\begin{tabular}{|L{3cm}|L{4cm}|L{5cm}|} \hline
+\begin{tabular}{|L{3cm}|L{6cm}|L{3cm}|} \hline
 \textbf{i-process}& Description & Active \\ \hline
-UART\_iprocess& blah & blah \\ \hline
-KCD& blah & blah \\ \hline
+UART\_iprocess& 
+\tabitem an infinite loop that waits for messages from the Keyboard Handler.
+\newline 
+\tabitem forwards messages from Keyboard handler to KCD.
+ & \tabitem i-process of HIGH priority that is blocked-on-receive
+ \newline
+  \\ \hline
+KCD& 
+\tabitem
+an infinite loop that waits for messages from the UART i-process.
+\newline
+\tabitem registers commands to processes by storing message contents and sender id
+\newline
+\tabitem processes collective key presses and either sends it to UART print for printing or determines if it is a command by comparing to registered command list.
+\newline
+\tabitem if command is found, sends collective key presses as within the message text to the registered process.
+ & i-process of HIGH priority that is blocked-on-recieve \\ \hline
 \end{tabular}
-\item \textbf{How does the OS handle those interrupts?} For the Timer Handler, once a message's delay had expired, the interrupt pushed the message to the mailbox of the destination process. All the logic for the timer-related interrupts are in the Timer Handler. For the Keyboard Handler, it sends a message to the UART i-process, who then sends that message to the KCD i-process for command decoding. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes.
 
-\item What do your interrupt processes do?
-\item Does my documentation cover its behavior in all scenarios?
-\item Is this described more efficiently through pseudo?
-\end{itemize}
+\item \textbf{How does the OS handle those interrupts?}
+Every time a timer interrupt is issued, the Timer Handler  once a message's delay has expired, the interrupt pushes the message to the mailbox of the destination process. There are no relevant timer i-processes as all timer logic is located in the Timer Handler. 
 
-\section{System and User Processes}
-RayMak
-\begin{itemize}
-\item What system processes are in the OS?
-\item What is the purpose of each system process?
-\item What does each system process do?
-\item what services do each of the system processes depend on?
-\item What system processes does each user processes use?
+For the Keyboard Handler, it sends a message to the UART i-process, who then sends that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=150mm]{Keyboard_interrupt.jpg}
+\caption{A Keyboard interrupt flowchart \label{overflow}}
+\end{figure}
+
 \end{itemize}
 
 \section{Initialization}
