@@ -85,7 +85,7 @@ Process Priorities
 \begin{description}
 \item [DATA\_STRUCTURE\_NAME] Stores x for y purpose, used by:
 \newline
-\begin{longtable}{|L{2cm}|L{7cm}|L{7cm}|} \hline
+\begin{longtable}{|L{2cm}|L{5cm}|L{8cm}|} \hline
 \textbf{Structure Name} & \textbf{Purpose} & \textbf{Properties} \\ \hline
 Queue& generic queue &
 \tabitem \textbf{Element *first}: pointer to first element in the Queue. Is NULL if there are no elements.
@@ -542,9 +542,13 @@ After, it checks if the current process is the one being altered and the new pri
 
 This function can be called anywhere, and is specifically used for a hotkey mapping, the {\tt set\_priority\_process()} system process, and extensively in our user tests.
 
-\section{Interrupts and their Handlers/Processes}
+\newpage
 
-\begin{tabular}{|L{2cm}|L{5cm}|L{5cm}|} \hline
+\section{Interrupts and their Handlers/Processes}
+The interrupts enabled by our Operating System are Timer and Keyboard interrupts. Their handlers and i-processes are described below:
+\begin{figure}[ht!]
+\centering
+\begin{tabular}{|L{2cm}|L{6cm}|L{7cm}|} \hline
  \textbf{Interrupt Handlers} & \textbf{Description} & \textbf{Functionality} \\ \hline
 Timer &
 Increments a counter after every timer interrupt. For each second passed, resets counter and decrements all messages in the delayed timed queue.
@@ -556,8 +560,12 @@ Keyboard & For each keyboard interrupt, captures keyboard input composes and sen
 \tabitem prints debugging hot keys to UART1 output. \newline
 \tabitem sends key press to KCD for command processing. \\ \hline
 \end{tabular}
+\caption{Interrupt Chart \label{overflow}}
+\end{figure}
 
-\begin{tabular}{|L{3cm}|L{6cm}|L{3cm}|} \hline
+\begin{figure}[ht!]
+\centering
+\begin{tabular}{|L{3cm}|L{8cm}|L{3cm}|} \hline
 \textbf{i-process}& Description & Active \\ \hline
 UART\_iprocess& 
 \tabitem an infinite loop that waits for messages from the Keyboard Handler.
@@ -577,16 +585,17 @@ an infinite loop that waits for messages from the UART i-process.
 \tabitem if command is found, sends collective key presses as within the message text to the registered process.
  & i-process of HIGH priority that is blocked-on-recieve \\ \hline
 \end{tabular}
+\caption{i-process Chart\label{overflow}}
+\end{figure}
 
-For the Timer Handler, there are no relevant timer i-processes as all timer logic is located in the Timer Handler. 
+For the timer interrupts, there are no relevant timer i-processes as all timer logic is located in the timer handler. 
 
-<<<<<<< Updated upstream
-For the Keyboard Handler, it sends a message to the UART i-process, who then forwards that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
+For the keyboard interrupts, the keyboard handler it sends a message containing the key press to the UART i-process, who then forwards that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
 
 \begin{figure}[ht!]
 \centering
 \includegraphics[width=150mm]{Keyboard_interrupt.jpg}
-\caption{A Keyboard interrupt flowchart \label{overflow}}
+\caption{Keyboard Interrupt Flowchart \label{overflow}}
 \end{figure}
 =======
 \section{System and User Processes}
@@ -614,7 +623,6 @@ Set\_Process\_Priority & Given two parameters, the set priority command process 
 \end {tabular}
 
 \end{itemize}
->>>>>>> Stashed changes
 
 \section{Initialization}
 The OS starts by initializing each of the interrupts (irq, timer, and uarts). Each of these are calls to given functions and were not implemented as part of this project and so will not be discussed in this report.
@@ -700,21 +708,12 @@ Manual tests:
 
 
 \section{Major Design Changes}
-Everyone
-\begin{itemize}
-\item What design decisions ended up being a mistake?
-\item What were the major stumbling blocks?
-\item What would you do differently if you started over?
-\begin{itemize}
-\item
-Should have made a special i-process queue instead of putting in them in the ready queue with user processes
-\item
-Should not have i-processes depend on message passing. Instead, have the i-process block itself on finishing with input and be unblocked by the interrupt handler.
-\end{itemize}
-\item What design issues did your OS have?
 
+In the case of queue implementation, a major design stumbling block was deciding where to store the elements of the queue itself while efficiently using memory. As a Queue Element only consisted of two pointers, one pointing to the data and the other to the next Element in the Queue, to give an entire memory block for each Element was wasteful. Instead, when an Element is requested, the kernel allocates a space within a memory block allocated for the use of Queue elements. When the allocated block is filled, the kernel requests another memory block to fill with elements. As well, when the last element of the of a memory block is released, the entire memory block is deallocated. First fit is used when requesting space for an Element, and as all Elements are the same size there is no wasted space within a memory block of Elements.
 
-\end{itemize}
+In the case of message passing, as opposed to using two memory blocks, one for the message contents and one for the header, we would change our design to instead make use of the first 64 bytes to store our header information. The two-block implementation  was based on a faulty understanding of what parts of the msgbuf block was being used to store the message text.
+
+In the case of interrupt handling, two major design decisions caused much difficult after we had committed to them. Firstly, in deciding that i-processes should use the same ready, blocked-on-resource, and blocked-on-receive queues as the user processes, it led to scheduler-related bugs that could have been avoided if we have instead created a separate i-process ready and blocked queues. Secondly, as we chose to have interrupt handlers and i-processes communicate through message passing, by virtue of message passing needing memory our interrupt handling became dependent on sufficient memory resources. While this was remedied through special memory allocation, the problem could have been avoided by bypassing message passing although and instead having the interrupt handler call the i-process or place it on the i-process ready queue. The relevant information could then be passed directly to the process or through a shared global variable.
 
 \section{Timing Analysis}
 Everyone
