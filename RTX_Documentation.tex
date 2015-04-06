@@ -34,7 +34,10 @@ This documentation will cover:
 \end{itemize}
 
 \clearpage
-\section{Global Variable Documentation}
+{\bf Global Variables}
+\begin{description}
+\item [VARIABLE\_NAME] Stores x for y purpose, used by:
+\end{description}
 \begin{longtable}{|L{5cm}|L{10.5cm}|} \hline
 \textbf{Variable Name} & \textbf{Purpose} \\ \hline
 int total\_mem\_blocks & The number of memory blocks available in the operating system after memory initialization and process initialization \\ \hline
@@ -51,9 +54,10 @@ Procedure count variables:
 \item int c\_count
 \item int test1\_count
 \item etc
-\end{itemize} & Counts the number of times each procedure has been called. Used by our tests for housekeeping as well as error checking. \\ \hline
+\end{itemize}
+& Counts the number of times each procedure has been called. Used by our tests for housekeeping as well as error checking. \\ \hline
 
-Process Priorities 
+Process Priorities
 \begin{itemize}
 \item HIGH
 \item MEDIUM
@@ -110,7 +114,7 @@ The queue of Blocks holding Elements are removed completely from the set of poss
 {\bf void memory\_init(void)}\\
 Allocates memory for heap, links memory into blocks of size {\tt BLOCK\_SIZE}, and initializes all queues of all priority levels (blocked on resource, blocked on receive, ready, timer). It allocates memory for a mailbox Queue for each process, and initializes each queue's first and last pointers to null, before setting the appropriate gp\_pcbs's mailbox to the built mailbox.
 
-It also initializes the ElementBlock pointer (i.e. the head of the blocks containing elements) by taking the first free block and decrementing the total number of memory blocks to work with. Afterwards, it sets the currElement pointer to the front of ElementBlock + the size of an int pointer (i.e. in the area of the Block we want to modify), and iterates through the block casting to type Element and setting $\rightarrow$next and $\rightarrow$data to null, and $\rightarrow$block to ElementBlock.
+It also initializes the ElementBlock pointer (i.e. the head of the blocks containing elements) by taking the first free block and decrementing the total number of memory blocks to work with. Afterwards, it sets the currElement pointer to the front of ElementBlock + the size of an int pointer (i.e. in the area of the Block we want to modify), and iterates through the block casting to type Element and setting its next and data values to null, and its block value to ElementBlock.
 
 This should only be called once, from {\tt k\_rtx\_init.c}.
 
@@ -128,7 +132,7 @@ The function should not need to be used in any other context, as the local MSP v
 {\bf void *k\_request\_element(void)}\\
 Returns a pointer to an Element within the chain of Element blocks (starting at ElementBlock) whose data is set to null, and is thus ready to be filled with a queue element.
 
-Proper use is amounts to calling the method before something is added to a queue and setting its data pointer to the object you want to push into the queue. 
+Proper use amounts to calling the method before something is added to a queue and setting its data pointer to the object you want to push into the queue.
 
 Cleanup requires calling {\tt k\_release\_element\_block()} on the pointer to the element.
 
@@ -143,7 +147,7 @@ while currElement->data is not null {
             iterate over size of new memory block {
                 set Element->next to null
                 set Element->data to null
-                set Element->block to the new 
+                set Element->block to the new
                 }
         }
         currBlock = currBlock->next
@@ -194,7 +198,7 @@ Cleanup requires calling {\tt k\_release\_memory\_block()} on the pointer to the
 
 Pseudo:
 \begin{verbatim}
-while there are no memory blocks or there are only 2 free_blocks and the current process pid is < 10 {
+while there are no memory blocks || only 2 free_blocks && current process pid is < 10 {
     set priority to the current priority
     push the current process element into blocked on resource queue for priority
     set current process state to blocked on resource
@@ -215,7 +219,7 @@ return a
 {\bf int *k\_release\_memory\_block(void *p\_mem\_blk)}\\
 Returns a flag signalling {\tt RTX\_OK} or {\tt RTX\_ERR} after releasing the block and checking if any processes can be unblocked on resource, and if the current process needs to be thusly preempted.
 
-Proper use amounts to calling the method after a variable is no longer needed, and its memory can be thusly released and overwritten.
+Proper use amounts to calling the method after a variable is no longer needed that is not already free, and its memory can be thusly released and overwritten.
 
 Pseudo:
 \begin{verbatim}
@@ -254,19 +258,19 @@ There are externed functions to pop, remove, push, and print any queue, as well 
 
 \subsubsection{Functions}
 {\bf Element* pop(Queue* self)}\\
-Returns a pointer to the topmost element in a queue, and null if empty. Also manipulates the queue such that the topmost element is then shucked from the queue, and the queue's first (and possibly last) pointer is thusly updated.
+Returns a pointer to the topmost element in a queue, and null if empty. Also shucks element from queue, updating first and last pointers.
 
-Proper use amounts to calling the method when trying to get the first element in a queue, and an Element pointer is set to its return value. The return value should be checked to see if it's null (which is returned when the queue is empty) before proceeding.
+Proper use amounts to calling the method when trying to get the first element in a queue; an Element pointer is set to its return value. The return value should be checked to see if it's null (which is returned when the queue is empty) before proceeding.
 
-This method is often used when finding processes to schedule. Cleanup may involve deallocating the memory used for the Element, if the returned element isn't being pushed to another queue. 
+This method is often used when finding processes to schedule. Cleanup may involve deallocating the memory used for the Element, if the returned element isn't being pushed to another queue.
 
 {\bf Element* removeFromQ(Queue* self, int id)}\\
-Returns a pointer to an element in a queue with the specified id, and null if empty. Also manipulates the queue such that the element is then shucked from the queue, and its previous element's next pointer (and possibly the queue's first and last pointers) is thusly updated.
+Returns a pointer to an element in a queue with the specified id, and null if empty. Also manipulates the queue such that the element is then shucked from the queue, and its previous element's neighboring pointers are updated.
 
-Proper use amounts to calling the method when trying to remove a very specific element, and an Element pointer is set to its return value. The return value should be checked to see if it's null (which is returned when the queue is empty or the element is not found) before proceeding.
+Proper use amounts to calling the method when trying to remove a very specific element, which is set to its return value. The return value should be checked to see if it's null (which is returned when the queue is empty or the element is not found) before proceeding.
 
-This method is often used when priority is being changed on a specific process and it needs to be moved between prioritized queues of the same type (e.g. from {\tt blocked\_resource\_qs$[$2$]$} to {\tt blocked\_resource\_qs$[$4$]$}, or when a message is being received and we need to remove the receiving process from the appropriate blocked on receive queue, regardless of its position in the queue.
- 
+This method is often used when priority is being changed on a specific process and it needs to be moved between prioritized queues of the same type (e.g. from {\tt blocked\_resource\_qs$[$2$]$} to {\tt blocked\_resource\_qs$[$4$]$}), or when a message is being received and we need to remove the receiving process from the appropriate blocked on receive queue, regardless of its position in the queue.
+
 {\bf int push(Queue* self, Element* element)}\\
 Returns a a flag signalling {\tt RTX\_OK} when pushing an element to a specified queue. Puts the element on the back of a queue and updates its last element's next pointer, the queue's last pointer, and possibly its first pointer if the queue was formerly empty.
 
@@ -274,17 +278,17 @@ Proper use amounts to calling the method, passing in an element which already ex
 
 
 {\bf void printReadyQ(char* tag)}\\
-Prints a ``Ready Q" label and the tag that has been passed in. Then, iterates through the ready queue of each priority, printing from the queue's first until the element iterator is null (i.e. reaches the end of the list).
+Prints a ``Ready Q" label and the tag that has been passed in. Then, iterates through the ready queue of each priority, printing from the queue's elements in order.
 
 Used as a hotkey mapping, and also for debugging purposes.
 
 {\bf void printBlockedQ(char* tag)}\\
-Prints a ``Blocked Q" label and the tag that has been passed in. Then, iterates through the blocked on resource queue of each priority, printing from the queue's first until the element iterator is null (i.e. reaches the end of the list).
+Prints a ``Blocked Q"" label and the tag that has been passed in. Then, iterates through the ready queue of each priority, printing from the queue's elements in order.
 
 Used as a hotkey mapping, and also for debugging purposes.
 
 {\bf void printBlockedReceiveQ(char* tag)}\\
-Prints a ``Blocked Received Q" label and the tag that has been passed in. Then, iterates through the blocked on receive queue of each priority, printing from the queue's first until the element iterator is null (i.e. reaches the end of the list).
+Prints a ``Blocked Receive Q"" label and the tag that has been passed in. Then, iterates through the ready queue of each priority, printing from the queue's elements in order.
 
 Used as a hotkey mapping, and also for debugging purposes.
 
@@ -301,7 +305,7 @@ Used instead of calling {\tt getReadyQ()} and passing that into {\tt pop()}.
 {\bf Queue* getReadyQ(int priority)}\\
 Returns a pointer to the Queue stored in {\tt ready\_qs$[$priority$]$}.
 
-This is used in favour of a global {\tt ready\_qs} variable, which caused us when calling from other classes even when externed.
+This is used in favour of a global {\tt ready\_qs} variable, which caused us problems when calling from other classes even when externed.
 
 {\bf setReadyQ(int priority, Queue* q)}\\
 Sets {\tt ready\_qs$[$priority$]$} to the q passed in.
@@ -311,7 +315,7 @@ Should only be used in {\tt memory\_init()}, when queues are allocated space and
 {\bf Queue* getBlockedResourceQ(int priority)}\\
 Returns a pointer to the Queue stored in {\tt blocked\_resource\_qs$[$priority$]$}.
 
-This is used in favour of a global {\tt blocked\_resource\_qs} variable, which caused us when calling from other classes even when externed.
+This is used in favour of a global {\tt blocked\_resource\_qs} variable, which caused us problems when calling from other classes even when externed.
 
 {\bf setBlockedResourceQ(int priority, Queue* q)}\\
 Sets {\tt blocked\_resource\_qs$[$priority$]$} to the q passed in.
@@ -321,7 +325,7 @@ Should only be used in {\tt memory\_init()}, when queues are allocated space and
 {\bf Queue* getBlockedReceiveQ(int priority)}\\
 Returns a pointer to the Queue stored in {\tt blocked\_receive\_qs$[$priority$]$}.
 
-This is used in favour of a global {\tt blocked\_receive\_qs} variable, which caused us when calling from other classes even when externed.
+This is used in favour of a global {\tt blocked\_receive\_qs} variable, which caused us problems when calling from other classes even when externed.
 
 {\bf setBlockedReceiveQ(int priority, Queue* q)}\\
 Sets {\tt blocked\_receive\_qs$[$priority$]$} to the q passed in.
@@ -331,7 +335,7 @@ Should only be used in {\tt memory\_init()}, when queues are allocated space and
 {\bf Queue* getTimedQ(void)}\\
 Returns a pointer to the Queue stored in {\tt timed\_q$[0]$}.
 
-This is used in favour of a global {\tt timed\_qs} variable, which caused us when calling from other classes even when externed.
+This is used in favour of a global {\tt timed\_qs} variable, which caused us problems when calling from other classes even when externed.
 
 {\bf setTimedQ(int priority, Queue* q)}\\
 Sets {\tt timed\_qs$[0]$} to the q passed in.
@@ -358,11 +362,9 @@ Iterates over the entire message's text characters (120), comparing the characte
 Is used in user testing to make sure that the received message is the one expected by comparing the return value to 0.
 
 {\bf Envelope *build\_envelope(int process\_id, msgbuf *message\_envelope, int delay)}\\
-Packages a message into an envelope to be put in a mailbox, returning the built envelope. The function requesting a memory block for the envelope, setting the returned block's pid to the receiving process id, casting the returned memory block to an Envelope, and setting the appropriate fields (sender\_id as current process id, destination\_id as parameter process\_id, message as parameter message\_envelope, time as {\tt get\_time()}, and delay as parameter delay.
+Returns a pointer to a built envelope containing a message and its header to be put in the appropriate mailbox later.
 
-Should only be called by functions that send messages (i.e. {\tt k\_send\_message()} and {\tt k\_delayed\_send()}), which receives an envelope pointer to pass into {\tt build\_envelope()}.
-
-After the envelope is returned, it should be pointed to by the element's data pointer, which is then put into a process's message queue or the timed queue.
+This is only used by functions that send messages (i.e. {\tt k\_send\_message()} and {\tt k\_delayed\_send()}), which receives an envelope pointer to pass into {\tt build\_envelope()}.
 
 {\bf int destroy\_envelope(Envelope *envelope)}\\
 Returns {\tt RTX\_ERR} if the current process's pid doesn't match the envelope's destination id (i.e. the process doesn't have the right to destroy it), and otherwise returns the flag returned by calling {\tt k\_release\_memory\_block()} on the address of the envelope.
@@ -418,7 +420,7 @@ Returns a flag signalling {\tt RTX\_OK} or {\tt RTX\_ERR} when sending a message
 Should be called from any process that wants to build a message, after {\tt k\_allocate\_message()} has been called and the msgbuf built to be passed into this function.
 
 {\bf void *k\_receive\_message(int *sender\_id)}\\
-Receives a message and returns a void pointer to its address.
+Receives a message, sets sender\_id to the pid of the sending process, and returns a void pointer to its address.
 
 Should be called from any process that wants to receive a message, after {\tt k\_allocate\_message()} has been called and the msgbuf built to be passed into this function. Should be followed by a {\tt deallocate\_message()} on the address of the received message, after its contents have been read and/or used.
 
@@ -543,14 +545,14 @@ Keyboard & For each keyboard interrupt, captures keyboard input composes and sen
 \centering
 \begin{tabular}{|L{3cm}|L{8cm}|L{3cm}|} \hline
 \textbf{i-process}& Description & Active \\ \hline
-UART\_iprocess& 
+UART\_iprocess&
 \tabitem An infinite loop that waits for messages from the Keyboard Handler.
-\newline 
+\newline
 \tabitem Forwards messages from Keyboard handler to KCD.
  & \tabitem i-process of HIGH priority that is blocked-on-receive
  \newline
   \\ \hline
-KCD& 
+KCD&
 \tabitem
 An infinite loop that waits for messages from the UART i-process.
 \newline
@@ -564,7 +566,7 @@ An infinite loop that waits for messages from the UART i-process.
 \caption{i-process Chart\label{overflow}}
 \end{figure}
 
-For the timer interrupts, there are no relevant timer i-processes as all timer logic is located in the timer handler. 
+For the timer interrupts, there are no relevant timer i-processes as all timer logic is located in the timer handler.
 
 For the keyboard interrupts, the keyboard handler sends a message containing the key press to the UART i-process, who then forwards that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
 
@@ -573,20 +575,18 @@ For the keyboard interrupts, the keyboard handler sends a message containing the
 \includegraphics[width=150mm]{Keyboard_interrupt.jpg}
 \caption{Keyboard Interrupt Flowchart \label{overflow}}
 \end{figure}
-=======
 \section{System and User Processes}
-{\bf System Processes} \\ \newline
-\begin{tabular}{|L{2cm}|L{4cm}|L{5cm}|L{4cm}|}\hline
+\begin{itemize}
+\item System Processes \\ \newline
+\begin{tabular}{|L{2cm}|L{4cm}|L{4.5cm}|L{4cm}|}\hline
 \textbf{System Process} & \textbf{Purpose} & \textbf{What It Does} & \textbf{System Processes That It Depends On} \\ \hline
 NullProcess & The null process is the lowest priority process. It is a hidden process with PID 0 & The null process loops infinitely & Does not depend on any other process \\ \hline
 
 CRT Print & The CRT Function is responsible for printing all text to the board & given a message, the CRT print will extract the message data and display it. The CRT Print function does format or change the message data in any way. & In order to run, the CRT depends on other system process to send it messages. \\ \hline
 \end{tabular}
 \newline
-\newline
-\newline
-{\bf User Processes:} \\ \newline 
-\begin{tabular}{|L{3.5cm}|L{7cm}|L{5cm}|}\hline
+\item User Processes: \\ \newline
+\begin{tabular}{|L{3cm}|L{7cm}|L{5cm}|}\hline
 \textbf{System Process} & \textbf{What It Does} & \textbf{System Processes That It Depends On} \\ \hline
 Wall\_Clock\_Process & The wallclock process is responsible for displaying different times onto the screen. Once started, The wall clock time starts at 00:00:00 and increments every second until terminated. The wallclock time can be manually changed using different commands. & \begin{itemize}
 \item \textbf{KCD} - depends on the KCD to register itself
@@ -597,6 +597,7 @@ Set\_Process\_Priority & Given two parameters, the set priority command process 
 \item \textbf{KCD} - depends on the KCD to register itself
 \end{itemize} \\ \hline
 \end {tabular}
+\end{itemize}
 
 \clearpage
 \section{Initialization}
@@ -611,7 +612,7 @@ Parameters:
     \item USR\_SZ\_STACK: the size of the stack allocated to each user process, which can be used to configure how much stack memory each process has access to
     \item RAM\_END\_ADDR: the ending address of available memory, which can be used to configure how much heap memory the OS has access (will be constrained by the hardware being used)
     \item BLOCK\_SIZE: the fixed size of each memory block, which can be used to configure the amount of memory given when request memory is called (can also be used to configure how many memory blocks to have)
-\end{itemize} 
+\end{itemize}
 
 \clearpage
 \section{Testing}
@@ -711,7 +712,7 @@ some_test_function(){
 
 This analysis is valid because, as shown in Figure 2, the time taken for message sending and receiving is proportional to the amount of messages sent and received. Similarly, there is a direct correlation between time taken to request and release memory blocks and the amount of blocks requested or released. In addition, simple system processes such as setting process priority took less time than more complex system processes such as sending messages (which in turn requested memory blocks).
 
-The data presented shows a linear correlation, however small variances (of about 1 - 2 us) may become apparent if the number of blocks increases or timing interrupts occur. 
+The data presented shows a linear correlation, however small variances (of about 1 - 2 us) may become apparent if the number of blocks increase or timing interrupts occur.
 
 \section{Conclusion}
 In hindsight, it is apparent that there are many implementation strategies which could have been drastically improved, saving hours of debugging and refactoring. However, with the spirit of the course, all contributors gained a deep understanding of the design and implementation challenges of basic operating systems, and can likely discuss the benefits and detriments of each decision that we made over the course of this project.
