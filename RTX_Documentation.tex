@@ -48,7 +48,7 @@ Should I include constants?
 \begin{description}
 \item [VARIABLE\_NAME] Stores x for y purpose, used by:
 \newline
-\begin{longtable}{|L{5cm}|L{8cm}|} \hline
+\begin{longtable}{|L{5cm}|L{10.5cm}|} \hline
 \textbf{Variable Name} & \textbf{Purpose} \\ \hline
 int total\_mem\_blocks & the number of memory blocks available in the operating system after memory initialization and process initialization \\ \hline
 int free\_blocks & the number of free blocks. This variable changes as more blocks are requested and released by processes. Used by our test cases for error checking and housekeeping. Also used by the interrupt handlers to ensure that there is always sufficient memory blocks for message passing. \\ \hline
@@ -76,9 +76,6 @@ Process Priorities
 & CONSTANTS (Found in rtx.h)- used throughout the operating system to signify process priorities\\ \hline
 
 \end{longtable}
-\begin{itemize}
-\item z
-\end{itemize}
 \end{description}
 
 {\bf Global Data Structures}
@@ -716,7 +713,26 @@ In the case of message passing, as opposed to using two memory blocks, one for t
 In the case of interrupt handling, two major design decisions caused much difficult after we had committed to them. Firstly, in deciding that i-processes should use the same ready, blocked-on-resource, and blocked-on-receive queues as the user processes, it led to scheduler-related bugs that could have been avoided if we have instead created a separate i-process ready and blocked queues. Secondly, as we chose to have interrupt handlers and i-processes communicate through message passing, by virtue of message passing needing memory our interrupt handling became dependent on sufficient memory resources. While this was remedied through special memory allocation, the problem could have been avoided by bypassing message passing although and instead having the interrupt handler call the i-process or place it on the i-process ready queue. The relevant information could then be passed directly to the process or through a shared global variable.
 
 \section{Timing Analysis}
-Everyone
+In our experiment we decided to use the sysTick timer because it incremented every 20 us. We create a new set of tests that performed basic system calls, checking the sysTick timer after each call was finished.  \\
+\newline
+Pseudo:
+\begin{verbatim}
+some_test_function(){
+	int systick_initial_value = SysTick -> VAL; //SysTick is a global variable.
+	System_call();
+	time_taken = systick_initial_value - SysTick->Val / 20
+}
+\end{verbatim}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=170mm]{TimingAnalysisGraph.jpg}
+\caption{Timing Analysis data \label{overflow}}
+\end{figure}
+
+This analysis is valid because as shown in Figure 2, the time taken for message sending and receiving is proportional to the amount of messages sent and received. Similarly, there is a direct correlation between time taken to request and release memory blocks and the amount of blocks requested or released. In addition, simple system processes such as setting process priority took less time than more complex system processes such as sending messages (which in turn requested memory blocks).
+
+The data presented shows a linear correlation, however small variances (of about 1 - 2 us) may become apparent if the number of blocks increase or timing interrupts occur. 
 
 \section{Conclusion}
 In hindsight, it is apparent that there are many implementation strategies which could have been drastically improved, saving hours of debugging and refactoring. However, with the spirit of the course, all contributors gained a deep understanding of the design and implementation challenges of basic operating systems, and can likely discuss the benefits and detriments of each decision that we made over the course of this project.
