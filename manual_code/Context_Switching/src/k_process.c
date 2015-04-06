@@ -127,7 +127,7 @@ Element *scheduler(void)
 		}
 	}
 	return element;
-}
+ }
 
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
  *@param: p_pcb_old, the old pcb that was in RUN

@@ -51,10 +51,6 @@ void A(void) //pid = 7
  */
 void B(void) //pid = 8
 {
-//	int i;
-	//int *sender = k_request_memory_block();
-//	msgbuf *message;
-	
 	
 	/* TEST3 code */
 	b_count = release_memory_block(test3_mem);
@@ -75,20 +71,20 @@ void C(void) //pid == 9
 	
 	//fills up the memory block array. Also requests ALL memory.
 	int number_mem_blocks = getTotalFreeMemory(); //101
-	void * mem_blocks[500];
+	
+	void * mem_blocks[100];
 	int i = 0;
-	/*THIS IS THE THING CAUSING ERRORS*/
-	/*
-	for (i = 0; i < number_mem_blocks; i ++){
+	
+	for (i = 0; i < number_mem_blocks + 1; i ++){
 		mem_blocks[i] = request_memory_block();
 	}
 	i = 0;
 	//release all memory
-	while(mem_blocks[i] != NULL) {
+	for (i = 0; i < number_mem_blocks + 1; i ++){
 		release_memory_block(mem_blocks[i]);
 		i++;
 	}
-	*/
+	
 	release_processor();
 	
 	//release process
@@ -180,6 +176,9 @@ void test2(void){
 
 	requested = request_memory_block();
 	
+	if(initial == getMSP()) {
+		failed = failed + 1;
+	}
 	release_memory_block(requested);
 	if(initial != getMSP()) {
 		failed = failed + 1;
@@ -289,7 +288,7 @@ void test4(void){
 	
 }
 /**
- * @brief: a process that tests message passing
+ * @brief: test that checks for memory leaks
  */
 void test5(void){	
 	int failed = 0;

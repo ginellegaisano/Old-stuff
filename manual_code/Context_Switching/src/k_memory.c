@@ -8,8 +8,8 @@
 #include "k_memory.h"
 #ifdef DEBUG_0
 #include "printf.h"
-#include "msg.h"
 #endif /* ! DEBUG_0 */
+#include "msg.h"
 
 /* ----- Global Variables ----- */
 U32 *gp_stack; 
@@ -301,6 +301,7 @@ void *k_request_memory_block(void) {
 	//atomic(off);
 	 __enable_irq();
 	//printf("-1 memory block requested\n\r");
+
 	return (void *) ((int)a+4);
 }
 

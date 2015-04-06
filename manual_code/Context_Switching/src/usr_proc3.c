@@ -5,12 +5,20 @@
  * @date:   2015/02/01
  * NOTE: Each process is in an infinite loop. Processes never terminate.
  */
+ #include <LPC17xx.h>
+
 #include "k_rtx.h"
 #include "rtx.h"
 #include "k_memory.h"
 #include "usr_proc.h"
 #include "msg.h"
 #include  "uart_polling.h"
+#include "timer.h"
+
+#define T_RESET (1 << 1) | (1 << 0);
+#define T_START (0 << 1) | (1 << 0);
+#define T_STOP (1 << 0);
+
 
 #ifdef DEBUG_0
 #include "printf.h"
@@ -19,6 +27,8 @@ extern int FAILED;
 
 int COUNT_REPORT  = 2;
 int wakeup10 = 3;
+
+int global_start = 0;
 
 
 void A(void) //pid = 7
@@ -139,6 +149,22 @@ void C(void) //pid == 9
  * @brief: 
  */
 void test1(void){
+	void *mem1;
+	void *mem2;
+	void *mem3;
+	void *mem4;
+	int start = SysTick->VAL;
+
+	start = SysTick->VAL;
+	mem1 = request_memory_block();
+	#ifdef DEBUG_0
+		printf("request m: %d\r\n", (start - SysTick->VAL)/20 ); 
+	#endif /* ! DEBUG_0 */
+	start = SysTick->VAL;
+	release_memory_block(mem1);
+	#ifdef DEBUG_0
+		printf("release_me: %d\r\n", (start - SysTick->VAL)/20 ); 
+	#endif /* ! DEBUG_0 */
 	while(1) {
 		release_processor();
 	}
@@ -149,6 +175,16 @@ void test1(void){
  * @brief: 
  */
 void test2(void){
+	char msg[4] = {'t','e','s','t'};
+	msgbuf *message = allocate_message(DEFAULT, msg, 4);
+	int start = SysTick->VAL;
+
+	send_message(4, message);
+
+	#ifdef DEBUG_0
+		printf("send_mes: %d\r\n", (start - SysTick->VAL)/20); 
+	#endif /* ! DEBUG_0 */
+			
 	while(1) {
 		release_processor();
 	}
@@ -158,6 +194,18 @@ void test2(void){
  * @brief: 
  */
 void test3(void){
+	int *sender = request_memory_block();
+	msgbuf *message;
+	int start = SysTick->VAL;
+
+	start = SysTick->VAL;
+	message = receive_message(sender);
+	#ifdef DEBUG_0
+		printf("receive: %d\r\n", (start - SysTick->VAL)/20); 
+	#endif /* ! DEBUG_0 */
+	
+	release_memory_block(sender);
+	deallocate_message(message);
 	while(1) {
 		release_processor();
 	}
@@ -167,6 +215,14 @@ void test3(void){
  * @brief:
  */
 void test4(void){
+	int start = SysTick->VAL;
+	set_process_priority(5, HIGH);
+	#ifdef DEBUG_0
+		printf("set: %d\r\n", (start - SysTick->VAL)/20); 
+	#endif /* ! DEBUG_0 */
+	set_process_priority(6, HIGH);
+	global_start =  SysTick->VAL;
+	release_processor();
 	while(1) {
 		release_processor();
 	}
@@ -177,6 +233,9 @@ void test4(void){
  * @brief:
  */
 void test5(void){
+	#ifdef DEBUG_0
+		printf("release p: %d\r\n", (global_start - SysTick->VAL)/20); 
+	#endif /* ! DEBUG_0 */
 	while(1) {
 		release_processor();
 	}
