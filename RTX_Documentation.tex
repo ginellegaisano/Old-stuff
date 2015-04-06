@@ -2,7 +2,7 @@
 \usepackage{geometry}
 \geometry{letterpaper}
 \usepackage{graphicx}
-\usepackage{amssymb,amsmath,parskip}
+\usepackage{amssymb,amsmath,parskip,fullpage}
 \usepackage{array}
 \usepackage{longtable}
 
@@ -35,28 +35,15 @@ This documentation will cover:
 
 \clearpage
 \section{Global Variable Documentation}
-Everyone
-\begin{itemize}
-\item What does each variable store?
-\item Why is there a variable to store this?
-\item What do your global data structures look like?
-\item What functions use it?
-\end{itemize}
-
-Should I include constants? 
-{\bf Global Variables}
-\begin{description}
-\item [VARIABLE\_NAME] Stores x for y purpose, used by:
-\newline
 \begin{longtable}{|L{5cm}|L{10.5cm}|} \hline
 \textbf{Variable Name} & \textbf{Purpose} \\ \hline
-int total\_mem\_blocks & the number of memory blocks available in the operating system after memory initialization and process initialization \\ \hline
-int free\_blocks & the number of free blocks. This variable changes as more blocks are requested and released by processes. Used by our test cases for error checking and housekeeping. Also used by the interrupt handlers to ensure that there is always sufficient memory blocks for message passing. \\ \hline
-Block * MSP & the pointer to the next available memory block. NULL if there are no free memory blocks \\ \hline
+int total\_mem\_blocks & The number of memory blocks available in the operating system after memory initialization and process initialization \\ \hline
+int free\_blocks & The number of free blocks. This variable changes as more blocks are requested and released by processes. Used by our test cases for error checking and housekeeping. Also used by the interrupt handlers to ensure that there is always sufficient memory blocks for message passing. \\ \hline
+Block * MSP & The pointer to the next available memory block. NULL if there are no free memory blocks \\ \hline
 Block *ElementBlock & Pointer to the current element block. NULL if there is no available space in the system. \\ \hline
 Element *gp\_current\_element & The element that contains the current block. Used by scheduler(), k\_release\_processor(), set\_process\_priority() to move the PCB between ready, blocked and blocked\_on\_receive queues. \\ \hline
 PCB *gp\_current\_process & The PCB for the current running process. Used within k\_process. Also used in tests for housekeeping and error checking. \\ \hline
-int FAILED & counts the number of failed tests. Used later by the test handler to print out results \\ \hline
+int FAILED & Counts the number of failed tests. Used later by the test handler to print out results \\ \hline
 Procedure count variables:
 \begin{itemize}
 \item int a\_count
@@ -64,7 +51,7 @@ Procedure count variables:
 \item int c\_count
 \item int test1\_count
 \item etc
-\end{itemize} & \tabitem Counts the number of times each procedure has been called. Used by our tests for housekeeping as well as error checking. \\ \hline
+\end{itemize} & Counts the number of times each procedure has been called. Used by our tests for housekeeping as well as error checking. \\ \hline
 
 Process Priorities 
 \begin{itemize}
@@ -76,12 +63,9 @@ Process Priorities
 & CONSTANTS (Found in rtx.h)- used throughout the operating system to signify process priorities\\ \hline
 
 \end{longtable}
-\end{description}
 
+\clearpage
 {\bf Global Data Structures}
-\begin{description}
-\item [DATA\_STRUCTURE\_NAME] Stores x for y purpose, used by:
-\newline
 \begin{longtable}{|L{2cm}|L{5cm}|L{8cm}|} \hline
 \textbf{Structure Name} & \textbf{Purpose} & \textbf{Properties} \\ \hline
 Queue& generic queue &
@@ -89,12 +73,12 @@ Queue& generic queue &
 \newline
 \tabitem \textbf{Element *last}: pointer to last element in the Queue. Is NULL if there are no elements.\\ \hline
 Element & Generic queue element &
-\tabitem \textbf{Element *next}: pointer to next element in queue. NULL if the last element
+\tabitem \textbf{Element *next}: pointer to next element in queue. NULL if the last element.
 \newline
-\tabitem \textbf{void *data}: pointer to element data
+\tabitem \textbf{void *data}: pointer to element data.
 \newline
 \tabitem \textbf{void *block}: pointer to memory block element resides in \\ \hline
-PCB & \textbf{Process Control Block}. Used to store process identification data and status, such as running state and progress in process& \textbf{U32 *mp\_sp}: stack pointer of process \newline
+PCB & \textbf{Process Control Block}. Used to store process identification data and status, such as running state and progress in process& \tabitem \textbf{U32 *mp\_sp}: stack pointer of process \newline
 \tabitem \textbf{U32 m\_pid}: process id \newline
 \tabitem \textbf{PROC\_STATE\_E m\_state}: current running state of the process \newline
 \tabitem \textbf{int m\_priority}: process priority (low value = high priority) \newline
@@ -104,7 +88,7 @@ Block & Represents a chunk of free memory. Is returned to the user on request\_m
 \tabitem \textbf{Block *next}: pointer to the next Block in the free memory block list. Is NULL if block is in use/allocated to a user process. \\ \hline
 msgbuf&Stores the message's data&
 \tabitem \textbf{int mtype}: the message type (types defined in CONSTANTS section) \newline
-\tabitem \textbf{char mtext[size]}: char array containing the message data. Size is dependent on BLOCK\_SIZE\\ \hline
+\tabitem \textbf{char mtext[size]}: char array containing the message data. Size is dependent on BLOCK\_SIZE.\\ \hline
 Envelope&The header for a message. Contains necessary information for delivery. Is the structure that is passed around in the message-passing system.&
 \tabitem \textbf{int sender\_id}: pid of sending process \newline
 \tabitem \textbf{int destination\_id}: pid of destination process \newline
@@ -115,9 +99,6 @@ Envelope&The header for a message. Contains necessary information for delivery. 
 
 \end{longtable}
 
-\end{description}
-
-\clearpage
 \section{Kernel API}
 \subsection{Memory Management}
 \subsubsection{Structure Overview}
@@ -539,8 +520,6 @@ After, it checks if the current process is the one being altered and the new pri
 
 This function can be called anywhere, and is specifically used for a hotkey mapping, the {\tt set\_priority\_process()} system process, and extensively in our user tests.
 
-\newpage
-
 \section{Interrupts and their Handlers/Processes}
 The interrupts enabled by our Operating System are Timer and Keyboard interrupts. Their handlers and i-processes are described below:
 \begin{figure}[ht!]
@@ -550,12 +529,12 @@ The interrupts enabled by our Operating System are Timer and Keyboard interrupts
 Timer &
 Increments a counter after every timer interrupt. For each second passed, resets counter and decrements all messages in the delayed timed queue.
 &
-\tabitem pushes delayed messages to appropriate destination process mailbox when message delay has passed.
+\tabitem Pushes delayed messages to appropriate destination process mailbox when message delay has passed.
 \\ \hline
-Keyboard & For each keyboard interrupt, captures keyboard input composes and sends a message to the UART i-process &
+Keyboard & For each keyboard interrupt, captures keyboard input composes and sends a message to the UART i-process. &
 
-\tabitem prints debugging hot keys to UART1 output. \newline
-\tabitem sends key press to KCD for command processing. \\ \hline
+\tabitem Prints debugging hot keys to UART1 output. \newline
+\tabitem Sends key press to KCD for command processing. \\ \hline
 \end{tabular}
 \caption{Interrupt Chart \label{overflow}}
 \end{figure}
@@ -565,29 +544,29 @@ Keyboard & For each keyboard interrupt, captures keyboard input composes and sen
 \begin{tabular}{|L{3cm}|L{8cm}|L{3cm}|} \hline
 \textbf{i-process}& Description & Active \\ \hline
 UART\_iprocess& 
-\tabitem an infinite loop that waits for messages from the Keyboard Handler.
+\tabitem An infinite loop that waits for messages from the Keyboard Handler.
 \newline 
-\tabitem forwards messages from Keyboard handler to KCD.
+\tabitem Forwards messages from Keyboard handler to KCD.
  & \tabitem i-process of HIGH priority that is blocked-on-receive
  \newline
   \\ \hline
 KCD& 
 \tabitem
-an infinite loop that waits for messages from the UART i-process.
+An infinite loop that waits for messages from the UART i-process.
 \newline
-\tabitem registers commands to processes by storing message contents and sender id
+\tabitem Registers commands to processes by storing message contents and sender id.
 \newline
-\tabitem processes collective key presses and either sends it to UART print for printing or determines if it is a command by comparing to registered command list.
+\tabitem Processes collective key presses and either sends it to UART print for printing or determines if it is a command by comparing to registered command list.
 \newline
-\tabitem if command is found, sends collective key presses as within the message text to the registered process.
- & i-process of HIGH priority that is blocked-on-recieve \\ \hline
+\tabitem If command is found, sends collective key presses as within the message text to the registered process.
+ & \tabitem i-process of HIGH priority that is blocked-on-recieve \\ \hline
 \end{tabular}
 \caption{i-process Chart\label{overflow}}
 \end{figure}
 
 For the timer interrupts, there are no relevant timer i-processes as all timer logic is located in the timer handler. 
 
-For the keyboard interrupts, the keyboard handler it sends a message containing the key press to the UART i-process, who then forwards that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
+For the keyboard interrupts, the keyboard handler sends a message containing the key press to the UART i-process, who then forwards that message to the KCD i-process for processing. While waiting for keyboard input, both i-processes are blocked on received, waiting for messages to arrive. All these processes are given the highest priority to ensure that they interrupt any current processes. To ensure that no i-process is every blocked due to lack of memory when sending messages, a separate number of memory blocks are allocated specifically to i-processes.
 
 \begin{figure}[ht!]
 \centering
@@ -596,18 +575,18 @@ For the keyboard interrupts, the keyboard handler it sends a message containing 
 \end{figure}
 =======
 \section{System and User Processes}
-RayMak
-\begin{itemize}
-\item System Processes \\ \newline
-\begin{tabular}{|L{2cm}|L{4cm}|L{4.5cm}|L{4cm}|}\hline
+{\bf System Processes} \\ \newline
+\begin{tabular}{|L{2cm}|L{4cm}|L{5cm}|L{4cm}|}\hline
 \textbf{System Process} & \textbf{Purpose} & \textbf{What It Does} & \textbf{System Processes That It Depends On} \\ \hline
 NullProcess & The null process is the lowest priority process. It is a hidden process with PID 0 & The null process loops infinitely & Does not depend on any other process \\ \hline
 
-CRT Print & the CRT Function is responsible for printing all text to the board & given a message, the CRT print will extract the message data and display it. The CRT Print function does format or change the message data in any way. & In order to run, the CRT depends on other system process to send it messages. \\ \hline
+CRT Print & The CRT Function is responsible for printing all text to the board & given a message, the CRT print will extract the message data and display it. The CRT Print function does format or change the message data in any way. & In order to run, the CRT depends on other system process to send it messages. \\ \hline
 \end{tabular}
 \newline
-\item User Processes: \\ \newline 
-\begin{tabular}{|L{3cm}|L{7cm}|L{5cm}|}\hline
+\newline
+\newline
+{\bf User Processes:} \\ \newline 
+\begin{tabular}{|L{3.5cm}|L{7cm}|L{5cm}|}\hline
 \textbf{System Process} & \textbf{What It Does} & \textbf{System Processes That It Depends On} \\ \hline
 Wall\_Clock\_Process & The wallclock process is responsible for displaying different times onto the screen. Once started, The wall clock time starts at 00:00:00 and increments every second until terminated. The wallclock time can be manually changed using different commands. & \begin{itemize}
 \item \textbf{KCD} - depends on the KCD to register itself
@@ -619,22 +598,22 @@ Set\_Process\_Priority & Given two parameters, the set priority command process 
 \end{itemize} \\ \hline
 \end {tabular}
 
-\end{itemize}
-
+\clearpage
 \section{Initialization}
 The OS starts by initializing each of the interrupts (irq, timer, and uarts). Each of these are calls to given functions and were not implemented as part of this project and so will not be discussed in this report.
 
-The OS then initializes the memory. This is done by setting the creating a pointer to the end of the available memory, \textbf{p\_end}. For each of the processes we move that pointer up by the size of a PCB to prevent them from being overwritten. A similar procedure is done for the ready, blocked on resource, blocked on received, and timed queues. The heap is now defined as starting at p\_end + 4 bits of buffer. The head end is defined as the end of available memory minus the amount of memory used for the stack of each process (RAM\_END\_ADDR - NUM\_PROCS - USR\_SZ\_STACK). At the start of this range the MSP is initialized, and within this range we create a Block with a null ownership pid and a next value pointing to the MSP. For each iteration we shift the MSP by BLOCK\_SIZE. This results in a heap of the appropriate bounds initialized as a linked list of BLOCK\_SIZE sized blocks.For more details view the associated section of 3.1.2.
+The OS then initializes the memory. This is done by creating and setting a pointer to the end of the available memory, \textbf{p\_end}. For each of the processes we move that pointer up by the size of a PCB to prevent them from being overwritten. A similar procedure is done for the ready, blocked on resource, blocked on received, and timed queues. The heap is now defined as starting at p\_end + 4 bits of buffer. The head end is defined as the end of available memory minus the amount of memory used for the stack of each process (RAM\_END\_ADDR - NUM\_PROCS - USR\_SZ\_STACK). At the start of this range the MSP is initialized, and within this range we create a Block with a null ownership pid and a next value pointing to the MSP. For each iteration we shift the MSP by BLOCK\_SIZE. This results in a heap of the appropriate bounds initialized as a linked list of BLOCK\_SIZE sized blocks. For more details view the associated section of 3.1.2.
 
-Process initialization is done by building proc tables. The test processes are initialized using a \textbf{set\_test\_procs} function which builds a \textbf{g\_test\_procs} table with each of the test functions. Each function has default priority low and default stack size determined by a OS parameter \textbf{USR\_SZ\_STACK} We then set the starting values for A, B, and C to LOWEST. Finally each table entry is given a pointer to the corresponding function. When initializing all processes we call this set\_test\_procs function and iterate through the test table adding each entry to the \textbf{g\_proc\_table}. The rest of the functions are manually added since they have unique values. Most of these values are stored as global variables so that all functions have access to them. For more details view the associated section of 3.4.2
+Process initialization is done by building proc tables. The test processes are initialized using a \textbf{set\_test\_procs} function which builds a \textbf{g\_test\_procs} table with each of the test functions. Each function has default priority low and default stack size determined by a OS parameter \textbf{USR\_SZ\_STACK}. We then set the starting values for A, B, and C to LOWEST. Finally, each table entry is given a pointer to the corresponding function. When initializing all processes we call this set\_test\_procs function and iterate through the test table adding each entry to the \textbf{g\_proc\_table}. The rest of the functions are manually added since they have unique values. Most of these values are stored as global variables so that all functions have access to them. For more details view the associated section of 3.4.2
 
 Parameters:
 \begin{itemize}
-    \item USR\_SZ\_STACK: the size of the stack allocated to each user process, this can be used to configure how much stack memory each process has access to
-    \item RAM\_END\_ADDR: the ending address of available memory, this can be used to configure how much heap memory the OS has access (will be constrained by the hardware being used)
-    \item BLOCK\_SIZE: the fixed size of each memory block, this can be used to configure the amount of memory given when request memory is called (can also be used to configure how many memory blocks to have)
-\end{itemize}
+    \item USR\_SZ\_STACK: the size of the stack allocated to each user process, which can be used to configure how much stack memory each process has access to
+    \item RAM\_END\_ADDR: the ending address of available memory, which can be used to configure how much heap memory the OS has access (will be constrained by the hardware being used)
+    \item BLOCK\_SIZE: the fixed size of each memory block, which can be used to configure the amount of memory given when request memory is called (can also be used to configure how many memory blocks to have)
+\end{itemize} 
 
+\clearpage
 \section{Testing}
 
 \subsection{Test Handler}
@@ -730,9 +709,9 @@ some_test_function(){
 \caption{Timing Analysis data \label{overflow}}
 \end{figure}
 
-This analysis is valid because as shown in Figure 2, the time taken for message sending and receiving is proportional to the amount of messages sent and received. Similarly, there is a direct correlation between time taken to request and release memory blocks and the amount of blocks requested or released. In addition, simple system processes such as setting process priority took less time than more complex system processes such as sending messages (which in turn requested memory blocks).
+This analysis is valid because, as shown in Figure 2, the time taken for message sending and receiving is proportional to the amount of messages sent and received. Similarly, there is a direct correlation between time taken to request and release memory blocks and the amount of blocks requested or released. In addition, simple system processes such as setting process priority took less time than more complex system processes such as sending messages (which in turn requested memory blocks).
 
-The data presented shows a linear correlation, however small variances (of about 1 - 2 us) may become apparent if the number of blocks increase or timing interrupts occur. 
+The data presented shows a linear correlation, however small variances (of about 1 - 2 us) may become apparent if the number of blocks increases or timing interrupts occur. 
 
 \section{Conclusion}
 In hindsight, it is apparent that there are many implementation strategies which could have been drastically improved, saving hours of debugging and refactoring. However, with the spirit of the course, all contributors gained a deep understanding of the design and implementation challenges of basic operating systems, and can likely discuss the benefits and detriments of each decision that we made over the course of this project.
