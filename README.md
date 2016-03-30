@@ -1,4 +1,3 @@
-SE350
 =====
 Group members:
     Ginelle Gaisano - ggaisano
